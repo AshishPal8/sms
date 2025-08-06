@@ -34,10 +34,14 @@ export const adminSignupService = async (data: AdminSignupInput) => {
   });
 
   return {
-    id: admin.id,
-    name: admin.name,
-    email: admin.email,
-    role: admin.role,
+    success: true,
+    message: "Signup successful",
+    action: "login_complete",
+    data: {
+      id: admin.id,
+      name: admin.name,
+      email: admin.email,
+    },
     token,
   };
 };
@@ -62,10 +66,14 @@ export const adminSigninService = async (data: AdminSigninInput) => {
   });
 
   return {
-    id: admin.id,
-    name: admin.name,
-    email: admin.email,
-    role: admin.role,
+    success: true,
+    message: "Signin successful",
+    action: "login_complete",
+    data: {
+      id: admin.id,
+      name: admin.name,
+      email: admin.email,
+    },
     token,
   };
 };

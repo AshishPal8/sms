@@ -138,7 +138,7 @@ export const verifyOTPService = async (data: verifyOtpInput) => {
         isVerified: true,
       },
     };
-  } else if (action === "login") {
+  } else if (action === "signin") {
     if (!customer.isVerified) {
       throw new BadRequestError(
         "Account not verified. Please complete signup first."
@@ -159,7 +159,6 @@ export const verifyOTPService = async (data: verifyOtpInput) => {
         id: customer.id,
         name: customer.name,
         email: customer.email,
-        isVerified: true,
       },
     };
   }
@@ -181,7 +180,7 @@ export const resendOTPService = async (data: resendOtpInput) => {
     throw new NotFoundError("Customer account not found.");
   }
 
-  if (action === "login" && !customer.isVerified) {
+  if (action === "signin" && !customer.isVerified) {
     throw new BadRequestError(
       "Account not verified. Please complete signup first."
     );

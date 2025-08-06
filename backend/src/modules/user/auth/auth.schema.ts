@@ -12,12 +12,12 @@ export const customerSigninSchema = z.object({
 export const verifyOtpSchema = z.object({
   email: z.email({ error: "Invalid email" }),
   otp: z.string().min(6, { error: "Otp must be at least 6 charactors" }),
-  action: z.enum(["signup", "login"]),
+  action: z.enum(["signup", "signin"]),
 });
 
 export const resendOtpSchema = z.object({
   email: z.email({ error: "Invalid email" }),
-  action: z.enum(["signup", "login"]),
+  action: z.enum(["signup", "signin"]),
 });
 
 export type customerSignupInput = z.infer<typeof customerSignupSchema>;

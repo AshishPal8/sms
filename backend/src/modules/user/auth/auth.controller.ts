@@ -49,6 +49,13 @@ export const verifyOtpController = async (
       role: "CUSTOMER",
     });
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
     res.status(200).json({
       ...customer,
       token,
@@ -67,6 +74,26 @@ export const resendOtpController = async (
     const customer = await resendOTPService(req.body);
 
     res.status(200).json(customer);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const customerLogoutController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
+
+    res
+      .status(200)
+      .json({ success: true, message: "Customer Logout Successfully" });
   } catch (error) {
     next(error);
   }

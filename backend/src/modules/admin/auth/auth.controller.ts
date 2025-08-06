@@ -17,11 +17,7 @@ export const adminSignup = async (
       maxAge: 1000 * 60 * 60 * 24 * 30,
     });
 
-    res.status(201).json({
-      success: true,
-      message: "Signup successful",
-      data: admin,
-    });
+    res.status(201).json(admin);
   } catch (error) {
     next(error);
   }
@@ -42,11 +38,7 @@ export const adminSignin = async (
       maxAge: 1000 * 60 * 60 * 24 * 30,
     });
 
-    res.status(200).json({
-      success: true,
-      message: "Signin successful",
-      data: admin,
-    });
+    res.status(200).json(admin);
   } catch (error) {
     next(error);
   }
@@ -64,7 +56,11 @@ export const adminLogout = async (
       throw new NotFoundError("user already logout or not found");
     }
 
-    res.clearCookie("token");
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
 
     res
       .status(200)
