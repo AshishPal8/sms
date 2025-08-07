@@ -3,15 +3,45 @@ import prisma from "../../../db";
 import { BadRequestError, NotFoundError } from "../../../middlewares/error";
 import type { addEmployeeInput, updateEmployeeInput } from "./employees.schema";
 import { generateToken } from "../../../utils/auth";
+import type { GetAllEmployeesOptions } from "../../../types/employees.types";
 
-export const getAllEmployeesService = async (adminId: string) => {
+export const getAllEmployeesService = async ({
+  adminId,
+  search,
+  sortBy = "createdAt",
+  sortOrder = "desc",
+  page = 1,
+  limit = 10,
+  role,
+  isActive,
+}: GetAllEmployeesOptions) => {
+  const whereClause: any = {
+    id: { not: adminId },
+    isDeleted: false,
+  };
+
+  if (search) {
+    whereClause.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { email: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  if (role) {
+    whereClause.role = role;
+  }
+
+  if (typeof isActive === "boolean") {
+    whereClause.isActive = isActive;
+  }
+
+  const total = await prisma.admin.count({ where: whereClause });
+
   const employees = await prisma.admin.findMany({
-    where: {
-      id: {
-        not: adminId,
-      },
-      isDeleted: false,
-    },
+    where: whereClause,
+    orderBy: { [sortBy]: sortOrder },
+    skip: (page - 1) * limit,
+    take: limit,
     select: {
       id: true,
       name: true,
@@ -21,11 +51,10 @@ export const getAllEmployeesService = async (adminId: string) => {
       isActive: true,
       profilePicture: true,
       createdAt: true,
-      updatedAt: true,
     },
   });
 
-  return employees;
+  return { employees, total };
 };
 
 export const getEmployeeByIdService = async (id: string) => {

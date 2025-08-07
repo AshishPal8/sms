@@ -41,6 +41,7 @@ export const adminSignupService = async (data: AdminSignupInput) => {
       id: admin.id,
       name: admin.name,
       email: admin.email,
+      role: admin.role,
     },
     token,
   };
@@ -73,6 +74,7 @@ export const adminSigninService = async (data: AdminSigninInput) => {
       id: admin.id,
       name: admin.name,
       email: admin.email,
+      role: admin.role,
     },
     token,
   };

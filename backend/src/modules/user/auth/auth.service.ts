@@ -135,7 +135,7 @@ export const verifyOTPService = async (data: verifyOtpInput) => {
         id: verifiedCustomer.id,
         name: verifiedCustomer.name,
         email: verifiedCustomer.email,
-        isVerified: true,
+        role: "CUSTOMER",
       },
     };
   } else if (action === "signin") {
@@ -159,6 +159,7 @@ export const verifyOTPService = async (data: verifyOtpInput) => {
         id: customer.id,
         name: customer.name,
         email: customer.email,
+        role: "CUSTOMER",
       },
     };
   }

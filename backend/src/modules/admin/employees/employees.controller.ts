@@ -19,11 +19,42 @@ export const getAllEmployees = async (
     if (!adminId) {
       throw new UnauthorizedError("You are not authorized for this reqeust!");
     }
-    const employees = await getAllEmployeesService(adminId);
+
+    const {
+      search,
+      sortBy,
+      sortOrder,
+      page = "1",
+      limit = "10",
+      role,
+      isActive,
+    } = req.query;
+
+    const numericPage = parseInt(page as string, 10);
+    const numericLimit = parseInt(limit as string, 10);
+    const isActiveBoolean =
+      isActive === "true" ? true : isActive === "false" ? false : undefined;
+
+    const { employees, total } = await getAllEmployeesService({
+      adminId,
+      search: search as string,
+      sortBy: sortBy as string,
+      sortOrder: sortOrder as "asc" | "desc",
+      page: numericPage,
+      limit: numericLimit,
+      role: role as string,
+      isActive: isActiveBoolean,
+    });
     res.status(200).json({
       success: true,
       message: "Employees fetched successfully",
       data: employees,
+      meta: {
+        total,
+        page: numericPage,
+        limit: numericLimit,
+        totalPages: Math.ceil(total / numericLimit),
+      },
     });
   } catch (err) {
     next(err);

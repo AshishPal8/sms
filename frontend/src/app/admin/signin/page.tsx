@@ -23,8 +23,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import Link from "next/link";
-import OAuth from "@/components/auth/oauth";
 import { baseUrl } from "../../../../config";
 import useAuthStore from "@/store/user";
 import { useRouter } from "next/navigation";

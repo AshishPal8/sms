@@ -242,14 +242,21 @@ export default function SignupForm() {
             </motion.div>
 
             <OAuth />
-            <CardDescription className="text-neutral-600 text-center mt-2">
-              Don&apos;t have an account{"  "}
-              <Link
-                href={"/signup"}
-                className="text-primary underline font-semibold"
-              >
-                Sign Up
-              </Link>
+            <CardDescription className="text-neutral-600 text-center mt-2 flex flex-col gap-4">
+              <div>
+                Don&apos;t have an account{"  "}
+                <Link
+                  href={"/signup"}
+                  className="text-primary underline font-semibold"
+                >
+                  Sign Up
+                </Link>
+              </div>
+              <div>
+                <Link href="/admin/signin" className="text-black font-semibold">
+                  Login as Admin
+                </Link>
+              </div>
             </CardDescription>
           </CardContent>
         </Card>
