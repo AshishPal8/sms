@@ -7,6 +7,7 @@ import { globalErrorHandler } from "./middlewares/error";
 
 import authRoutes from "./modules/admin/auth/auth.route";
 import employeeRoutes from "./modules/admin/employees/employees.route";
+import departmentRoutes from "./modules/admin/departments/department.route";
 import userRoutes from "./modules/user/user.routes";
 
 export const app = express();
@@ -28,6 +29,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/admin", authRoutes);
 app.use("/api/employees", employeeRoutes);
+app.use("/api/departments", departmentRoutes);
 
 //user
 app.use("/api/user", userRoutes);
