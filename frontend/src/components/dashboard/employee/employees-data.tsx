@@ -5,13 +5,8 @@ import React, { useEffect, useState } from "react";
 import { baseUrl } from "../../../../config";
 import { useSearchParams } from "next/navigation";
 import { EmployeeActions } from "./cell-action";
-
-interface IEmployee {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
+import Pagination from "../pagination";
+import { IEmployee } from "@/types/employee.types";
 
 const columns = [
   { header: "Name", accessor: "name" },
@@ -31,10 +26,12 @@ const columns = [
 const EmployeesData = () => {
   const searchParams = useSearchParams();
   const [employees, setEmployees] = useState([]);
+  const [totalPage, setTotalPage] = useState(0);
 
   const search = searchParams.get("search") || "";
   const sort = searchParams.get("sort") || "desc";
   const role = searchParams.get("role") || "";
+  const page = searchParams.get("page") || 1;
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -44,19 +41,21 @@ const EmployeesData = () => {
             search,
             sort,
             role,
+            page,
           },
           withCredentials: true,
         });
 
-        const { data } = await res.data;
+        const { data, meta } = await res.data;
         setEmployees(data);
+        setTotalPage(meta.totalPages);
       } catch (error) {
         console.error("Error fetching employees:", error);
       }
     };
 
     fetchEmployees();
-  }, [role, search, sort]);
+  }, [role, search, sort, page]);
 
   const formatEmployees = employees.map((employee: IEmployee) => ({
     id: employee.id,
@@ -68,6 +67,7 @@ const EmployeesData = () => {
   return (
     <div>
       <DataTable columns={columns} data={formatEmployees} />
+      <Pagination page={Number(page)} totalPages={totalPage} />
     </div>
   );
 };

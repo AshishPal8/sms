@@ -23,13 +23,13 @@ const SearchInput = () => {
         params.delete("search");
       }
       router.push(`?${params.toString()}`);
-    }, 400);
+    }, 300);
 
     return () => clearTimeout(debounceTimer);
   }, [value, router, searchParams]);
 
   return (
-    <div>
+    <div className="w-full md:w-[40%]">
       <Input
         type="text"
         placeholder="Search..."

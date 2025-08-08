@@ -27,79 +27,76 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import ImageUpload from "@/components/ui/image-upload";
 import axios from "axios";
 import { baseUrl } from "../../../../config";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { IEmployee } from "@/types/employee.types";
 
 const formSchema = z.object({
   name: z.string(),
-  email: z.string(),
-  phone: z.string().optional(),
-  password: z.string(),
-  role: z.enum(["SUPERADMIN", "TECHNICIAN", "MANAGER", "ASSISTANT"]),
-  profilePicture: z.string().optional(),
+  adminId: z.string(),
   isActive: z.boolean(),
 });
 
-type EmployeeFormValues = z.infer<typeof formSchema>;
+type DepartmentFormValues = z.infer<typeof formSchema>;
 
-interface EmployeeFormProps {
-  initialData?: EmployeeFormValues & { id?: string };
+interface DepartmentFormProps {
+  initialData?: DepartmentFormValues & { id?: string };
 }
 
-export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
+export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
   const router = useRouter();
 
-  console.log("initial data", initialData);
-
   const [loading, setLoading] = useState(false);
+  const [employees, setEmployees] = useState<IEmployee[]>([]);
 
-  const form = useForm<EmployeeFormValues>({
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const res = await axios.get(`${baseUrl}/employees?role=MANAGER`, {
+          withCredentials: true,
+        });
+
+        const { data } = await res.data;
+        setEmployees(data);
+      } catch (error) {
+        console.error("Error fetching employees:", error);
+      }
+    };
+
+    fetchEmployees();
+  }, []);
+
+  const form = useForm<DepartmentFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
       name: "",
-      email: "",
-      phone: "",
-      password: "",
-      role: "TECHNICIAN",
-      profilePicture: "",
+      adminId: "",
       isActive: true,
     },
   });
 
-  useEffect(() => {
-    if (initialData) {
-      form.reset({
-        ...initialData,
-        password: "",
-      });
-    }
-  }, [form, initialData]);
-
   const isEdit = !!initialData;
 
-  const onSubmit = async (values: EmployeeFormValues) => {
+  const onSubmit = async (values: DepartmentFormValues) => {
     try {
       setLoading(true);
 
       if (isEdit) {
-        await axios.put(
-          `${baseUrl}/employees/update/${initialData.id}`,
-          values,
-          {
-            withCredentials: true,
-          }
-        );
+        await axios.put(`${baseUrl}/departments/${initialData.id}`, values, {
+          withCredentials: true,
+        });
       } else {
-        await axios.post(`${baseUrl}/employees/add`, values, {
+        await axios.post(`${baseUrl}/departments/add`, values, {
           withCredentials: true,
         });
       }
 
-      toast.success(`Employee ${isEdit ? "updated" : "created"} successfully`);
-      router.push("/dashboard/employees");
+      toast.success(
+        `Department ${isEdit ? "updated" : "created"} successfully`
+      );
+      router.push("/dashboard/departments");
     } catch (error) {
       toast.error("Something went wrong!");
       console.error("Error submitting form:", error);
@@ -113,17 +110,17 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center mb-2 gap-4">
           <Link
-            href="/dashboard/employees"
+            href="/dashboard/departments"
             className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center"
           >
             <ArrowLeft size={25} />
           </Link>
           <Heading
-            title={isEdit ? "Update Employee" : "Add Employee"}
+            title={isEdit ? "Update Department" : "Add Department"}
             description={
               isEdit
-                ? "Update employee details"
-                : "Add a new employee for your company"
+                ? "Update department details"
+                : "Add a new department for your company"
             }
           />
         </div>
@@ -134,23 +131,6 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
             className="space-y-8 w-full mt-4"
           >
             <div className="grid grid-cols-1 gap-5">
-              <FormField
-                control={form.control}
-                name="profilePicture"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <ImageUpload
-                        value={field.value ? [field.value] : []}
-                        disabled={loading}
-                        onChange={(url) => field.onChange(url)}
-                        onRemove={() => field.onChange("")}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="name"
@@ -170,63 +150,10 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
               />
               <FormField
                 control={form.control}
-                name="email"
+                name="adminId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        disabled={loading}
-                        placeholder="Enter email"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={loading}
-                        placeholder="Enter phone no."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        disabled={loading}
-                        placeholder="Enter password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
+                    <FormLabel>Employee</FormLabel>
                     <Select
                       disabled={loading}
                       onValueChange={field.onChange}
@@ -235,14 +162,15 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
+                          <SelectValue placeholder="Select Employee" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="SUPERADMIN">Super admin</SelectItem>
-                        <SelectItem value="MANAGER">Manager</SelectItem>
-                        <SelectItem value="TECHNICIAN">Technician</SelectItem>
-                        <SelectItem value="ASSISTANT">Assistant</SelectItem>
+                        {employees.map((employee) => (
+                          <SelectItem key={employee.id} value={employee.id}>
+                            {employee.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
