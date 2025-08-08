@@ -14,12 +14,12 @@ const SidebarLinks = () => {
           <li key={item.href}>
             <Link
               href={item.href}
-              className={`flex gap-2 items-center px-3 py-2 rounded hover:bg-blue-800 text-black hover:text-white cursor-pointer ${
-                pathname.endsWith(item.href) ? "bg-blue-800 text-white" : ""
+              className={`flex gap-4 items-center justify-start p-3 rounded-lg hover:bg-[#4880FF] duration-300 text-gray-600 hover:text-white cursor-pointer ${
+                pathname.endsWith(item.href) ? "bg-[#4880FF] text-white" : ""
               }`}
             >
-              <item.icon />
-              <p>{item.label}</p>
+              <item.icon size={20} />
+              <p className="text-[14px] font-semibold">{item.label}</p>
             </Link>
           </li>
         ))}

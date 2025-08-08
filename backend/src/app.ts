@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
+
 import { requestLogger } from "./middlewares/logger";
 import { globalErrorHandler } from "./middlewares/error";
 
@@ -13,9 +15,11 @@ app.use(express.json());
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   })
 );
+app.use(cookieParser());
 app.use(requestLogger);
 
 app.get("/", (req, res) => {

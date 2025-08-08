@@ -9,7 +9,11 @@ export const addEmployeeSchema = z.object({
     .min(6, { error: "Password must be at least 6 characters" }),
   role: z.enum(AdminRole),
   phone: z.string().optional(),
-  profilePicture: z.url().optional(),
+  profilePicture: z
+    .url({ message: "Invalid URL" })
+    .optional()
+    .or(z.literal(""))
+    .or(z.null()),
 });
 
 export const updateEmployeeSchema = z.object({
@@ -18,7 +22,11 @@ export const updateEmployeeSchema = z.object({
   role: z.enum(AdminRole).optional(),
   phone: z.string().optional(),
   isActive: z.boolean().optional(),
-  profilePicture: z.url().optional(),
+  profilePicture: z
+    .url({ message: "Invalid URL" })
+    .optional()
+    .or(z.literal(""))
+    .or(z.null()),
 });
 
 export type addEmployeeInput = z.infer<typeof addEmployeeSchema>;

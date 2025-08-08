@@ -1,0 +1,43 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { Input } from "../ui/input";
+import { useRouter, useSearchParams } from "next/navigation";
+
+let debounceTimer: NodeJS.Timeout;
+
+const SearchInput = () => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const [value, setValue] = useState(searchParams.get("search") || "");
+
+  useEffect(() => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value) {
+        params.set("search", value);
+        params.set("page", "1");
+      } else {
+        params.delete("search");
+      }
+      router.push(`?${params.toString()}`);
+    }, 400);
+
+    return () => clearTimeout(debounceTimer);
+  }, [value, router, searchParams]);
+
+  return (
+    <div>
+      <Input
+        type="text"
+        placeholder="Search..."
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
+    </div>
+  );
+};
+
+export default SearchInput;

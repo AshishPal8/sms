@@ -10,7 +10,7 @@ import {
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
-import { LayoutDashboard, Menu, X } from "lucide-react";
+import { ChevronDown, LayoutDashboard, Menu, X } from "lucide-react";
 import axios from "axios";
 import { baseUrl } from "../../../config";
 import { usePathname, useRouter } from "next/navigation";
@@ -37,7 +37,7 @@ const DashHeader = () => {
   };
 
   return (
-    <div className="w-full px-3 md:px-10 py-2 md:py-4">
+    <div className="w-full px-3 md:px-10 py-2 border-b">
       <div className="flex items-center justify-between">
         <div className="flex gap-2 items-center justify-center">
           <Menu
@@ -47,19 +47,19 @@ const DashHeader = () => {
           />
           {navItems.map((nav) =>
             pathname.endsWith(nav.href) ? (
-              <h2
+              <h1
                 key={nav.href}
-                className="font-bold text-lg md:text-2xl text-primary"
+                className="font-extrabold text-xl md:text-2xl text-primary"
               >
                 {nav.label}
-              </h2>
+              </h1>
             ) : null
           )}
         </div>
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="rounded-xl flex items-center justify-center gap-3 cursor-pointer border border-gray-200 px-2 py-1">
+              <div className="rounded-xl flex items-center justify-center gap-2 cursor-pointer">
                 <Avatar className="w-10 h-10">
                   <AvatarImage
                     src={user.profilePicture || "/default.webp"}
@@ -70,12 +70,18 @@ const DashHeader = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block">
-                  <h2 className="text-black font-semibold text-base">
+                  <h2 className="text-black font-bold text-[14px]">
                     {user.name}
                   </h2>
-                  <p className="text-gray-600 capitalize text-xs">
-                    {user.role}
+                  <p className="text-gray-600 capitalize text-xs font-semibold">
+                    {user.role
+                      ? user.role.charAt(0).toUpperCase() +
+                        user.role.slice(1).toLowerCase()
+                      : ""}
                   </p>
+                </div>
+                <div>
+                  <ChevronDown size={22} />
                 </div>
               </div>
             </DropdownMenuTrigger>
