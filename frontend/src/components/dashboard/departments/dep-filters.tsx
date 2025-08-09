@@ -3,13 +3,15 @@ import SearchInput from "../search-input";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import FilterDropdown from "./filter-dropdown";
 
 const DepartmentFilters = () => {
   return (
     <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
-      <SearchInput />
+      <SearchInput placeholder="Search with Name" />
       <div className="flex gap-2 items-center">
-        <Link href="/dashboard/departments/add">
+        <FilterDropdown />
+        <Link href="/dashboard/superadmin/departments/add">
           <Button className="cursor-pointer">
             <Plus size={20} /> Add
           </Button>

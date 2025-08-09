@@ -8,10 +8,10 @@ import { Plus } from "lucide-react";
 const EmployeeFilters = () => {
   return (
     <div className="flex flex-col md:flex-row justify-between items-center gap-4 w-full">
-      <SearchInput />
+      <SearchInput placeholder="Search with Name & Email" />
       <div className="flex gap-2 items-center">
         <FilterDropdown />
-        <Link href="/dashboard/employees/add">
+        <Link href="/dashboard/superadmin/employees/add">
           <Button className="cursor-pointer">
             <Plus size={20} /> Add
           </Button>

@@ -36,6 +36,12 @@ export const getAllDepartmentsService = async ({
     select: {
       id: true,
       name: true,
+      admin: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       isActive: true,
       createdAt: true,
     },
@@ -50,6 +56,7 @@ export const getDepartmentByIdService = async (id: string) => {
     select: {
       id: true,
       name: true,
+      adminId: true,
       isActive: true,
       createdAt: true,
       updatedAt: true,
@@ -75,7 +82,7 @@ export const addDepartmentService = async (data: createDepartmentInput) => {
   const department = await prisma.department.create({
     data: {
       name,
-      adminId,
+      adminId: adminId ? adminId : null,
       isActive,
     },
   });
@@ -110,7 +117,7 @@ export const updateDepartmentService = async (
     where: { id },
     data: {
       name,
-      adminId,
+      adminId: adminId ? adminId : null,
       isActive,
     },
   });

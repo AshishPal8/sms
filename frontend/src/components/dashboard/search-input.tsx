@@ -6,7 +6,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 let debounceTimer: NodeJS.Timeout;
 
-const SearchInput = () => {
+interface ISearchInput {
+  placeholder?: string;
+}
+const SearchInput = ({ placeholder }: ISearchInput) => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -32,9 +35,10 @@ const SearchInput = () => {
     <div className="w-full md:w-[40%]">
       <Input
         type="text"
-        placeholder="Search..."
+        placeholder={placeholder || "Search..."}
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        className="bg-white"
       />
     </div>
   );

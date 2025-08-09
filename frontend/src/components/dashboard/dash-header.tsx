@@ -32,8 +32,8 @@ const DashHeader = () => {
       }
     );
 
-    logout();
     router.push("/admin/signin");
+    logout();
   };
 
   return (

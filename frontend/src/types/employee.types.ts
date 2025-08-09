@@ -3,4 +3,6 @@ export interface IEmployee {
   name: string;
   email: string;
   role: string;
+  profilePicture: string;
+  createdAt?: string;
 }

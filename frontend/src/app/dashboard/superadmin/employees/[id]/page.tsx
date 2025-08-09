@@ -5,9 +5,24 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { baseUrl } from "../../../../../../config";
 import { useParams } from "next/navigation";
+import { Role } from "@/types/role.types";
 
-function EditEmployeeForm() {
-  const [employee, setEmployee] = useState({ name: "" });
+function EditEmployee() {
+  const [employee, setEmployee] = useState<{
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    role: Role;
+    isActive: boolean;
+  }>({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    role: "TECHNICIAN",
+    isActive: true,
+  });
   const { id } = useParams();
 
   useEffect(() => {
@@ -35,4 +50,4 @@ function EditEmployeeForm() {
   );
 }
 
-export default EditEmployeeForm;
+export default EditEmployee;

@@ -11,23 +11,12 @@ import Pagination from "../pagination";
 interface IDepartment {
   id: string;
   name: string;
+  admin?: {
+    name: string;
+  };
   createdAt: string;
   isActive: boolean;
 }
-
-const columns = [
-  { header: "Name", accessor: "name" },
-  { header: "Active", accessor: "isActive" },
-  {
-    header: "Created At",
-    accessor: "createdAt",
-  },
-  {
-    header: "Actions",
-    accessor: "id",
-    render: (id: string) => <DepartmentActions id={id} />,
-  },
-];
 
 const DepartmentData = () => {
   const searchParams = useSearchParams();
@@ -35,7 +24,7 @@ const DepartmentData = () => {
   const [totalPage, setTotalPage] = useState(0);
 
   const search = searchParams.get("search") || "";
-  const sort = searchParams.get("sort") || "desc";
+  const sortOrder = searchParams.get("sortOrder") || "desc";
   const page = searchParams.get("page") || 1;
 
   useEffect(() => {
@@ -44,7 +33,7 @@ const DepartmentData = () => {
         const res = await axios.get(`${baseUrl}/departments`, {
           params: {
             search,
-            sort,
+            sortOrder,
             page,
           },
           withCredentials: true,
@@ -59,14 +48,37 @@ const DepartmentData = () => {
     };
 
     fetchDepartments();
-  }, [search, sort, page]);
+  }, [search, sortOrder, page]);
 
   const formatDepartments = departments.map((department: IDepartment) => ({
     id: department.id,
     name: department.name,
+    assignedTo: department.admin?.name || "Not Assigned",
     isActive: department.isActive,
     createdAt: format(new Date(department.createdAt), "dd-MM-yyyy"),
   }));
+
+  const columns = [
+    { header: "Department", accessor: "name" },
+    { header: "Assigned To", accessor: "assignedTo" },
+    { header: "Active", accessor: "isActive" },
+    {
+      header: "Created At",
+      accessor: "createdAt",
+    },
+    {
+      header: "Actions",
+      accessor: "id",
+      render: (id: string) => (
+        <DepartmentActions
+          id={id}
+          onDeleteSuccess={(deletedId: string) => {
+            setDepartments((prev) => prev.filter((d) => d.id !== deletedId));
+          }}
+        />
+      ),
+    },
+  ];
 
   return (
     <div>

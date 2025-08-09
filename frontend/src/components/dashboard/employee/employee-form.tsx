@@ -99,7 +99,7 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
       }
 
       toast.success(`Employee ${isEdit ? "updated" : "created"} successfully`);
-      router.push("/dashboard/employees");
+      router.push("/dashboard/superadmin/employees");
     } catch (error) {
       toast.error("Something went wrong!");
       console.error("Error submitting form:", error);
@@ -113,7 +113,7 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center mb-2 gap-4">
           <Link
-            href="/dashboard/employees"
+            href="/dashboard/superadmin/employees"
             className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center"
           >
             <ArrowLeft size={25} />

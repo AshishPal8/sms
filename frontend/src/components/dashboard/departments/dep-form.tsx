@@ -32,6 +32,7 @@ import { baseUrl } from "../../../../config";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { IEmployee } from "@/types/employee.types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const formSchema = z.object({
   name: z.string(),
@@ -48,13 +49,15 @@ interface DepartmentFormProps {
 export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
   const router = useRouter();
 
+  console.log("initial Data", initialData);
+
   const [loading, setLoading] = useState(false);
   const [employees, setEmployees] = useState<IEmployee[]>([]);
 
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/employees?role=MANAGER`, {
+        const res = await axios.get(`${baseUrl}/employees`, {
           withCredentials: true,
         });
 
@@ -77,18 +80,34 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
     },
   });
 
+  useEffect(() => {
+    if (initialData) {
+      form.reset(initialData);
+    }
+  }, [initialData, form]);
+
   const isEdit = !!initialData;
 
   const onSubmit = async (values: DepartmentFormValues) => {
     try {
       setLoading(true);
 
+      const payload = {
+        ...values,
+        adminId:
+          !values.adminId || values.adminId === "none" ? null : values.adminId,
+      };
+
       if (isEdit) {
-        await axios.put(`${baseUrl}/departments/${initialData.id}`, values, {
-          withCredentials: true,
-        });
+        await axios.put(
+          `${baseUrl}/departments/update/${initialData.id}`,
+          payload,
+          {
+            withCredentials: true,
+          }
+        );
       } else {
-        await axios.post(`${baseUrl}/departments/add`, values, {
+        await axios.post(`${baseUrl}/departments/add`, payload, {
           withCredentials: true,
         });
       }
@@ -96,7 +115,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
       toast.success(
         `Department ${isEdit ? "updated" : "created"} successfully`
       );
-      router.push("/dashboard/departments");
+      router.push("/dashboard/superadmin/departments");
     } catch (error) {
       toast.error("Something went wrong!");
       console.error("Error submitting form:", error);
@@ -110,7 +129,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center mb-2 gap-4">
           <Link
-            href="/dashboard/departments"
+            href="/dashboard/superadmin/departments"
             className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center"
           >
             <ArrowLeft size={25} />
@@ -166,9 +185,38 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem
+                          value="none"
+                          className="text-black font-semibold text-[12px]"
+                        >
+                          None
+                        </SelectItem>
                         {employees.map((employee) => (
                           <SelectItem key={employee.id} value={employee.id}>
-                            {employee.name}
+                            <div className="rounded-xl flex items-center justify-center gap-2 cursor-pointer">
+                              <Avatar className="w-8 h-8">
+                                <AvatarImage
+                                  src={
+                                    employee.profilePicture || "/default.webp"
+                                  }
+                                  alt=""
+                                />
+                                <AvatarFallback className="text-xs">
+                                  {employee.name[0] || "E"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="hidden md:block">
+                                <h2 className="text-black font-semibold text-[12px]">
+                                  {employee.name}
+                                </h2>
+                                <p className="text-gray-600 capitalize text-[10px] font-medium">
+                                  {employee.role
+                                    ? employee.role.charAt(0).toUpperCase() +
+                                      employee.role.slice(1).toLowerCase()
+                                    : ""}
+                                </p>
+                              </div>
+                            </div>
                           </SelectItem>
                         ))}
                       </SelectContent>

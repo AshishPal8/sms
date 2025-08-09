@@ -7,7 +7,12 @@ export const createDepartmentSchema = z.object({
     .string()
     .min(2, { error: "Department name must be at least 2 characters" })
     .max(50, { error: "Department name must be at most 50 characters" }),
-  adminId: z.string().regex(objectIdRegex, "Invalid admin ID").optional(),
+  adminId: z
+    .string()
+    .regex(objectIdRegex, "Invalid admin ID")
+    .or(z.literal(""))
+    .nullable()
+    .optional(),
   isActive: z.boolean().optional(),
 });
 
@@ -17,7 +22,12 @@ export const updateDepartmentSchema = z.object({
     .min(2, { error: "Department name must be at least 2 characters" })
     .max(50, { error: "Department name must be at most 50 characters" })
     .optional(),
-  adminId: z.string().regex(objectIdRegex, "Invalid admin ID").optional(),
+  adminId: z
+    .string()
+    .regex(objectIdRegex, "Invalid admin ID")
+    .or(z.literal(""))
+    .nullable()
+    .optional(),
   isActive: z.boolean().optional(),
 });
 
