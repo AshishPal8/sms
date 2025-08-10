@@ -135,6 +135,8 @@ model Ticket {
   assets TicketAsset[]
   items  TicketItem[]
 
+  isDeleted Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -156,6 +158,8 @@ model TicketItem {
   title       String
   description String
   assets      TicketItemAsset[]
+
+  isPublic Boolean @default(false)
 
   // Who assigned this ticket item
   assignedByRole       AssignmentRole?
