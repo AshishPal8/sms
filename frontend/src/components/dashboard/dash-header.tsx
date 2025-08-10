@@ -10,7 +10,7 @@ import {
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
-import { ChevronDown, LayoutDashboard, Menu, X } from "lucide-react";
+import { ChevronDown, LayoutDashboard, Menu } from "lucide-react";
 import axios from "axios";
 import { baseUrl } from "../../../config";
 import { usePathname, useRouter } from "next/navigation";

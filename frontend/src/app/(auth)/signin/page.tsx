@@ -34,7 +34,6 @@ import {
 import { baseUrl } from "../../../../config";
 import useAuthStore from "@/store/user";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Logo from "@/components/layout/logo";
 
 const formSchema = z.object({
