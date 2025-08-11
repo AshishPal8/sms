@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import { requestLogger } from "./middlewares/logger";
 import { globalErrorHandler } from "./middlewares/error";
 
+import uploadRoutes from "./modules/uploads/upload.route";
 import authRoutes from "./modules/admin/auth/auth.route";
 import employeeRoutes from "./modules/admin/employees/employees.route";
 import departmentRoutes from "./modules/admin/departments/department.route";
@@ -26,6 +27,8 @@ app.use(requestLogger);
 app.get("/", (req, res) => {
   res.send("Hello world!");
 });
+
+app.use("/api/upload", uploadRoutes);
 
 app.use("/api/admin", authRoutes);
 app.use("/api/employees", employeeRoutes);

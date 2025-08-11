@@ -8,6 +8,7 @@ import { baseUrl } from "../../../../config";
 import { EmployeeActions } from "./cell-action";
 import Pagination from "../pagination";
 import { IEmployee } from "@/types/employee.types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const EmployeesData = () => {
   const searchParams = useSearchParams();
@@ -45,6 +46,7 @@ const EmployeesData = () => {
 
   const formatEmployees = employees.map((employee: IEmployee) => ({
     id: employee.id,
+    profile: employee.profilePicture,
     name: employee.name,
     email: employee.email,
     role: employee.role.toLowerCase(),
@@ -54,6 +56,22 @@ const EmployeesData = () => {
   }));
 
   const columns = [
+    {
+      header: "Profile",
+      accessor: "profile",
+      render: (value: string, row: any) => (
+        <Avatar className="w-12 h-12">
+          <AvatarImage
+            src={`${value}?tr=w-50,h-50`}
+            alt={row.name}
+            className="w-12 h-12 object-cover"
+          />
+          <AvatarFallback>
+            {row.name ? row.name.charAt(0).toUpperCase() : "?"}
+          </AvatarFallback>
+        </Avatar>
+      ),
+    },
     { header: "Name", accessor: "name" },
     { header: "Email", accessor: "email" },
     {

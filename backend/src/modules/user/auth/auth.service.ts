@@ -54,9 +54,28 @@ export const customerSignupService = async (data: customerSignupInput) => {
   };
 };
 
-export const customerSigninService = async (data: customerSigninInput) => {
+export const signinService = async (data: customerSigninInput) => {
   const { email } = data;
   const normalizedEmail = email.toLowerCase().trim();
+
+  const admin = await prisma.admin.findUnique({
+    where: {
+      email: normalizedEmail,
+      isDeleted: false,
+    },
+  });
+
+  if (admin) {
+    return {
+      success: true,
+      message: "Admin login successful.",
+      data: {
+        id: admin.id,
+        email: admin.email,
+        role: admin.role,
+      },
+    };
+  }
 
   const customer = await prisma.customer.findUnique({
     where: {
@@ -89,6 +108,7 @@ export const customerSigninService = async (data: customerSigninInput) => {
       id: customer.id,
       email: customer.email,
       otp,
+      role: "CUSTOMER",
     },
   };
 };

@@ -143,6 +143,7 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
                       <ImageUpload
                         value={field.value ? [field.value] : []}
                         disabled={loading}
+                        multiple={false}
                         onChange={(url) => field.onChange(url)}
                         onRemove={() => field.onChange("")}
                       />

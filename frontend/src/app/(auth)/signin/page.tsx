@@ -35,16 +35,19 @@ import { baseUrl } from "../../../../config";
 import useAuthStore from "@/store/user";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/layout/logo";
+import { Eye, EyeOff } from "lucide-react";
 
 const formSchema = z.object({
   email: z.email({ error: "Valid email is required" }),
 });
 
 export default function SignupForm() {
-  const [step, setStep] = useState<"form" | "otp">("form");
+  const [step, setStep] = useState<"form" | "otp" | "password">("form");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [devOtp, setDevOtp] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
@@ -62,10 +65,15 @@ export default function SignupForm() {
       const res = await axios.post(`${baseUrl}/user/auth/signin`, values);
       setEmail(values.email);
       const { data } = res.data;
-      setDevOtp(data.otp);
-      setStep("otp");
 
-      toast.success(`OTP sent! Check email. (OTP: ${devOtp})`);
+      if (data.role === "CUSTOMER") {
+        setDevOtp(data.otp);
+        setStep("otp");
+        toast.success(`OTP sent! Please check email.`);
+      } else {
+        setStep("password");
+        toast.info(`Enter your password to continue.`);
+      }
     } catch (error) {
       console.error("Signin error:", error);
       if (axios.isAxiosError(error) && error.response) {
@@ -111,6 +119,41 @@ export default function SignupForm() {
       router.push("/");
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "OTP verification failed");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function onPasswordSubmit() {
+    setIsLoading(true);
+    try {
+      const res = await axios.post(
+        `${baseUrl}/admin/signin`,
+        {
+          email,
+          password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      const { data, token } = res.data;
+
+      useAuthStore.getState().setCredentials(
+        {
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          role: data.role,
+        },
+        token
+      );
+
+      toast.success("Logged in Successful");
+      router.push("/");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Login failed");
     } finally {
       setIsLoading(false);
     }
@@ -187,11 +230,11 @@ export default function SignupForm() {
                       className="w-full cursor-pointer"
                       disabled={isLoading}
                     >
-                      {isLoading ? "Sending OTP..." : "Send OTP"}
+                      {isLoading ? "Verifying..." : "Next"}
                     </Button>
                   </form>
                 </Form>
-              ) : (
+              ) : step === "otp" ? (
                 <div className="space-y-6 w-full">
                   <div className="bg-muted p-4 rounded-md text-sm text-muted-foreground border">
                     <p>
@@ -237,6 +280,41 @@ export default function SignupForm() {
                     </button>
                   </p>
                 </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent cursor-pointer"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <span className="sr-only">
+                        {showPassword ? "Hide password" : "Show password"}
+                      </span>
+                    </Button>
+                  </div>
+                  <Button
+                    size="lg"
+                    className="w-full cursor-pointer"
+                    onClick={onPasswordSubmit}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Verifying..." : "Login"}
+                  </Button>
+                </div>
               )}
             </motion.div>
 
@@ -249,11 +327,6 @@ export default function SignupForm() {
                   className="text-primary underline font-semibold"
                 >
                   Sign Up
-                </Link>
-              </div>
-              <div>
-                <Link href="/admin/signin" className="text-black font-semibold">
-                  Login as Admin
                 </Link>
               </div>
             </CardDescription>

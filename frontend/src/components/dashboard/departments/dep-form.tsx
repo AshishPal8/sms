@@ -200,6 +200,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
                                     employee.profilePicture || "/default.webp"
                                   }
                                   alt=""
+                                  className="w-8 h-8 object-cover"
                                 />
                                 <AvatarFallback className="text-xs">
                                   {employee.name[0] || "E"}
