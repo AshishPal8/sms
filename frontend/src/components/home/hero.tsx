@@ -1,85 +1,76 @@
-import { ArrowRight, CheckCircle, Star } from "lucide-react";
-import React from "react";
-import { Badge } from "../ui/badge";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Button } from "../ui/button";
 
-const Hero = () => {
+export default function Hero() {
   return (
-    <section className="relative bg-gradient-to-br from-blue-50 to-white py-20 sm:py-32">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-8">
-            <div className="space-y-6">
-              <Badge
-                variant="secondary"
-                className="bg-blue-100 text-blue-700 hover:bg-blue-100"
-              >
-                <Star className="h-3 w-3 mr-1" />
-                Trusted by 500+ organizations
-              </Badge>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                Streamline Your
-                <span className="text-blue-600"> Service Requests</span>
-              </h1>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Manage tickets, track progress, and deliver exceptional service
-                with our comprehensive service request management platform
-                designed for modern teams.
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/register">
-                <Button size="lg" className="w-full sm:w-auto">
-                  Start Free Trial
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href="#demo">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full sm:w-auto"
-                >
-                  View Demo
-                </Button>
-              </Link>
-            </div>
-
-            <div className="flex items-center space-x-6 pt-6">
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-gray-600">No setup fees</span>
+    <section className="relative w-full">
+      <div className="relative mx-auto w-full">
+        <div className="relative overflow-hidden rounded-none md:rounded-[32px]">
+          <div className="relative aspect-[16/9] w-full md:aspect-[21/9]">
+            <Image
+              src="/hero.png"
+              alt="Professional technician providing home services"
+              fill
+              sizes="100vw"
+              className="object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+            <div className="absolute bottom-6 left-6 right-6 text-white md:bottom-12 md:left-12 md:right-12">
+              <div>
+                <h1 className="font-display text-3xl font-bold tracking-tight drop-shadow-lg md:text-6xl lg:text-7xl">
+                  Expert Home Services
+                  <span className="block text-blue-300">You Can Trust</span>
+                </h1>
               </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-gray-600">14-day free trial</span>
+              <div>
+                <p className="mt-4 max-w-2xl text-lg text-white/90 md:text-xl">
+                  Professional plumbing, electrical, and HVAC services.
+                  Licensed, insured, and available 24/7 for emergencies.
+                </p>
+              </div>
+              <div>
+                <div className="mt-8 flex flex-wrap items-center gap-4">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="rounded-full bg-blue-600 px-8 py-3 text-white hover:bg-blue-700 hover-lift"
+                  >
+                    <Link href="/book-a-service">Book Service Now</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="rounded-full border-white/70 bg-white/10 px-8 py-3 text-white backdrop-blur-sm hover:bg-white/20 hover-lift"
+                  >
+                    <a href="tel:+1-555-0123">Call (555) 012-3456</a>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-
-          <div className="relative">
-            <div className="bg-white rounded-xl shadow-2xl p-6 border border-gray-100">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                </div>
-                <div className="space-y-3">
-                  <div className="h-4 bg-gray-100 rounded w-3/4"></div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="h-20 bg-blue-50 rounded border border-blue-200"></div>
-                    <div className="h-20 bg-green-50 rounded border border-green-200"></div>
-                    <div className="h-20 bg-purple-50 rounded border border-purple-200"></div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-3 bg-gray-100 rounded"></div>
-                    <div className="h-3 bg-gray-100 rounded w-5/6"></div>
-                    <div className="h-3 bg-gray-100 rounded w-4/6"></div>
-                  </div>
-                </div>
+        </div>
+        {/* Trust indicators */}
+        <div>
+          <div className="mx-auto mt-8 flex w-full max-w-7xl flex-col items-center px-4 text-center md:px-8">
+            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-600 md:gap-8 md:text-base">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                <span>Licensed & Insured</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                <span>24/7 Emergency Service</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-orange-500"></div>
+                <span>Same-Day Service</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+                <span>100% Satisfaction Guarantee</span>
               </div>
             </div>
           </div>
@@ -87,6 +78,4 @@ const Hero = () => {
       </div>
     </section>
   );
-};
-
-export default Hero;
+}

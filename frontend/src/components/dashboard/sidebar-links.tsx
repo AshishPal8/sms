@@ -1,16 +1,23 @@
 "use client";
 import { navItems } from "@/data/dashboard/navlinks";
+import useAuthStore from "@/store/user";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 
 const SidebarLinks = () => {
   const pathname = usePathname();
+  const { user } = useAuthStore();
+  const userRole = user?.role || "";
+
+  const visibleNavLinks = navItems.filter((item) =>
+    item.roles.includes(userRole)
+  );
 
   return (
     <div className="mt-5 md:mt-10">
       <ul className="space-y-2">
-        {navItems.map((item) => (
+        {visibleNavLinks.map((item) => (
           <li key={item.href}>
             <Link
               href={item.href}
