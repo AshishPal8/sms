@@ -4,7 +4,7 @@ import Stats from "@/components/home/stats";
 
 export default function Home() {
   return (
-    <div>
+    <div className="max-w-7xl mx-auto pt-10">
       <Hero />
       <Stats />
       <Featured />

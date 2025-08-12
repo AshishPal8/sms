@@ -20,6 +20,39 @@ enum LoginType {
   EMAIL
 }
 
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum AssetType {
+  IMAGE
+  VIDEO
+  AUDIO
+  PDF
+  DOC
+  EXCEL
+  OTHER
+}
+
+enum AssignmentRole {
+  CUSTOMER
+  TECHNICIAN
+  ASSISTANT
+  SUPERADMIN
+  MANAGER
+  DEPARTMENT
+}
+
+//customer
 model Customer {
   id             String    @id @default(auto()) @map("_id") @db.ObjectId
   name           String
@@ -30,10 +63,17 @@ model Customer {
   isVerified     Boolean   @default(false)
   isRegistered   Boolean   @default(false)
   isDeleted      Boolean   @default(false)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+
+  tickets Ticket[]
+
+  assignedByTicketItems TicketItem[] @relation("AssignedByCustomer")
+  assignedToTicketItems TicketItem[] @relation("AssignedToCustomer")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
+//otp
 model OTP {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String
@@ -44,6 +84,7 @@ model OTP {
   @@index([email])
 }
 
+//admin
 model Admin {
   id             String    @id @default(auto()) @map("_id") @db.ObjectId
   name           String
@@ -54,6 +95,98 @@ model Admin {
   role           AdminRole
   isDeleted      Boolean   @default(false)
   isActive       Boolean   @default(true)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+
+  assignedByTicketItems TicketItem[] @relation("AssignedByAdmin")
+  assignedToTicketItems TicketItem[] @relation("AssignedToAdmin")
+
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  Department Department[]
+}
+
+//department
+model Department {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  adminId   String? @db.ObjectId
+  admin     Admin?  @relation(fields: [adminId], references: [id])
+  isActive  Boolean @default(true)
+  isDeleted Boolean @default(false)
+
+  assignedByTicketItems TicketItem[] @relation("AssignedByDept")
+  assignedToTicketItems TicketItem[] @relation("AssignedToDept")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//ticket
+model Ticket {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?
+  address     String?
+  priority    TicketPriority @default(MEDIUM)
+  status      TicketStatus   @default(OPEN)
+
+  customerId String   @db.ObjectId
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  assets TicketAsset[]
+  items  TicketItem[]
+
+  isDeleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TicketAsset {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  ticketId  String    @db.ObjectId
+  ticket    Ticket    @relation(fields: [ticketId], references: [id])
+  url       String
+  type      AssetType
+  createdAt DateTime  @default(now())
+}
+
+model TicketItem {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  ticketId String @db.ObjectId
+  ticket   Ticket @relation(fields: [ticketId], references: [id])
+
+  title       String
+  description String
+  assets      TicketItemAsset[]
+
+  isPublic Boolean @default(false)
+
+  // Who assigned this ticket item
+  assignedByRole       AssignmentRole?
+  assignedByAdminId    String?         @db.ObjectId
+  assignedByAdmin      Admin?          @relation("AssignedByAdmin", fields: [assignedByAdminId], references: [id])
+  assignedByDeptId     String?         @db.ObjectId
+  assignedByDept       Department?     @relation("AssignedByDept", fields: [assignedByDeptId], references: [id])
+  assignedByCustomerId String?         @db.ObjectId
+  assignedByCustomer   Customer?       @relation("AssignedByCustomer", fields: [assignedByCustomerId], references: [id])
+
+  // Who it’s assigned to
+  assignedToRole       AssignmentRole?
+  assignedToAdminId    String?         @db.ObjectId
+  assignedToAdmin      Admin?          @relation("AssignedToAdmin", fields: [assignedToAdminId], references: [id])
+  assignedToDeptId     String?         @db.ObjectId
+  assignedToDept       Department?     @relation("AssignedToDept", fields: [assignedToDeptId], references: [id])
+  assignedToCustomerId String?         @db.ObjectId
+  assignedToCustomer   Customer?       @relation("AssignedToCustomer", fields: [assignedToCustomerId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model TicketItemAsset {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  ticketItemId String     @db.ObjectId
+  ticketItem   TicketItem @relation(fields: [ticketItemId], references: [id])
+  url          String
+  type         AssetType
+  createdAt    DateTime   @default(now())
 }

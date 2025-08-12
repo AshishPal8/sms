@@ -1,71 +1,114 @@
-import { BarChart3, Clock, Shield, Users } from "lucide-react";
-import React from "react";
-import { Card, CardContent } from "../ui/card";
+import Image from "next/image";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
-const Featured = () => {
-  const features = [
-    {
-      icon: <Users className="h-8 w-8 text-blue-600" />,
-      title: "Multi-Role Access",
-      description:
-        "Designed for assistants, managers, technicians, and superadmins with role-based permissions.",
-    },
-    {
-      icon: <Clock className="h-8 w-8 text-blue-600" />,
-      title: "Real-Time Tracking",
-      description:
-        "Track ticket progress with live updates and comprehensive timeline views.",
-    },
-    {
-      icon: <BarChart3 className="h-8 w-8 text-blue-600" />,
-      title: "Advanced Analytics",
-      description:
-        "Get insights into team performance and service request patterns.",
-    },
-    {
-      icon: <Shield className="h-8 w-8 text-blue-600" />,
-      title: "Secure & Reliable",
-      description:
-        "Enterprise-grade security with role-based access control and data protection.",
-    },
-  ];
+const services = [
+  {
+    title: "Plumbing Services",
+    description:
+      "From leaky faucets to complete pipe replacements, our certified plumbers handle it all.",
+    features: [
+      "Emergency repairs",
+      "Water heater installation",
+      "Drain cleaning",
+      "Pipe replacement",
+    ],
+    img: "/plumbing.png",
+    color: "from-blue-500 to-cyan-500",
+  },
+  {
+    title: "Electrical Work",
+    description:
+      "Safe, code-compliant electrical services for your home's power needs.",
+    features: [
+      "Panel upgrades",
+      "Outlet installation",
+      "Lighting fixtures",
+      "Wiring repairs",
+    ],
+    img: "/electrician.png",
+    color: "from-yellow-500 to-orange-500",
+  },
+  {
+    title: "HVAC Services",
+    description:
+      "Keep your home comfortable year-round with our heating and cooling experts.",
+    features: [
+      "AC repair & install",
+      "Furnace maintenance",
+      "Duct cleaning",
+      "Thermostat upgrade",
+    ],
+    img: "/ac.png",
+    color: "from-green-500 to-emerald-500",
+  },
+];
 
+export default function FeatureCards() {
   return (
-    <section id="features" className="py-20 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-6 mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
-            Everything you need to manage service requests
+    <section id="services" className="py-16 md:py-24">
+      <div className="mx-auto max-w-7xl">
+        <div className="text-center">
+          <h2 className="font-display text-3xl font-bold text-slate-900 md:text-5xl">
+            Professional Home Services
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            From ticket creation to resolution, our platform provides all the
-            tools your team needs to deliver exceptional service.
+          <p className="mt-4 text-lg text-slate-600 md:text-xl">
+            Expert technicians, quality work, and reliable service you can count
+            on
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {features.map((feature, index) => (
+        <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map((service, i) => (
             <Card
-              key={index}
-              className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 bg-white"
+              key={i}
+              className="group overflow-hidden rounded-2xl border-0 bg-white shadow-lg hover-lift"
             >
-              <CardContent className="p-6 space-y-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {feature.title}
+              <div className="relative h-48 overflow-hidden">
+                <Image
+                  src={service.img || "/placeholder.svg"}
+                  alt={service.title}
+                  fill
+                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+              <div className="p-6">
+                <h3 className="font-display text-xl font-semibold text-slate-900">
+                  {service.title}
                 </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {feature.description}
-                </p>
-              </CardContent>
+                <p className="mt-2 text-slate-600">{service.description}</p>
+                <ul className="mt-4 space-y-2">
+                  {service.features.map((feature, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-center text-sm text-slate-600"
+                    >
+                      <div className="mr-2 h-1.5 w-1.5 rounded-full bg-blue-500" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  variant="ghost"
+                  className="mt-4 w-full rounded-full text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                >
+                  Learn More →
+                </Button>
+              </div>
             </Card>
           ))}
+        </div>
+
+        <div className="mt-12 text-center">
+          <Button
+            size="lg"
+            className="rounded-full bg-blue-600 px-8 py-3 text-white hover:bg-blue-700 hover-lift"
+          >
+            Get Free Estimate
+          </Button>
         </div>
       </div>
     </section>
   );
-};
-
-export default Featured;
+}
