@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { adminSigninService, adminSignupService } from "./auth.service";
 import { NotFoundError } from "../../../middlewares/error";
+import { clearAuthCookie, setAuthCookie } from "../../../utils/cookieUtils";
 
 export const adminSignup = async (
   req: Request,
@@ -10,12 +11,8 @@ export const adminSignup = async (
   try {
     const admin = await adminSignupService(req.body);
 
-    res.cookie("token", admin.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 1000 * 60 * 60 * 24 * 30,
-    });
+    //cookie set
+    setAuthCookie(res, admin.token);
 
     res.status(201).json(admin);
   } catch (error) {
@@ -31,12 +28,8 @@ export const adminSignin = async (
   try {
     const admin = await adminSigninService(req.body);
 
-    res.cookie("token", admin.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 1000 * 60 * 60 * 24 * 30,
-    });
+    //cookie set
+    setAuthCookie(res, admin.token);
 
     res.status(200).json(admin);
   } catch (error) {
@@ -56,11 +49,7 @@ export const adminLogout = async (
       throw new NotFoundError("user already logout or not found");
     }
 
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    });
+    clearAuthCookie(res);
 
     res
       .status(200)
