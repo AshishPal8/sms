@@ -6,6 +6,7 @@ import {
   verifyOTPService,
 } from "./auth.service";
 import { generateToken } from "../../../utils/auth";
+import { setAuthCookie } from "../../../utils/cookieUtils";
 
 export const customerSignupController = async (
   req: Request,
@@ -49,12 +50,7 @@ export const verifyOtpController = async (
       role: "CUSTOMER",
     });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+    setAuthCookie(res, token);
 
     res.status(200).json({
       ...customer,
