@@ -144,7 +144,11 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
                         value={field.value ? [field.value] : []}
                         disabled={loading}
                         multiple={false}
-                        onChange={(url) => field.onChange(url)}
+                        onChange={(url) =>
+                          field.onChange(
+                            typeof url === "string" ? url : url[0] || ""
+                          )
+                        }
                         onRemove={() => field.onChange("")}
                       />
                     </FormControl>
