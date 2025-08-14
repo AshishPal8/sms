@@ -243,3 +243,23 @@ export const resendOTPService = async (data: resendOtpInput) => {
     },
   };
 };
+
+export const getCustomerService = async (id: string) => {
+  const customer = await prisma.customer.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      address: true,
+      profilePicture: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  if (!customer) throw new NotFoundError("Customer not found");
+
+  return customer;
+};

@@ -98,7 +98,7 @@ export const getEmployeeProfile = async (
 
     res.status(201).json({
       success: true,
-      message: "Employee updated successfully",
+      message: "Employee profile fetched successfully",
       data: employee,
     });
   } catch (error) {

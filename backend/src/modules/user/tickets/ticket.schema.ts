@@ -3,6 +3,8 @@ import z from "zod";
 export const createTicketSchema = z.object({
   title: z.string().min(3, { error: "Title must be at least 3 characters" }),
   description: z.string().optional(),
+  name: z.string().optional(),
+  phone: z.string().optional(),
   address: z.string().optional(),
   assets: z
     .array(

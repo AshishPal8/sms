@@ -3,11 +3,15 @@ import {
   customerLogoutController,
   customerSigninController,
   customerSignupController,
+  getCustomerProfileController,
   resendOtpController,
   verifyOtpController,
 } from "./auth.controller";
+import { authMiddleware } from "../../../middlewares/authMiddleware";
 
 const router = Router();
+
+router.get("/me", authMiddleware, getCustomerProfileController);
 
 router.post("/signup", customerSignupController);
 router.post("/signin", customerSigninController);

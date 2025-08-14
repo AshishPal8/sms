@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import axios from "axios";
+import { baseUrl } from "../../../config";
 
 const schema = z.object({
   title: z
@@ -21,7 +23,7 @@ const schema = z.object({
     .min(20, "Please describe the issue (min 20 characters).")
     .max(1200),
   address: z.string().min(6, "Enter a valid address."),
-  contactName: z.string().min(2, "Enter your name."),
+  name: z.string().min(2, "Enter your name."),
   phone: z
     .string()
     .min(7, "Enter a valid phone.")
@@ -34,20 +36,58 @@ type FormData = z.infer<typeof schema>;
 
 export default function BookingForm() {
   const [submitted, setSubmitted] = useState<null | { id: string }>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     mode: "onChange",
   });
 
+  useEffect(() => {
+    const fetchCustomerProfile = async () => {
+      try {
+        const res = await axios.get(`${baseUrl}/user/auth/me`, {
+          withCredentials: true,
+        });
+
+        if (res.status === 200) {
+          const profile = await res.data.data;
+          if (profile.name) setValue("name", profile.name);
+          if (profile.email) setValue("email", profile.email);
+          if (profile.phone) setValue("phone", profile.phone);
+          if (profile.address) setValue("phone", profile.address);
+        }
+      } catch (error) {
+        console.error("No logged-in user or failed to fetch profile", error);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    fetchCustomerProfile();
+  }, [setValue]);
+
   async function onSubmit(data: FormData) {
-    await new Promise((r) => setTimeout(r, 1500));
-    console.log("Booking request:", data);
-    setSubmitted({ id: Math.random().toString(36).slice(2, 8).toUpperCase() });
+    const res = await axios.post(`${baseUrl}/user/ticket/create`, data, {
+      withCredentials: true,
+    });
+
+    if (res.status !== 201) {
+      console.error("Failed to create ticket");
+      return;
+    }
+
+    const result = res.data.data;
+    setSubmitted({ id: result.id });
+  }
+
+  if (loadingProfile) {
+    return <p>Loading form...</p>;
   }
 
   if (submitted) {
@@ -61,8 +101,8 @@ export default function BookingForm() {
         </h2>
         <p className="text-slate-600 mb-6">
           Thank you for choosing ProService. We&apos;ve received your request
-          and will contact you within 15 minutes to confirm details and provide
-          an arrival window.
+          and will contact you within 2 hours to confirm details and provide an
+          arrival window.
         </p>
         <div className="bg-slate-50 rounded-lg p-4 mb-6">
           <p className="text-sm text-slate-600">
@@ -148,12 +188,12 @@ export default function BookingForm() {
                 </label>
                 <Input
                   placeholder="John Smith"
-                  {...register("contactName")}
+                  {...register("name")}
                   className="rounded-lg"
                 />
-                {errors.contactName && (
+                {errors.name && (
                   <p className="mt-1 text-xs text-red-600">
-                    {errors.contactName.message}
+                    {errors.name.message}
                   </p>
                 )}
               </div>
@@ -211,8 +251,7 @@ export default function BookingForm() {
           {/* Navigation Buttons */}
           <div className="flex justify-center pt-8">
             <Button
-              type="button"
-              // onClick={nextStep}
+              type="submit"
               className="rounded-full bg-blue-600 hover:bg-blue-700"
             >
               submit

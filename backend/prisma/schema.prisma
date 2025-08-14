@@ -54,15 +54,17 @@ enum AssignmentRole {
 
 //customer
 model Customer {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  id             String  @id @default(auto()) @map("_id") @db.ObjectId
   name           String
-  email          String    @unique
+  email          String  @unique
   phone          String?
   profilePicture String?
-  loginType      LoginType @default(EMAIL)
-  isVerified     Boolean   @default(false)
-  isRegistered   Boolean   @default(false)
-  isDeleted      Boolean   @default(false)
+
+  address      String?
+  loginType    LoginType @default(EMAIL)
+  isVerified   Boolean   @default(false)
+  isRegistered Boolean   @default(false)
+  isDeleted    Boolean   @default(false)
 
   tickets Ticket[]
 
@@ -125,6 +127,8 @@ model Ticket {
   id          String         @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String?
+  name        String?
+  phone       String?
   address     String?
   priority    TicketPriority @default(MEDIUM)
   status      TicketStatus   @default(OPEN)

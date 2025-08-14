@@ -4,9 +4,11 @@ import {
   customerSignupService,
   resendOTPService,
   verifyOTPService,
+  getCustomerService,
 } from "./auth.service";
 import { generateToken } from "../../../utils/auth";
 import { setAuthCookie } from "../../../utils/cookieUtils";
+import { BadRequestError } from "../../../middlewares/error";
 
 export const customerSignupController = async (
   req: Request,
@@ -90,6 +92,29 @@ export const customerLogoutController = async (
     res
       .status(200)
       .json({ success: true, message: "Customer Logout Successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getCustomerProfileController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const customerId = req.user?.id;
+    if (!customerId) {
+      throw new BadRequestError("Customer id is required");
+    }
+
+    const customer = await getCustomerService(customerId);
+
+    res.status(200).json({
+      success: true,
+      message: "Customer profile fetched successfully",
+      data: customer,
+    });
   } catch (error) {
     next(error);
   }
