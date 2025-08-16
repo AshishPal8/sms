@@ -2,8 +2,8 @@ import type { Response } from "express";
 
 export const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "none" as "none",
+  secure: false,
+  sameSite: "lax" as "lax",
   path: "/",
   maxAge: 1000 * 60 * 60 * 24 * 30,
 };

@@ -54,7 +54,17 @@ export const getAllEmployeesService = async ({
     },
   });
 
-  return { employees, total };
+  return {
+    success: true,
+    message: "Employees fetched successfully",
+    data: employees,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 };
 
 export const getEmployeeByIdService = async (id: string) => {

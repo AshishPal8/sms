@@ -7,7 +7,6 @@ import {
   updateEmployeeService,
 } from "./employees.service";
 import { BadRequestError, UnauthorizedError } from "../../../middlewares/error";
-import { AdminRole } from "../../../generated/prisma";
 
 export const getAllEmployees = async (
   req: Request,
@@ -35,7 +34,7 @@ export const getAllEmployees = async (
     const isActiveBoolean =
       isActive === "true" ? true : isActive === "false" ? false : undefined;
 
-    const { employees, total } = await getAllEmployeesService({
+    const employees = await getAllEmployeesService({
       adminId,
       search: search as string,
       sortBy: sortBy as string,
@@ -45,17 +44,8 @@ export const getAllEmployees = async (
       role: role as string,
       isActive: isActiveBoolean,
     });
-    res.status(200).json({
-      success: true,
-      message: "Employees fetched successfully",
-      data: employees,
-      meta: {
-        total,
-        page: numericPage,
-        limit: numericLimit,
-        totalPages: Math.ceil(total / numericLimit),
-      },
-    });
+
+    res.status(200).json(employees);
   } catch (err) {
     next(err);
   }

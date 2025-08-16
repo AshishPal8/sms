@@ -10,7 +10,11 @@ export const routeAccess = {
     [roles.SUPERADMIN]: ["/dashboard/superadmin", "/dashboard/notification"],
     [roles.MANAGER]: ["/dashboard/department", "/dashboard/notification"],
     [roles.TECHNICIAN]: ["/dashboard/technician", "/dashboard/notification"],
-    [roles.ASSISTANT]: ["/dashboard/assistant", "/dashboard/notification"],
+    [roles.ASSISTANT]: [
+      "/dashboard/assistant",
+      "/dashboard/tickets",
+      "/dashboard/notification",
+    ],
     // CUSTOMER has no dashboard routes at all
     [roles.CUSTOMER]: [],
   },
