@@ -114,7 +114,7 @@ export const UpdateTicketForm = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       <div className="flex items-center mb-2 gap-4">
         <Link
           href="/dashboard/tickets"
@@ -130,98 +130,57 @@ export const UpdateTicketForm = () => {
 
       <Separator />
 
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-8 w-full mt-8"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Customer Name
-              </p>
-              <p className="text-lg font-semibold">{ticket?.name ?? "-"}</p>
+      <div className="max-w-3xl mx-auto">
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-8 w-full mt-8"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Customer Name
+                </p>
+                <p className="text-lg font-semibold">{ticket?.name ?? "-"}</p>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Phone
+                </p>
+                <p className="text-lg font-semibold">{ticket?.phone ?? "-"}</p>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Email
+                </p>
+                <p className="text-lg font-semibold">{ticket?.email ?? "-"}</p>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Address
+                </p>
+                <p className="text-lg font-semibold">
+                  {ticket?.address ?? "-"}
+                </p>
+              </div>
             </div>
-
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Phone</p>
-              <p className="text-lg font-semibold">{ticket?.phone ?? "-"}</p>
-            </div>
-
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Email</p>
-              <p className="text-lg font-semibold">{ticket?.email ?? "-"}</p>
-            </div>
-
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Address
-              </p>
-              <p className="text-lg font-semibold">{ticket?.address ?? "-"}</p>
-            </div>
-          </div>
-          <Separator />
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input
-                    disabled={loading}
-                    placeholder="Enter ticket title"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea
-                    disabled={loading}
-                    placeholder="Enter description"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Separator />
             <FormField
               control={form.control}
-              name="priority"
+              name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Priority</FormLabel>
-                  <Select
-                    disabled={loading}
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {TicketPriorityOptions.map((p) => (
-                        <SelectItem key={p} value={p}>
-                          {p}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled={loading}
+                      placeholder="Enter ticket title"
+                      {...field}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -229,67 +188,118 @@ export const UpdateTicketForm = () => {
 
             <FormField
               control={form.control}
-              name="status"
+              name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select
-                    disabled={loading}
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {TicketStatusOptions.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      disabled={loading}
+                      placeholder="Enter description"
+                      {...field}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
 
-          <FormField
-            control={form.control}
-            name="assets"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Assets</FormLabel>
-                <FormControl>
-                  <ImageUpload
-                    value={(field.value || []).map((a) => a.url)}
-                    disabled={loading}
-                    multiple={true}
-                    onChange={(urls) => {
-                      field.onChange(
-                        Array.isArray(urls) ? urls.map((u) => ({ url: u })) : []
-                      );
-                    }}
-                    onRemove={(url) => {
-                      field.onChange(
-                        (field.value || []).filter((a) => a.url !== url)
-                      );
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <div className="grid grid-cols-2 gap-5">
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Priority</FormLabel>
+                    <Select
+                      disabled={loading}
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select priority" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {TicketPriorityOptions.map((p) => (
+                          <SelectItem key={p} value={p}>
+                            {p}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <Button disabled={loading} className="ml-auto" type="submit">
-            Save
-          </Button>
-        </form>
-      </Form>
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select
+                      disabled={loading}
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {TicketStatusOptions.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="assets"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assets</FormLabel>
+                  <FormControl>
+                    <ImageUpload
+                      value={(field.value || []).map((a) => a.url)}
+                      disabled={loading}
+                      multiple={true}
+                      onChange={(urls) => {
+                        field.onChange(
+                          Array.isArray(urls)
+                            ? urls.map((u) => ({ url: u }))
+                            : []
+                        );
+                      }}
+                      onRemove={(url) => {
+                        field.onChange(
+                          (field.value || []).filter((a) => a.url !== url)
+                        );
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button disabled={loading} className="ml-auto" type="submit">
+              Save
+            </Button>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 };

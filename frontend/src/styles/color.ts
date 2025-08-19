@@ -1,6 +1,6 @@
 export const priorityStyles: Record<string, string> = {
   LOW: "bg-green-100 text-green-800 border border-green-300",
-  MEDIUM: "bg-yellow-100 text-yellow-800 border border-yellow-300",
+  MEDIUM: "bg-yellow-100 text-yellow-600 border border-yellow-300",
   HIGH: "bg-red-100 text-red-800 border border-red-300",
 };
 

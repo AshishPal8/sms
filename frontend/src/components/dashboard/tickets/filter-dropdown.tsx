@@ -14,17 +14,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Filter } from "lucide-react";
+import { CalendarIcon, Filter } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { TicketPriorityOptions, TicketStatusOptions } from "@/lib/ticket";
+import { Calendar } from "@/components/ui/calendar";
 
 const FilterDropdown = () => {
   const searchParams = useSearchParams();
@@ -46,6 +41,8 @@ const FilterDropdown = () => {
     searchParams.get("sortOrder") || "desc"
   );
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [fromDateOpen, setFromDateOpen] = useState(false);
+  const [toDateOpen, setToDateOpen] = useState(false);
 
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -90,6 +87,16 @@ const FilterDropdown = () => {
     setDropdownOpen(false);
   };
 
+  const handleFromDateSelect = (date: Date | undefined) => {
+    setFromDate(date);
+    setFromDateOpen(false);
+  };
+
+  const handleToDateSelect = (date: Date | undefined) => {
+    setToDate(date);
+    setToDateOpen(false);
+  };
+
   return (
     <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
       <DropdownMenuTrigger asChild>
@@ -105,49 +112,60 @@ const FilterDropdown = () => {
           {/* From Date */}
           <div>
             <Label className="block font-medium mb-2">From Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  {fromDate ? format(fromDate, "dd-MM-yyyy") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={fromDate}
-                  onSelect={(date) => {
-                    setFromDate(date);
-                  }}
-                  autoFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <div className="relative">
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+                onClick={() => {
+                  setFromDateOpen(!fromDateOpen);
+                  setToDateOpen(false); // Close other date picker
+                }}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {fromDate ? format(fromDate, "dd-MM-yyyy") : "Pick a date"}
+              </Button>
+              {fromDateOpen && (
+                <div className="absolute top-full left-0 z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
+                  <Calendar
+                    mode="single"
+                    selected={fromDate}
+                    onSelect={handleFromDateSelect}
+                    autoFocus
+                    className="p-3"
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* To Date */}
           <div>
             <Label className="block font-medium mb-2">To Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
-                  {toDate ? format(toDate, "dd-MM-yyyy") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={toDate}
-                  onSelect={setToDate}
-                  autoFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <div className="relative">
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+                onClick={() => {
+                  setToDateOpen(!toDateOpen);
+                  setFromDateOpen(false); // Close other date picker
+                }}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {toDate ? format(toDate, "dd-MM-yyyy") : "Pick a date"}
+              </Button>
+              {toDateOpen && (
+                <div className="absolute top-full left-0 z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
+                  <Calendar
+                    mode="single"
+                    selected={toDate}
+                    onSelect={handleToDateSelect}
+                    autoFocus
+                    className="p-3"
+                    disabled={(date) => (fromDate ? date < fromDate : false)}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Priority */}

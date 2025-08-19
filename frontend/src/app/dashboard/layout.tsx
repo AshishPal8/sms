@@ -21,7 +21,7 @@ export default function DashboardLayout({
       <div className="w-full md:w-4/5">
         <div>
           <DashHeader />
-          <div className="bg-[#F5F6F9] min-h-[90vh]">{children}</div>
+          <div className="bg-[#F5F6F9] min-h-[90vh] pt-14">{children}</div>
         </div>
       </div>
     </main>

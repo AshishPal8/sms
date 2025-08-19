@@ -111,23 +111,31 @@ model Admin {
   isDeleted      Boolean   @default(false)
   isActive       Boolean   @default(true)
 
+  departmentId String?     @db.ObjectId
+  department   Department? @relation("TechnicianDepartment", fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  managedDepartment Department? @relation("ManagerOfDepartment")
+
   assignedByTicketItems TicketItem[] @relation("AssignedByAdmin")
   assignedToTicketItems TicketItem[] @relation("AssignedToAdmin")
 
   NotificationSenderAdmin   Notification[]         @relation("NotificationSenderAdmin")
   NotificationReceiverAdmin NotificationReceiver[] @relation("NotificationReceiverAdmin")
 
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  Department Department[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 //department
 model Department {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  adminId   String? @db.ObjectId
-  admin     Admin?  @relation(fields: [adminId], references: [id])
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+
+  adminId String? @unique @db.ObjectId
+  admin   Admin?  @relation("ManagerOfDepartment", fields: [adminId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  technicians Admin[] @relation("TechnicianDepartment")
+
   isActive  Boolean @default(true)
   isDeleted Boolean @default(false)
 

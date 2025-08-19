@@ -8,6 +8,8 @@ import { baseUrl } from "../../../../config";
 import AlertModal from "@/modals/alert-modal";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import useAuthStore from "@/store/user";
+import { roles } from "@/lib/utils";
 
 interface TicketActionsProps {
   id: string;
@@ -16,9 +18,14 @@ interface TicketActionsProps {
 
 export function TicketActions({ id, onDeleteSuccess }: TicketActionsProps) {
   const router = useRouter();
+  const { user } = useAuthStore();
 
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+
+  if (!user) {
+    return null;
+  }
 
   const handleEdit = () => {
     router.push(`/dashboard/tickets/${id}`);
@@ -58,13 +65,16 @@ export function TicketActions({ id, onDeleteSuccess }: TicketActionsProps) {
         >
           <Edit size={16} />
         </Button>
-        <Button
-          size="icon"
-          onClick={() => setOpen(true)}
-          className="p-2 bg-red-200 rounded text-red-600 hover:bg-red-300"
-        >
-          <Trash2 size={16} />
-        </Button>
+        {user.role === roles.ASSISTANT ||
+          (user.role === roles.SUPERADMIN && (
+            <Button
+              size="icon"
+              onClick={() => setOpen(true)}
+              className="p-2 bg-red-200 rounded text-red-600 hover:bg-red-300"
+            >
+              <Trash2 size={16} />
+            </Button>
+          ))}
       </div>
     </>
   );

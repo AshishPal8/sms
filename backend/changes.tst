@@ -8,7 +8,7 @@
 6. ✅logout then route to the home page 
 7. Technicial also have department. 
 8. unregistered users that created via ticket can also signup with google, or gmail otp.
-
+9. Validation with phone while creating employee.
 
 
 

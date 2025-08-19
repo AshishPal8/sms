@@ -69,7 +69,11 @@ const TicketsData = () => {
       header: "Priority",
       accessor: "priority",
       render: (value: string) => (
-        <Badge className={`capitalize ${priorityStyles[value] || ""}`}>
+        <Badge
+          className={`capitalize font-bold px-3 rounded-md ${
+            priorityStyles[value] || ""
+          }`}
+        >
           {value.toLowerCase()}
         </Badge>
       ),
@@ -78,7 +82,11 @@ const TicketsData = () => {
       header: "Status",
       accessor: "status",
       render: (value: string) => (
-        <Badge className={`capitalize ${statusStyles[value] || ""}`}>
+        <Badge
+          className={`capitalize font-bold px-3 rounded-md ${
+            statusStyles[value] || ""
+          }`}
+        >
           {value.replace("_", " ").toLowerCase()}
         </Badge>
       ),

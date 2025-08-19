@@ -82,11 +82,7 @@ export const addDepartmentController = async (
   try {
     const department = await addDepartmentService(req.body);
 
-    res.status(201).json({
-      success: true,
-      message: "Department added successful",
-      data: department,
-    });
+    res.status(201).json(department);
   } catch (error) {
     next(error);
   }
