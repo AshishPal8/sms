@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import ImageUpload from "@/components/ui/image-upload";
 import axios from "axios";
-import { baseUrl } from "../../../../config";
+import { baseUrl } from "../../../config";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 

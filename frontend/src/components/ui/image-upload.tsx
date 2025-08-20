@@ -7,7 +7,7 @@ import Image from "next/image";
 import axios from "axios";
 import { Label } from "./label";
 import { Input } from "./input";
-import { baseUrl } from "../../../config";
+import { baseUrl } from "../../config";
 
 interface ImageUploadProps {
   disabled?: boolean;

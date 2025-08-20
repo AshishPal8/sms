@@ -12,7 +12,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import useAuthStore from "@/store/user";
 import axios from "axios";
-import { baseUrl } from "../../../config";
+import { baseUrl } from "../../config";
 
 interface UserDropdownProps {
   isMenuOpen: boolean;

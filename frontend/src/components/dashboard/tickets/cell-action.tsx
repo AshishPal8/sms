@@ -1,10 +1,10 @@
 "use client";
 
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Network, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
-import { baseUrl } from "../../../../config";
+import { baseUrl } from "../../../config";
 import AlertModal from "@/modals/alert-modal";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,10 @@ export function TicketActions({ id, onDeleteSuccess }: TicketActionsProps) {
 
   const handleEdit = () => {
     router.push(`/dashboard/tickets/${id}`);
+  };
+
+  const handleTicketDetails = () => {
+    router.push(`/dashboard/tickets/${id}/details`);
   };
 
   const handleDelete = async () => {
@@ -75,6 +79,13 @@ export function TicketActions({ id, onDeleteSuccess }: TicketActionsProps) {
               <Trash2 size={16} />
             </Button>
           ))}
+        <Button
+          size="icon"
+          onClick={handleTicketDetails}
+          className="p-2 bg-green-300 rounded text-green-800 hover:bg-green-400"
+        >
+          <Network size={16} />
+        </Button>
       </div>
     </>
   );

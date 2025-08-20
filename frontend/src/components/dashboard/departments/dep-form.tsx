@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import axios from "axios";
-import { baseUrl } from "../../../../config";
+import { baseUrl } from "../../../config";
 import Link from "next/link";
 import { ArrowLeft, Trash } from "lucide-react";
 import { IEmployee } from "@/types/employee.types";

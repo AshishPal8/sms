@@ -31,7 +31,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { baseUrl } from "../../../../config";
+import { baseUrl } from "../../../config";
 import useAuthStore from "@/store/user";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/layout/logo";

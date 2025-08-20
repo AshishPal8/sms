@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
-import { baseUrl } from "../../../config";
+import { baseUrl } from "../../config";
 import ImageUpload from "../ui/image-upload";
 import {
   Form,

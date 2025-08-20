@@ -1,3 +1,5 @@
+import { AssetType } from "@/enums/TicketAssetTypes";
+
 export interface ITicket {
   id: string;
   name: string;
@@ -5,6 +7,12 @@ export interface ITicket {
   priority: "LOW" | "MEDIUM" | "HIGH";
   status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
   createdAt: string;
+}
+
+export interface IAsset {
+  id: string;
+  url: string;
+  type: AssetType;
 }
 
 export interface ITicketById {
@@ -15,6 +23,7 @@ export interface ITicketById {
   address: string;
   title: string;
   description: string;
+  assets?: IAsset[];
   priority: "LOW" | "MEDIUM" | "HIGH";
   status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
   createdAt: string;

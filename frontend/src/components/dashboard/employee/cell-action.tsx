@@ -4,7 +4,7 @@ import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
-import { baseUrl } from "../../../../config";
+import { baseUrl } from "../../../config";
 import AlertModal from "@/modals/alert-modal";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";

@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import { format } from "date-fns";
 import { DataTable } from "@/components/ui/data-table";
-import { baseUrl } from "../../../../config";
+import { baseUrl } from "../../../config";
 import Pagination from "../pagination";
 import { TicketActions } from "./cell-action";
 import { priorityStyles, statusStyles } from "@/styles/color";
