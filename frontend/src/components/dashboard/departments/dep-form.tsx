@@ -44,13 +44,13 @@ const formSchema = z.object({
 type DepartmentFormValues = z.infer<typeof formSchema>;
 
 interface DepartmentFormProps {
-  initialData?: DepartmentFormValues & { id?: string };
+  initialData?: DepartmentFormValues & {
+    id?: string;
+  };
 }
 
 export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
   const router = useRouter();
-
-  console.log("initial Data", initialData);
 
   const [loading, setLoading] = useState(false);
   const [managers, setManagers] = useState<IEmployee[]>([]);
@@ -118,10 +118,11 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
 
   const handleTechnicianSelect = (techId: string) => {
     if (!techId) return;
-    const tech = technicians.find((t) => t.id === techId);
-    if (tech && !selectedTechnicians.some((t) => t.id === tech.id)) {
-      setSelectedTechnicians((prev) => [...prev, tech]);
-    }
+    setSelectedTechnicians((prev) => {
+      if (prev.some((t) => t.id === techId)) return prev;
+      const tech = technicians.find((t) => t.id === techId);
+      return tech ? [...prev, tech] : prev;
+    });
   };
 
   const removeTechnician = (id: string) => {
@@ -129,6 +130,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
   };
 
   const onSubmit = async (values: DepartmentFormValues) => {
+    console.log("submitting...");
     try {
       setLoading(true);
 
@@ -318,9 +320,8 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
                   </div>
 
                   <Select
-                    onValueChange={(techId) => {
-                      handleTechnicianSelect(techId);
-                    }}
+                    onValueChange={(techId) => handleTechnicianSelect(techId)}
+                    value={undefined}
                     disabled={loading}
                   >
                     <FormControl>

@@ -69,6 +69,11 @@ export const getTicketsController = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const user = req.user;
+    if (!user) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+
     const {
       fromDate,
       toDate,
@@ -96,7 +101,7 @@ export const getTicketsController = async (
       limit: numericLimit,
     };
 
-    const tickets = await getTicketsService(filters);
+    const tickets = await getTicketsService(user, filters);
 
     res.status(200).json(tickets);
   } catch (error) {

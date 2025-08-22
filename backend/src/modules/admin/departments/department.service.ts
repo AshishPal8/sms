@@ -161,6 +161,20 @@ export const addDepartmentService = async (data: createDepartmentInput) => {
     },
   });
 
+  if (adminId) {
+    await prisma.admin.update({
+      where: { id: adminId },
+      data: { departmentId: department.id },
+    });
+  }
+
+  if (technicians && technicians.length > 0) {
+    await prisma.admin.updateMany({
+      where: { id: { in: technicians } },
+      data: { departmentId: department.id },
+    });
+  }
+
   return {
     id: department.id,
     name: department.name,
@@ -173,8 +187,6 @@ export const updateDepartmentService = async (
   data: updateDepartmentInput
 ) => {
   const { name, adminId, technicians, isActive } = data;
-
-  console.log("Data", data);
 
   if (name) {
     const existingDepartment = await prisma.department.findFirst({
@@ -222,6 +234,11 @@ export const updateDepartmentService = async (
     }
   }
 
+  const existingDept = await prisma.department.findUnique({
+    where: { id },
+    select: { adminId: true },
+  });
+
   const department = await prisma.department.update({
     where: { id },
     data: {
@@ -235,7 +252,19 @@ export const updateDepartmentService = async (
     },
   });
 
-  console.log("Hello department", department);
+  if (existingDept?.adminId && existingDept.adminId !== adminId) {
+    await prisma.admin.update({
+      where: { id: existingDept.adminId },
+      data: { departmentId: null },
+    });
+  }
+
+  if (technicians && technicians.length > 0) {
+    await prisma.admin.updateMany({
+      where: { id: { in: technicians } },
+      data: { departmentId: department.id },
+    });
+  }
 
   return {
     success: true,

@@ -4,6 +4,7 @@ import { Prisma, TicketPriority } from "../../../generated/prisma";
 import { BadRequestError, NotFoundError } from "../../../middlewares/error";
 import type { TicketFilters } from "../../../types/ticket.types";
 import { getAssetTypeFromUrl } from "../../../utils/getAssetType";
+import { roles } from "../../../utils/roles";
 import { createNotificationService } from "../../notification/notification.service";
 import type {
   CreateTicketInput,
@@ -150,7 +151,10 @@ export const deleteTicketService = async (ticketId: string) => {
 };
 
 //get all tickets
-export const getTicketsService = async (filters: TicketFilters) => {
+export const getTicketsService = async (
+  user: { id: string; role: string },
+  filters: TicketFilters
+) => {
   const where: Prisma.TicketWhereInput = {
     isDeleted: false,
   };
@@ -216,21 +220,84 @@ export const getTicketsService = async (filters: TicketFilters) => {
         customer: { select: { id: true, name: true, email: true } },
         createdAt: true,
         updatedAt: true,
+        items: {
+          select: {
+            id: true,
+            assignedByRole: true,
+            assignedByAdminId: true,
+            assignedByCustomerId: true,
+            assignedByDeptId: true,
+            assignedToRole: true,
+            assignedToAdminId: true,
+            assignedToCustomerId: true,
+            assignedToDeptId: true,
+          },
+        },
       },
     }),
 
     prisma.ticket.count({ where }),
   ]);
 
+  let filteredTickets = tickets;
+
+  if ([roles.SUPERADMIN, roles.ASSISTANT].includes(user.role)) {
+  } else if (user.role === roles.MANAGER) {
+    const manager = await prisma.admin.findUnique({
+      where: { id: user.id },
+      include: { department: true },
+    });
+
+    console.log({
+      userrole: user.role,
+      manager: manager,
+    });
+
+    if (manager?.department?.id) {
+      filteredTickets = tickets.filter((ticket) =>
+        ticket.items.some(
+          (item) =>
+            (manager?.department?.id &&
+              item.assignedByDeptId === manager.department.id) ||
+            (manager?.department?.id &&
+              item.assignedToDeptId === manager.department.id)
+        )
+      );
+    } else {
+      filteredTickets = [];
+    }
+  } else if (user.role === roles.TECHNICIAN) {
+    filteredTickets = tickets.filter((ticket) =>
+      ticket.items.some(
+        (item) =>
+          item.assignedByAdminId === user.id ||
+          item.assignedToAdminId === user.id
+      )
+    );
+  } else if (user.role === roles.CUSTOMER) {
+    filteredTickets = tickets.filter(
+      (ticket) =>
+        ticket.customer?.id === user.id ||
+        ticket.items.some(
+          (item) =>
+            item.assignedByCustomerId === user.id ||
+            item.assignedToCustomerId === user.id
+        )
+    );
+  }
+
   return {
     success: true,
     message: "Ticket fetched successfully",
-    data: tickets,
+    data: filteredTickets.map((ticket) => ({
+      ...ticket,
+      items: undefined,
+    })),
     meta: {
-      total,
+      total: filteredTickets.length,
       page,
       limit,
-      totalPages: Math.ceil(total / limit),
+      totalPages: Math.ceil(filteredTickets.length / limit),
     },
   };
 };
@@ -567,5 +634,116 @@ export const updateTicketItemService = async (
     success: true,
     message: "Ticket item updated successfully",
     data: updatedTicketItem,
+  };
+};
+
+export const getTicketWithItemsService = async (
+  user: { id: string; role: string },
+  ticketId: string
+) => {
+  const ticket = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      address: true,
+      title: true,
+      description: true,
+      priority: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      customer: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      assets: {
+        select: {
+          id: true,
+          url: true,
+          type: true,
+        },
+      },
+      items: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          assignedByRole: true,
+          assignedByAdminId: true,
+          assignedByCustomerId: true,
+          assignedByDeptId: true,
+          assignedToRole: true,
+          assignedToAdminId: true,
+          assignedToCustomerId: true,
+          assignedToDeptId: true,
+          createdAt: true,
+          assets: {
+            select: {
+              id: true,
+              url: true,
+              type: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!ticket) throw new NotFoundError("Ticket not found");
+
+  if ([roles.SUPERADMIN, roles.ASSISTANT].includes(user.role)) {
+    return {
+      success: true,
+      message: "Ticket fetched successfully",
+      data: ticket,
+    };
+  }
+
+  let filteredItems = ticket.items;
+
+  if (user.role === roles.MANAGER) {
+    const manager = await prisma.admin.findUnique({
+      where: { id: user.id },
+      include: { department: true },
+    });
+
+    if (!manager || !manager.department)
+      throw new BadRequestError("Manager department not found");
+
+    const deptId = manager.department.id;
+
+    filteredItems = ticket.items.filter(
+      (item) =>
+        item.assignedToDeptId === deptId || item.assignedByDeptId === deptId
+    );
+  }
+
+  if (user.role === roles.TECHNICIAN) {
+    filteredItems = ticket.items.filter(
+      (item) =>
+        item.assignedToAdminId === user.id || item.assignedByAdminId === user.id
+    );
+  }
+
+  if (user.role === "CUSTOMER") {
+    filteredItems = ticket.items.filter(
+      (item) =>
+        item.assignedToCustomerId === user.id ||
+        item.assignedByCustomerId === user.id
+    );
+  }
+
+  return {
+    success: true,
+    message: "Ticket fetched successfully",
+    data: {
+      ...ticket,
+      items: filteredItems,
+    },
   };
 };
