@@ -27,4 +27,8 @@ export interface ITicketById {
   priority: "LOW" | "MEDIUM" | "HIGH";
   status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
   createdAt: string;
+  customer: {
+    id: string;
+    name: string;
+  };
 }

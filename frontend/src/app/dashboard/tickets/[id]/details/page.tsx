@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import TicketDetailHero from "@/components/dashboard/tickets/detail-hero";
 import { baseUrl } from "@/config";
+import TicketDetailForm from "@/components/dashboard/tickets/ticket-detail-form";
 
 const TicketDetails = () => {
   const params = useParams();
@@ -52,6 +53,7 @@ const TicketDetails = () => {
   return (
     <div>
       <TicketDetailHero ticket={ticket} />
+      <TicketDetailForm ticket={ticket} />
     </div>
   );
 };

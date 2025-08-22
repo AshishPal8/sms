@@ -1,13 +1,15 @@
 import type { NextFunction, Request, Response } from "express";
 import {
+  createticketItemService,
   createTicketService,
   deleteTicketService,
   getTicketByIdService,
   getTicketsService,
+  updateTicketItemService,
   updateTicketService,
 } from "./ticket.service";
 import type { TicketPriority, TicketStatus } from "../../../generated/prisma";
-import { BadRequestError } from "../../../middlewares/error";
+import { BadRequestError, UnauthorizedError } from "../../../middlewares/error";
 
 export const createTicketController = async (
   req: Request,
@@ -117,5 +119,53 @@ export const getTicketByIdController = async (
     res.status(200).json(ticket);
   } catch (err) {
     next(err);
+  }
+};
+
+export const createTicketItemController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+    const ticketItem = await createticketItemService(user, req.body);
+
+    res.status(201).json(ticketItem);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateTicketItemController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+
+    const ticketItemId = req.params.id;
+    if (!ticketItemId) {
+      throw new BadRequestError("Ticket item id not found");
+    }
+
+    const ticketItem = await updateTicketItemService(
+      user,
+      ticketItemId,
+      req.body
+    );
+
+    res.status(200).json(ticketItem);
+  } catch (error) {
+    next(error);
   }
 };

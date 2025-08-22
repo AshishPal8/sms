@@ -50,8 +50,6 @@ export const createTicketItemSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
   description: z.string().optional(),
 
-  assignedToRole: z.enum(roles, { error: "AssignedToRole is required" }),
-
   assignedToAdminId: z.string().optional(),
   assignedToDeptId: z.string().optional(),
   assignedToCustomerId: z.string().optional(),

@@ -6,6 +6,7 @@ import { AdminRole } from "../../../generated/prisma";
 import {
   addDepartmentController,
   deleteDepartmentController,
+  getActiveDepartmentsController,
   getAllDepartmentController,
   getDepartmentByIdController,
   updateDepartmentController,
@@ -22,6 +23,18 @@ router.get(
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN),
   getAllDepartmentController
+);
+
+router.get(
+  "/active",
+  authMiddleware,
+  requireRole(
+    AdminRole.SUPERADMIN,
+    AdminRole.ASSISTANT,
+    AdminRole.MANAGER,
+    AdminRole.TECHNICIAN
+  ),
+  getActiveDepartmentsController
 );
 
 router.get(

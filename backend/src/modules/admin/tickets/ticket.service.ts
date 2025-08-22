@@ -251,6 +251,12 @@ export const getTicketByIdService = async (id: string) => {
       status: true,
       createdAt: true,
       updatedAt: true,
+      customer: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       assets: {
         select: {
           id: true,
@@ -271,7 +277,7 @@ export const getTicketByIdService = async (id: string) => {
 };
 
 //create ticket item
-export const createticketItem = async (
+export const createticketItemService = async (
   user: { id: string; role: string },
   data: CreateTicketItemInput
 ) => {
@@ -370,7 +376,7 @@ export const createticketItem = async (
 
   // sender data
   const notificationSender: any = {
-    senderRole: user.role,
+    role: user.role,
   };
 
   if (user.role === "CUSTOMER") {
@@ -419,10 +425,14 @@ export const createticketItem = async (
     receivers,
   });
 
-  return ticketItem;
+  return {
+    success: true,
+    message: "Ticket assigned successfully",
+    data: ticketItem,
+  };
 };
 
-export const updateTicketItem = async (
+export const updateTicketItemService = async (
   user: { id: string; role: string },
   ticketItemId: string,
   data: UpdateTicketItemInput
@@ -507,7 +517,7 @@ export const updateTicketItem = async (
     });
   }
 
-  const notificationSender: any = { senderRole: user.role };
+  const notificationSender: any = { role: user.role };
 
   if (user.role === "CUSTOMER") {
     notificationSender.senderCustomerId = user.id;
@@ -553,5 +563,9 @@ export const updateTicketItem = async (
     receivers,
   });
 
-  return updatedTicketItem;
+  return {
+    success: true,
+    message: "Ticket item updated successfully",
+    data: updatedTicketItem,
+  };
 };

@@ -4,11 +4,20 @@ import { requireRole } from "../../../middlewares/requireRole";
 import { AdminRole } from "../../../generated/prisma";
 import {
   createTicketController,
+  createTicketItemController,
   deleteTicketController,
   getTicketByIdController,
   getTicketsController,
   updateTicketController,
+  updateTicketItemController,
 } from "./ticket.controller";
+import { validateRequest } from "../../../middlewares/validateRequest";
+import {
+  createTicketItemSchema,
+  createTicketSchema,
+  updateTicketItemSchema,
+  updateTicketSchema,
+} from "./ticket.schema";
 
 const router = Router();
 
@@ -40,6 +49,7 @@ router.post(
   "/create",
   authMiddleware,
   requireRole(AdminRole.ASSISTANT),
+  validateRequest(createTicketSchema),
   createTicketController
 );
 
@@ -47,6 +57,7 @@ router.put(
   "/update/:id",
   authMiddleware,
   requireRole(AdminRole.ASSISTANT),
+  validateRequest(updateTicketSchema),
   updateTicketController
 );
 
@@ -55,6 +66,31 @@ router.delete(
   authMiddleware,
   requireRole(AdminRole.ASSISTANT),
   deleteTicketController
+);
+
+router.post(
+  "/item/create",
+  authMiddleware,
+  requireRole(
+    AdminRole.SUPERADMIN,
+    AdminRole.MANAGER,
+    AdminRole.ASSISTANT,
+    AdminRole.TECHNICIAN
+  ),
+  validateRequest(createTicketItemSchema),
+  createTicketItemController
+);
+router.put(
+  "/item/update/:id",
+  authMiddleware,
+  requireRole(
+    AdminRole.SUPERADMIN,
+    AdminRole.MANAGER,
+    AdminRole.ASSISTANT,
+    AdminRole.TECHNICIAN
+  ),
+  validateRequest(updateTicketItemSchema),
+  updateTicketItemController
 );
 
 export default router;

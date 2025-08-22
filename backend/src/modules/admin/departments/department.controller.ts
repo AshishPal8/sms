@@ -3,6 +3,7 @@ import { BadRequestError } from "../../../middlewares/error";
 import {
   addDepartmentService,
   deleteDepartmentService,
+  getActiveDepartmentsService,
   getAllDepartmentsService,
   getDepartmentByIdService,
   updateDepartmentService,
@@ -47,6 +48,19 @@ export const getAllDepartmentController = async (
         totalPages: Math.ceil(total / numericLimit),
       },
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getActiveDepartmentsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const departments = await getActiveDepartmentsService();
+    res.status(200).json(departments);
   } catch (err) {
     next(err);
   }

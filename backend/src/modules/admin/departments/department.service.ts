@@ -51,6 +51,27 @@ export const getAllDepartmentsService = async ({
   return { departments, total };
 };
 
+export const getActiveDepartmentsService = async () => {
+  const departments = await prisma.department.findMany({
+    where: { isActive: true, isDeleted: false },
+    select: {
+      id: true,
+      name: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+
+  return {
+    success: true,
+    message: "Active department fetched successfully",
+    data: departments,
+  };
+};
+
 export const getDepartmentByIdService = async (id: string) => {
   const department = await prisma.department.findUnique({
     where: { id },
