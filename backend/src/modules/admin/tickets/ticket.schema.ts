@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { phoneRegex } from "../../../utils/regex";
 import { TicketPriority, TicketStatus } from "../../../generated/prisma";
+import { roles } from "../../../utils/roles";
 
 export const ticketAssetSchema = z.object({
   url: z.url("Invalid asset URL"),
@@ -43,5 +44,39 @@ export const updateTicketSchema = z.object({
   assets: z.array(ticketAssetSchema).optional(),
 });
 
+export const createTicketItemSchema = z.object({
+  ticketId: z.string().min(1, "Ticket ID is required"),
+
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  description: z.string().optional(),
+
+  assignedToRole: z.enum(roles, { error: "AssignedToRole is required" }),
+
+  assignedToAdminId: z.string().optional(),
+  assignedToDeptId: z.string().optional(),
+  assignedToCustomerId: z.string().optional(),
+
+  assets: z.array(ticketAssetSchema).optional(),
+});
+
+export const updateTicketItemSchema = z.object({
+  title: z
+    .string()
+    .min(3, "Title must be at least 3 characters")
+    .max(100)
+    .optional(),
+  description: z
+    .string()
+    .min(10, "Description must be at least 10 characters")
+    .max(1000)
+    .optional(),
+  assignedToAdminId: z.string().optional(),
+  assignedToDeptId: z.string().optional(),
+  assignedToCustomerId: z.string().optional(),
+  assets: z.array(ticketAssetSchema).optional(),
+});
+
 export type CreateTicketInput = z.infer<typeof createTicketSchema>;
 export type UpdateTicketInput = z.infer<typeof updateTicketSchema>;
+export type CreateTicketItemInput = z.infer<typeof createTicketItemSchema>;
+export type UpdateTicketItemInput = z.infer<typeof updateTicketItemSchema>;

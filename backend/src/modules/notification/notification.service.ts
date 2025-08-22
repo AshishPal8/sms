@@ -3,7 +3,9 @@ import type { AssignmentRole } from "../../generated/prisma";
 import { roles } from "../../utils/roles";
 import type { CreateNotificationInput } from "./notification.schema";
 
-export const createNotification = async (data: CreateNotificationInput) => {
+export const createNotificationService = async (
+  data: CreateNotificationInput
+) => {
   return prisma.$transaction(async (tx) => {
     const notification = await tx.notification.create({
       data: {
@@ -56,9 +58,9 @@ export const getNotificationsService = async (
   if (role === roles.MANAGER) {
     const manager = await prisma.admin.findUnique({
       where: { id: userId },
-      select: { Department: { select: { id: true } } },
+      select: { department: { select: { id: true } } },
     });
-    deptIds = manager?.Department.map((dept) => dept.id) || [];
+    deptIds = manager?.department.map((dept) => dept.id) || [];
   }
 
   const receiverConditions: any[] = [];
