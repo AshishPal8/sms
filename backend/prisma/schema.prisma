@@ -114,7 +114,7 @@ model Admin {
   departmentId String?     @db.ObjectId
   department   Department? @relation("TechnicianDepartment", fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  managedDepartment Department? @relation("ManagerOfDepartment")
+  managedDepartment Department[] @relation("ManagerOfDepartment")
 
   assignedByTicketItems TicketItem[] @relation("AssignedByAdmin")
   assignedToTicketItems TicketItem[] @relation("AssignedToAdmin")
@@ -131,7 +131,7 @@ model Department {
   id   String @id @default(auto()) @map("_id") @db.ObjectId
   name String
 
-  adminId String? @unique @db.ObjectId
+  adminId String? @db.ObjectId
   admin   Admin?  @relation("ManagerOfDepartment", fields: [adminId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   technicians Admin[] @relation("TechnicianDepartment")

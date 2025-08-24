@@ -5,6 +5,7 @@ import {
   deleteTicketService,
   getTicketByIdService,
   getTicketsService,
+  getTicketWithItemsService,
   updateTicketItemService,
   updateTicketService,
 } from "./ticket.service";
@@ -168,6 +169,31 @@ export const updateTicketItemController = async (
       ticketItemId,
       req.body
     );
+
+    res.status(200).json(ticketItem);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getTicketItemController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+
+    const ticketId = req.params.id;
+    if (!ticketId) {
+      throw new BadRequestError("Ticket id not found");
+    }
+
+    const ticketItem = await getTicketWithItemsService(user, ticketId);
 
     res.status(200).json(ticketItem);
   } catch (error) {

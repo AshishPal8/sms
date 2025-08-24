@@ -67,6 +67,21 @@ export const getAllEmployeesService = async ({
   };
 };
 
+export const getTechniciansWithDepartmentIdService = async (deptId: string) => {
+  const technicians = await prisma.admin.findMany({
+    where: {
+      role: "TECHNICIAN",
+      departmentId: deptId,
+    },
+  });
+
+  return {
+    success: true,
+    message: "Technicians fetched successfully",
+    data: technicians,
+  };
+};
+
 export const getEmployeeByIdService = async (id: string) => {
   const employee = await prisma.admin.findUnique({
     where: { id },

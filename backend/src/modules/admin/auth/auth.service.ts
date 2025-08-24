@@ -42,6 +42,7 @@ export const adminSignupService = async (data: AdminSignupInput) => {
       name: admin.name,
       email: admin.email,
       role: admin.role,
+      departmentId: admin.departmentId,
     },
     token,
   };
@@ -75,6 +76,7 @@ export const adminSigninService = async (data: AdminSigninInput) => {
       name: admin.name,
       email: admin.email,
       role: admin.role,
+      departmentId: admin.departmentId,
     },
     token,
   };

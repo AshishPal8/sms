@@ -7,6 +7,7 @@ import {
   createTicketItemController,
   deleteTicketController,
   getTicketByIdController,
+  getTicketItemController,
   getTicketsController,
   updateTicketController,
   updateTicketItemController,
@@ -80,6 +81,7 @@ router.post(
   validateRequest(createTicketItemSchema),
   createTicketItemController
 );
+
 router.put(
   "/item/update/:id",
   authMiddleware,
@@ -92,5 +94,7 @@ router.put(
   validateRequest(updateTicketItemSchema),
   updateTicketItemController
 );
+
+router.get("/item/:id", authMiddleware, getTicketItemController);
 
 export default router;

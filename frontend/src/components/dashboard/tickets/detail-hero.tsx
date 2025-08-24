@@ -1,5 +1,5 @@
 "use client";
-import { Shield, Clock, Phone, Mail, MapPin } from "lucide-react";
+import { Shield, Clock, Phone, Mail, MapPin, User } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ITicketById } from "@/types/ticket.types";
 import TicketAssets from "@/components/ticket-assets";
@@ -65,6 +65,68 @@ const TicketDetailHero = ({ ticket }: { ticket: ITicketById }) => {
           </div>
         </div>
       </div>
+
+      {ticket.items && ticket.items.length > 0 && (
+        <div className="relative w-full border-t border-gray-300 pt-10">
+          <h2 className="text-xl font-bold mb-8 text-center">
+            Ticket Activity Timeline
+          </h2>
+
+          <div className="relative flex flex-col space-y-10">
+            {/* Line */}
+            <div className="absolute left-1/2 top-0 w-[2px] h-full bg-gray-300 -translate-x-1/2"></div>
+
+            {ticket.items.map((item, index) => (
+              <div
+                key={item.id}
+                className={`relative w-full flex ${
+                  index % 2 === 0 ? "justify-start" : "justify-end"
+                }`}
+              >
+                <div className="bg-white shadow-md rounded-xl p-6 w-[90%] md:w-[45%] relative z-10">
+                  <div className="mb-2 text-sm text-gray-500">
+                    <span className="font-semibold">Created:</span>{" "}
+                    {new Date(item.createdAt).toLocaleString()}
+                  </div>
+                  <h3 className="text-lg font-semibold">{item.title}</h3>
+                  <p className="text-gray-600 mt-2">{item.description}</p>
+
+                  {/* Assigned By */}
+                  <div className="mt-4 text-sm text-gray-700">
+                    <p className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-blue-500" />{" "}
+                      <span className="font-semibold">Assigned By:</span>{" "}
+                      {item.assignedByAdmin
+                        ? `${item.assignedByAdmin.name} (${item.assignedByRole})`
+                        : "System"}
+                    </p>
+                  </div>
+
+                  {/* Assigned To */}
+                  <div className="text-sm text-gray-700">
+                    <p className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-green-500" />{" "}
+                      <span className="font-semibold">Assigned To:</span>{" "}
+                      {item.assignedToAdmin
+                        ? `${item.assignedToAdmin.name} (${item.assignedToRole})`
+                        : item.assignedToDept
+                        ? `${item.assignedToDept.name} (Department)`
+                        : "Unassigned"}
+                    </p>
+                  </div>
+
+                  {/* Assets */}
+                  {item.assets && item.assets.length > 0 && (
+                    <div className="mt-4">
+                      <TicketAssets assets={item.assets} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 };

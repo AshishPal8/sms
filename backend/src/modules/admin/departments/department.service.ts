@@ -37,7 +37,14 @@ export const getAllDepartmentsService = async ({
     select: {
       id: true,
       name: true,
+      adminId: true,
       admin: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      technicians: {
         select: {
           id: true,
           name: true,
@@ -48,7 +55,25 @@ export const getAllDepartmentsService = async ({
     },
   });
 
-  return { departments, total };
+  const departmentWithFilteredTechnicians = departments.map((department) => ({
+    ...department,
+    technicians: department.technicians.filter(
+      (tech) => tech.id !== department.adminId
+    ),
+    adminId: undefined,
+  }));
+
+  return {
+    success: true,
+    message: "Department fetched successfully",
+    data: departmentWithFilteredTechnicians,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 };
 
 export const getActiveDepartmentsService = async () => {
@@ -57,18 +82,37 @@ export const getActiveDepartmentsService = async () => {
     select: {
       id: true,
       name: true,
-      createdAt: true,
-      updatedAt: true,
+      adminId: true,
+      admin: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      technicians: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
     orderBy: {
       name: "asc",
     },
   });
 
+  const departmentWithFilteredTechnicians = departments.map((department) => ({
+    ...department,
+    technicians: department.technicians.filter(
+      (tech) => tech.id !== department.adminId
+    ),
+    adminId: undefined,
+  }));
+
   return {
     success: true,
     message: "Active department fetched successfully",
-    data: departments,
+    data: departmentWithFilteredTechnicians,
   };
 };
 
@@ -95,14 +139,25 @@ export const getDepartmentByIdService = async (id: string) => {
 
   if (!department) throw new NotFoundError("Department not found");
 
-  return department;
+  const filteredTechnicians = department.technicians.filter(
+    (tech) => tech.id !== department.adminId
+  );
+
+  return {
+    success: true,
+    message: "Department fetched successfully",
+    data: {
+      ...department,
+      technicians: filteredTechnicians,
+    },
+  };
 };
 
 export const addDepartmentService = async (data: createDepartmentInput) => {
   const { name, adminId, technicians, isActive } = data;
 
   const existingDepartment = await prisma.department.findFirst({
-    where: { name },
+    where: { name, isDeleted: false },
   });
 
   if (existingDepartment) {
@@ -144,11 +199,13 @@ export const addDepartmentService = async (data: createDepartmentInput) => {
     if (assignedTechnicians.length > 0) {
       throw new BadRequestError(
         `Technicians ${assignedTechnicians
-          .map((t) => t.id)
+          .map((t) => t.name)
           .join(", ")} are already assigned to other departments`
       );
     }
   }
+
+  console.log("hello department data", data);
 
   const department = await prisma.department.create({
     data: {
@@ -160,6 +217,8 @@ export const addDepartmentService = async (data: createDepartmentInput) => {
       },
     },
   });
+
+  console.log("Department", department);
 
   if (adminId) {
     await prisma.admin.update({
@@ -227,7 +286,7 @@ export const updateDepartmentService = async (
       if (assignedTechnicians.length > 0) {
         throw new BadRequestError(
           `Technicians ${assignedTechnicians
-            .map((t) => t.id)
+            .map((t) => t.name)
             .join(", ")} are already assigned to other departments`
         );
       }
@@ -281,20 +340,44 @@ export const updateDepartmentService = async (
 export const deleteDepartmentService = async (id: string) => {
   const existingDepartment = await prisma.department.findUnique({
     where: { id },
+    include: {
+      admin: true,
+      technicians: true,
+    },
   });
 
   if (!existingDepartment) {
     throw new NotFoundError("Department not found or already deleted!");
   }
 
-  const deletedDepartent = await prisma.department.update({
-    where: { id },
-    data: {
-      isDeleted: true,
-    },
+  await prisma.$transaction(async (tx) => {
+    await tx.department.update({
+      where: { id },
+      data: { isDeleted: true, adminId: null, technicians: { set: [] } },
+    });
+
+    if (existingDepartment.admin) {
+      await tx.admin.update({
+        where: { id: existingDepartment.admin.id },
+        data: { departmentId: null },
+      });
+    }
+
+    if (existingDepartment.technicians?.length > 0) {
+      await tx.admin.updateMany({
+        where: {
+          id: { in: existingDepartment.technicians.map((tech) => tech.id) },
+        },
+        data: { departmentId: null },
+      });
+    }
   });
 
   return {
-    id: deletedDepartent.id,
+    success: true,
+    message: "Department deleted and associations cleared successfully.",
+    data: {
+      id,
+    },
   };
 };

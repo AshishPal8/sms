@@ -49,8 +49,6 @@ interface ProfileFormProps {
 export const ProfileForm = ({ initialData }: ProfileFormProps) => {
   const router = useRouter();
 
-  console.log("initial data", initialData);
-
   const [loading, setLoading] = useState(false);
 
   const form = useForm<ProfileFormValues>({

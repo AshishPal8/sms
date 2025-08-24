@@ -4,6 +4,7 @@ import {
   deleteEmployeeService,
   getAllEmployeesService,
   getEmployeeByIdService,
+  getTechniciansWithDepartmentIdService,
   updateEmployeeService,
 } from "./employees.service";
 import { BadRequestError, UnauthorizedError } from "../../../middlewares/error";
@@ -68,6 +69,24 @@ export const getEmployeeById = async (
       message: "Employee fetched successfully",
       data: employee,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getTechniciansWithDepartmentIdController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const deptId = req.params.id;
+    if (!deptId) {
+      throw new BadRequestError("Employee id is required");
+    }
+
+    const technicians = await getTechniciansWithDepartmentIdService(deptId);
+    res.status(200).json(technicians);
   } catch (err) {
     next(err);
   }

@@ -52,8 +52,6 @@ interface EmployeeFormProps {
 export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
   const router = useRouter();
 
-  console.log("initial data", initialData);
-
   const [loading, setLoading] = useState(false);
 
   const form = useForm<EmployeeFormValues>({

@@ -1,4 +1,5 @@
 "use client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,6 +23,9 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { baseUrl } from "@/config";
+import { roles } from "@/lib/utils";
+import useAuthStore from "@/store/user";
+import { IEmployee } from "@/types/employee.types";
 import { ITicketById } from "@/types/ticket.types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
@@ -54,10 +58,14 @@ type CreateTicketItemFormValues = z.infer<typeof createTicketItemSchema>;
 
 const TicketDetailForm = ({ ticket }: { ticket: ITicketById }) => {
   const [departments, setDepartments] = useState([]);
+  const [technicians, setTechnicians] = useState<IEmployee[]>([]);
   const [loading, setLoading] = useState(false);
-  const [assignTo, setAssignTo] = useState<"CUSTOMER" | "DEPARTMENT" | "">("");
+  const [assignTo, setAssignTo] = useState<
+    "CUSTOMER" | "DEPARTMENT" | "TECHNICIAN" | ""
+  >("");
 
   const router = useRouter();
+  const { user } = useAuthStore();
 
   console.log("departments", departments);
 
@@ -92,14 +100,39 @@ const TicketDetailForm = ({ ticket }: { ticket: ITicketById }) => {
   }, []);
 
   useEffect(() => {
+    const fetchTechnicians = async () => {
+      if (user?.role === roles.MANAGER) {
+        try {
+          const res = await axios.get(
+            `${baseUrl}/employees/dept/${user?.departmentId}`,
+            {
+              withCredentials: true,
+            }
+          );
+          setTechnicians(res.data.data);
+        } catch (error) {
+          console.error("Error fetching technicians:", error);
+        }
+      }
+    };
+    fetchTechnicians();
+  }, [user?.role, user?.departmentId]);
+
+  useEffect(() => {
     if (assignTo === "CUSTOMER") {
       form.setValue("assignedToCustomerId", ticket.customer.id);
       form.setValue("assignedToDeptId", "");
+      form.setValue("assignedToAdminId", "");
     } else if (assignTo === "DEPARTMENT") {
+      form.setValue("assignedToCustomerId", "");
+      form.setValue("assignedToAdminId", "");
+    } else if (assignTo === "TECHNICIAN") {
+      form.setValue("assignedToDeptId", "");
       form.setValue("assignedToCustomerId", "");
     } else {
       form.setValue("assignedToCustomerId", "");
       form.setValue("assignedToDeptId", "");
+      form.setValue("assignedToAdminId", "");
     }
   }, [assignTo, form, ticket.customer.id]);
 
@@ -164,78 +197,142 @@ const TicketDetailForm = ({ ticket }: { ticket: ITicketById }) => {
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-2 gap-5">
-                <div className=" space-y-2">
-                  <FormLabel>Assigned To</FormLabel>
-                  <Select
-                    disabled={loading}
-                    value={assignTo}
-                    onValueChange={(value) =>
-                      setAssignTo(value as "CUSTOMER" | "DEPARTMENT")
-                    }
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select assignment type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="CUSTOMER">Customer</SelectItem>
-                      <SelectItem value="DEPARTMENT">Department</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {assignTo === "CUSTOMER" && (
-                  <div className="flex items-center gap-2 mt-6">
-                    <Checkbox
-                      id="customer-checkbox"
-                      checked={!!form.watch("assignedToCustomerId")}
-                      onCheckedChange={(checked) =>
-                        form.setValue(
-                          "assignedToCustomerId",
-                          checked ? ticket.customer.id : ""
+              {user?.role !== roles.TECHNICIAN && (
+                <div className="grid grid-cols-2 gap-5">
+                  <div className=" space-y-2">
+                    <FormLabel>Assigned To</FormLabel>
+                    <Select
+                      disabled={loading}
+                      value={assignTo}
+                      onValueChange={(value) =>
+                        setAssignTo(
+                          value as "CUSTOMER" | "DEPARTMENT" | "TECHNICIAN"
                         )
                       }
-                    />
-                    <Label htmlFor="customer-checkbox">
-                      Assign to <strong>{ticket.customer.name}</strong>
-                    </Label>
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select assignment type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="CUSTOMER">Customer</SelectItem>
+                        {user?.role !== "MANAGER" && (
+                          <SelectItem value="DEPARTMENT">Department</SelectItem>
+                        )}
+                        {user?.role === "MANAGER" && (
+                          <SelectItem value="TECHNICIAN">Technician</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
 
-                {assignTo === "DEPARTMENT" && (
-                  <FormField
-                    control={form.control}
-                    name="assignedToDeptId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Department</FormLabel>
-                        <Select
-                          disabled={loading}
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select department" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {departments.map((dept) => (
-                              <SelectItem key={dept.id} value={dept.id}>
-                                {dept.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
+                  {assignTo === "CUSTOMER" && (
+                    <div className="flex items-center gap-2 mt-6">
+                      <Checkbox
+                        id="customer-checkbox"
+                        checked={!!form.watch("assignedToCustomerId")}
+                        onCheckedChange={(checked) =>
+                          form.setValue(
+                            "assignedToCustomerId",
+                            checked ? ticket.customer.id : ""
+                          )
+                        }
+                      />
+                      <Label htmlFor="customer-checkbox">
+                        Assign to <strong>{ticket.customer.name}</strong>
+                      </Label>
+                    </div>
+                  )}
 
+                  {assignTo === "DEPARTMENT" && (
+                    <FormField
+                      control={form.control}
+                      name="assignedToDeptId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Department</FormLabel>
+                          <Select
+                            disabled={loading}
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select department" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {departments.map((dept) => (
+                                <SelectItem key={dept.id} value={dept.id}>
+                                  {dept.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {assignTo === "TECHNICIAN" && user?.role === "MANAGER" && (
+                    <FormField
+                      control={form.control}
+                      name="assignedToAdminId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Technician</FormLabel>
+                          <Select
+                            disabled={loading}
+                            onValueChange={field.onChange}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select technician" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {technicians.map((tech) => (
+                                <SelectItem key={tech.id} value={tech.id}>
+                                  <div className="flex items-center gap-2">
+                                    <Avatar className="w-8 h-8">
+                                      <AvatarImage
+                                        src={
+                                          `${tech.profilePicture}?tr=w-32,h-32` ||
+                                          "/default.webp"
+                                        }
+                                        alt={tech.name}
+                                        className="object-cover"
+                                      />
+                                      <AvatarFallback className="text-xs">
+                                        {tech.name[0] || "T"}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <h2 className="text-black font-semibold text-sm">
+                                        {tech.name}
+                                      </h2>
+                                      <p className="text-gray-600 capitalize text-xs">
+                                        {tech.role
+                                          ? tech.role.charAt(0).toUpperCase() +
+                                            tech.role.slice(1).toLowerCase()
+                                          : ""}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              )}
               <FormField
                 control={form.control}
                 name="assets"

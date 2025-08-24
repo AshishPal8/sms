@@ -37,7 +37,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const formSchema = z.object({
   name: z.string(),
   adminId: z.string(),
-  technicians: z.array(z.string()).optional(),
+  technicians: z.string(),
   isActive: z.boolean(),
 });
 
@@ -93,7 +93,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
     defaultValues: initialData || {
       name: "",
       adminId: "",
-      technicians: [],
+      technicians: "",
       isActive: true,
     },
   });
@@ -116,19 +116,6 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
 
   const isEdit = !!initialData;
 
-  const handleTechnicianSelect = (techId: string) => {
-    if (!techId) return;
-    setSelectedTechnicians((prev) => {
-      if (prev.some((t) => t.id === techId)) return prev;
-      const tech = technicians.find((t) => t.id === techId);
-      return tech ? [...prev, tech] : prev;
-    });
-  };
-
-  const removeTechnician = (id: string) => {
-    setSelectedTechnicians((prev) => prev.filter((t) => t.id !== id));
-  };
-
   const onSubmit = async (values: DepartmentFormValues) => {
     console.log("submitting...");
     try {
@@ -138,8 +125,10 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
         ...values,
         adminId:
           !values.adminId || values.adminId === "none" ? null : values.adminId,
-        technicians: selectedTechnicians.map((t) => t.id),
+        technicians: [values.technicians],
       };
+
+      console.log("Payload", payload);
 
       if (isEdit) {
         await axios.put(
@@ -216,7 +205,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
                   name="adminId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Employee</FormLabel>
+                      <FormLabel>Manager</FormLabel>
                       <Select
                         disabled={loading}
                         onValueChange={field.onChange}
@@ -271,98 +260,71 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
                     </FormItem>
                   )}
                 />
-                <div>
-                  <FormLabel>Technicians</FormLabel>
-
-                  <div className="my-3">
-                    {selectedTechnicians.length > 0 ? (
-                      <div className="grid grid-cols-2">
-                        {selectedTechnicians.map((tech) => (
-                          <div
-                            key={tech.id}
-                            className="flex items-center gap-2 border border-gray-200 w-fit p-2 rounded-lg"
+                <FormField
+                  control={form.control}
+                  name="technicians"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Technician</FormLabel>
+                      <Select
+                        disabled={loading}
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select Technician" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem
+                            value="none"
+                            className="text-black font-semibold text-[12px]"
                           >
-                            <Avatar className="w-8 h-8">
-                              <AvatarImage
-                                src={
-                                  `${tech.profilePicture}?tr=w-32,h-32` ||
-                                  "/default.webp"
-                                }
-                                alt={tech.name}
-                                className="object-cover"
-                              />
-                              <AvatarFallback className="text-xs">
-                                {tech.name[0] || "T"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h2 className="text-black font-semibold text-sm">
-                                {tech.name}
-                              </h2>
-                              <p className="text-gray-600 capitalize text-xs">
-                                {tech.role
-                                  ? tech.role.charAt(0).toUpperCase() +
-                                    tech.role.slice(1).toLowerCase()
-                                  : ""}
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeTechnician(tech.id)}
-                              className="text-red-500 text-xs ml-2 cursor-pointer"
+                            None
+                          </SelectItem>
+                          {technicians.map((technician) => (
+                            <SelectItem
+                              key={technician.id}
+                              value={technician.id}
                             >
-                              <Trash size={18} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <Select
-                    onValueChange={(techId) => handleTechnicianSelect(techId)}
-                    value={undefined}
-                    disabled={loading}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Technician" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {technicians.map((tech) => (
-                        <SelectItem key={tech.id} value={tech.id}>
-                          <div className="flex items-center gap-2">
-                            <Avatar className="w-8 h-8">
-                              <AvatarImage
-                                src={
-                                  `${tech.profilePicture}?tr=w-32,h-32` ||
-                                  "/default.webp"
-                                }
-                                alt={tech.name}
-                                className="object-cover"
-                              />
-                              <AvatarFallback className="text-xs">
-                                {tech.name[0] || "T"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h2 className="text-black font-semibold text-sm">
-                                {tech.name}
-                              </h2>
-                              <p className="text-gray-600 capitalize text-xs">
-                                {tech.role
-                                  ? tech.role.charAt(0).toUpperCase() +
-                                    tech.role.slice(1).toLowerCase()
-                                  : ""}
-                              </p>
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                              <div className="flex items-center gap-2">
+                                <Avatar className="w-8 h-8">
+                                  <AvatarImage
+                                    src={
+                                      `${technician.profilePicture}?tr=w-32,h-32` ||
+                                      "/default.webp"
+                                    }
+                                    alt={technician.name}
+                                    className="object-cover"
+                                  />
+                                  <AvatarFallback className="text-xs">
+                                    {technician.name[0] || "T"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <h2 className="text-black font-semibold text-sm">
+                                    {technician.name}
+                                  </h2>
+                                  <p className="text-gray-600 capitalize text-xs">
+                                    {technician.role
+                                      ? technician.role
+                                          .charAt(0)
+                                          .toUpperCase() +
+                                        technician.role.slice(1).toLowerCase()
+                                      : ""}
+                                  </p>
+                                </div>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
               <FormField
                 control={form.control}

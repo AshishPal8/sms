@@ -29,7 +29,7 @@ export const getAllDepartmentController = async (
     const isActiveBoolean =
       isActive === "true" ? true : isActive === "false" ? false : undefined;
 
-    const { departments, total } = await getAllDepartmentsService({
+    const departments = await getAllDepartmentsService({
       search: search as string,
       sortBy: sortBy as string,
       sortOrder: sortOrder as "asc" | "desc",
@@ -37,17 +37,8 @@ export const getAllDepartmentController = async (
       limit: numericLimit,
       isActive: isActiveBoolean,
     });
-    res.status(200).json({
-      success: true,
-      message: "Department fetched successfully",
-      data: departments,
-      meta: {
-        total,
-        page: numericPage,
-        limit: numericLimit,
-        totalPages: Math.ceil(total / numericLimit),
-      },
-    });
+
+    res.status(200).json(departments);
   } catch (err) {
     next(err);
   }
@@ -138,11 +129,7 @@ export const deleteDepartmentController = async (
 
     const deletedDepartment = await deleteDepartmentService(id);
 
-    res.status(201).json({
-      success: true,
-      message: "Department deleted successfully",
-      data: deletedDepartment,
-    });
+    res.status(201).json(deletedDepartment);
   } catch (error) {
     next(error);
   }

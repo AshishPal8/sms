@@ -41,7 +41,7 @@ const formSchema = z.object({
   email: z.email({ error: "Valid email is required" }),
 });
 
-export default function SignupForm() {
+export default function SigninForm() {
   const [step, setStep] = useState<"form" | "otp" | "password">("form");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -146,6 +146,7 @@ export default function SignupForm() {
           name: data.name,
           email: data.email,
           role: data.role,
+          departmentId: data.departmentId || null,
         },
         token
       );

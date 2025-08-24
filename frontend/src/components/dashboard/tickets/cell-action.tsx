@@ -62,13 +62,16 @@ export function TicketActions({ id, onDeleteSuccess }: TicketActionsProps) {
         loading={loading}
       />
       <div className="flex items-center gap-2">
-        <Button
-          size="icon"
-          onClick={handleEdit}
-          className="p-2 bg-blue-200 rounded text-blue-800 hover:bg-blue-300"
-        >
-          <Edit size={16} />
-        </Button>
+        {user.role === roles.ASSISTANT ||
+          (user.role === roles.SUPERADMIN && (
+            <Button
+              size="icon"
+              onClick={handleEdit}
+              className="p-2 bg-blue-200 rounded text-blue-800 hover:bg-blue-300"
+            >
+              <Edit size={16} />
+            </Button>
+          ))}
         {user.role === roles.ASSISTANT ||
           (user.role === roles.SUPERADMIN && (
             <Button

@@ -16,7 +16,7 @@ const TicketDetails = () => {
     const fetchTicket = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${baseUrl}/tickets/${params.id}`, {
+        const res = await axios.get(`${baseUrl}/tickets/item/${params.id}`, {
           withCredentials: true,
         });
 

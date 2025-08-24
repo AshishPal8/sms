@@ -417,6 +417,22 @@ export const createticketItemService = async (
       assignedToRole: "CUSTOMER",
       assignedToCustomerId: customer.id,
     };
+  } else if (user.role === "TECHNICIAN") {
+    const technician = await prisma.admin.findUnique({
+      where: { id: user.id },
+      include: { department: true },
+    });
+
+    if (!technician?.department?.id)
+      throw new BadRequestError(
+        "Technician is not associated with any department"
+      );
+
+    assignedToData = {
+      assignedToRole: "MANAGER",
+      assignedToAdminId: null,
+      assignedToDeptId: technician.department.id,
+    };
   } else {
     throw new Error("No valid assignment target provided");
   }
@@ -470,6 +486,22 @@ export const createticketItemService = async (
     receivers.push({
       role: "CUSTOMER",
       customerId: assignedToData.assignedToCustomerId,
+    });
+  } else if (user.role === "TECHNICIAN") {
+    const technicianWithDept = await prisma.admin.findUnique({
+      where: { id: user.id },
+      include: { department: true },
+    });
+
+    if (!technicianWithDept?.department?.id) {
+      throw new BadRequestError(
+        "Technician is not associated with any department"
+      );
+    }
+
+    receivers.push({
+      role: "MANAGER",
+      deptId: technicianWithDept.department.id,
     });
   } else {
     receivers.push({
@@ -675,12 +707,48 @@ export const getTicketWithItemsService = async (
           description: true,
           assignedByRole: true,
           assignedByAdminId: true,
+          assignedByAdmin: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           assignedByCustomerId: true,
+          assignedByCustomer: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           assignedByDeptId: true,
+          assignedByDept: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           assignedToRole: true,
           assignedToAdminId: true,
+          assignedToAdmin: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           assignedToCustomerId: true,
+          assignedToCustomer: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           assignedToDeptId: true,
+          assignedToDept: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           createdAt: true,
           assets: {
             select: {

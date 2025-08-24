@@ -14,8 +14,6 @@ function EditDepartment() {
   });
   const { id } = useParams();
 
-  console.log("department", department);
-
   useEffect(() => {
     if (!id) return;
 
