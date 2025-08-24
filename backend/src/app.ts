@@ -9,7 +9,8 @@ import uploadRoutes from "./modules/uploads/upload.route";
 import authRoutes from "./modules/admin/auth/auth.route";
 import employeeRoutes from "./modules/admin/employees/employees.route";
 import departmentRoutes from "./modules/admin/departments/department.route";
-import userRoutes from "./modules/user/user.routes";
+import ticketRoutes from "./modules/admin/tickets/ticket.route";
+import customerRoutes from "./modules/user/user.routes";
 
 export const app = express();
 
@@ -33,9 +34,10 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/admin", authRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/departments", departmentRoutes);
+app.use("/api/tickets", ticketRoutes);
 
 //user
-app.use("/api/user", userRoutes);
+app.use("/api/user", customerRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ message: "Route not found" });

@@ -15,6 +15,24 @@ export const navItems = [
     roles: [roles.SUPERADMIN],
   },
   {
+    label: "Dasboard",
+    href: "/dashboard/assistant",
+    icon: LayoutDashboard,
+    roles: [roles.ASSISTANT],
+  },
+  {
+    label: "Dasboard",
+    href: "/dashboard/department",
+    icon: LayoutDashboard,
+    roles: [roles.MANAGER],
+  },
+  {
+    label: "Dasboard",
+    href: "/dashboard/technician",
+    icon: LayoutDashboard,
+    roles: [roles.TECHNICIAN],
+  },
+  {
     label: "Employees",
     href: "/dashboard/superadmin/employees",
     icon: Users,
@@ -28,21 +46,14 @@ export const navItems = [
   },
   {
     label: "Tickets",
-    href: "/dashboard/superadmin/tickets",
+    href: "/dashboard/tickets",
     icon: Ticket,
-    roles: [roles.SUPERADMIN],
+    roles: [roles.SUPERADMIN, roles.ASSISTANT, roles.MANAGER, roles.TECHNICIAN],
   },
   {
     label: "Settings",
     href: "/dashboard/superadmin/settings",
     icon: Settings,
     roles: [roles.SUPERADMIN],
-  },
-
-  {
-    label: "Dasboard",
-    href: "/dashboard/assistant",
-    icon: LayoutDashboard,
-    roles: [roles.ASSISTANT],
   },
 ];

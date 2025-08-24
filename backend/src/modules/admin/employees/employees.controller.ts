@@ -4,10 +4,10 @@ import {
   deleteEmployeeService,
   getAllEmployeesService,
   getEmployeeByIdService,
+  getTechniciansWithDepartmentIdService,
   updateEmployeeService,
 } from "./employees.service";
 import { BadRequestError, UnauthorizedError } from "../../../middlewares/error";
-import { AdminRole } from "../../../generated/prisma";
 
 export const getAllEmployees = async (
   req: Request,
@@ -35,7 +35,7 @@ export const getAllEmployees = async (
     const isActiveBoolean =
       isActive === "true" ? true : isActive === "false" ? false : undefined;
 
-    const { employees, total } = await getAllEmployeesService({
+    const employees = await getAllEmployeesService({
       adminId,
       search: search as string,
       sortBy: sortBy as string,
@@ -45,17 +45,8 @@ export const getAllEmployees = async (
       role: role as string,
       isActive: isActiveBoolean,
     });
-    res.status(200).json({
-      success: true,
-      message: "Employees fetched successfully",
-      data: employees,
-      meta: {
-        total,
-        page: numericPage,
-        limit: numericLimit,
-        totalPages: Math.ceil(total / numericLimit),
-      },
-    });
+
+    res.status(200).json(employees);
   } catch (err) {
     next(err);
   }
@@ -83,6 +74,24 @@ export const getEmployeeById = async (
   }
 };
 
+export const getTechniciansWithDepartmentIdController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const deptId = req.params.id;
+    if (!deptId) {
+      throw new BadRequestError("Employee id is required");
+    }
+
+    const technicians = await getTechniciansWithDepartmentIdService(deptId);
+    res.status(200).json(technicians);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getEmployeeProfile = async (
   req: Request,
   res: Response,
@@ -98,7 +107,7 @@ export const getEmployeeProfile = async (
 
     res.status(201).json({
       success: true,
-      message: "Employee updated successfully",
+      message: "Employee profile fetched successfully",
       data: employee,
     });
   } catch (error) {

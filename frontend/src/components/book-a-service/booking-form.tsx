@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,8 +10,19 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import axios from "axios";
+import { baseUrl } from "../../config";
+import ImageUpload from "../ui/image-upload";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
 
-const schema = z.object({
+const formSchema = z.object({
   title: z
     .string()
     .min(5, "Please enter a short title (min 5 characters).")
@@ -20,34 +31,83 @@ const schema = z.object({
     .string()
     .min(20, "Please describe the issue (min 20 characters).")
     .max(1200),
-  address: z.string().min(6, "Enter a valid address."),
-  contactName: z.string().min(2, "Enter your name."),
+  assets: z
+    .array(z.object({ url: z.string().url("Invalid asset URL") }))
+    .optional(),
+  name: z.string().min(2, "Enter your name."),
   phone: z
     .string()
     .min(7, "Enter a valid phone.")
     .regex(/^[0-9+()\-\s]+$/, "Only digits and + ( ) - allowed."),
-  email: z.email("Enter a valid email.").optional().or(z.literal("")),
-  specialInstructions: z.string().optional(),
+  address: z.string().min(6, "Enter a valid address."),
 });
 
-type FormData = z.infer<typeof schema>;
+type TicketFormValues = z.infer<typeof formSchema>;
 
 export default function BookingForm() {
   const [submitted, setSubmitted] = useState<null | { id: string }>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    mode: "onChange",
+  const form = useForm<TicketFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      name: "",
+      phone: "",
+      address: "",
+    },
   });
 
-  async function onSubmit(data: FormData) {
-    await new Promise((r) => setTimeout(r, 1500));
-    console.log("Booking request:", data);
-    setSubmitted({ id: Math.random().toString(36).slice(2, 8).toUpperCase() });
+  const { setValue } = form;
+
+  useEffect(() => {
+    const fetchCustomerProfile = async () => {
+      try {
+        const res = await axios.get(`${baseUrl}/user/auth/me`, {
+          withCredentials: true,
+        });
+
+        if (res.status === 200) {
+          const profile = await res.data.data;
+          if (profile.name) setValue("name", profile.name);
+          if (profile.phone) setValue("phone", profile.phone);
+          if (profile.address) setValue("address", profile.address);
+        }
+      } catch (error) {
+        console.error("No logged-in user or failed to fetch profile", error);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    fetchCustomerProfile();
+  }, [setValue]);
+
+  async function onSubmit(data: TicketFormValues) {
+    try {
+      setLoading(true);
+      const res = await axios.post(`${baseUrl}/user/ticket/create`, data, {
+        withCredentials: true,
+      });
+
+      if (res.status !== 201) {
+        console.error("Failed to create ticket");
+        return;
+      }
+
+      const result = res.data.data;
+      setSubmitted({ id: result.id });
+    } catch (err) {
+      console.error("Error creating ticket", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loadingProfile) {
+    return <p>Loading form...</p>;
   }
 
   if (submitted) {
@@ -61,8 +121,8 @@ export default function BookingForm() {
         </h2>
         <p className="text-slate-600 mb-6">
           Thank you for choosing ProService. We&apos;ve received your request
-          and will contact you within 15 minutes to confirm details and provide
-          an arrival window.
+          and will contact you within 2 hours to confirm details and provide an
+          arrival window.
         </p>
         <div className="bg-slate-50 rounded-lg p-4 mb-6">
           <p className="text-sm text-slate-600">
@@ -88,137 +148,159 @@ export default function BookingForm() {
   return (
     <div className="space-y-8">
       <Card className="rounded-2xl border-0 bg-white p-8 shadow-xl">
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="space-y-6">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-slate-900 mb-2">
-                Tell us about the issue
-              </h2>
-              <p className="text-slate-600">
-                Provide details so we can prepare the right tools and parts
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Issue Title
-              </label>
-              <Input
-                placeholder="e.g., Kitchen sink leaking under cabinet"
-                {...register("title")}
-                className="rounded-lg"
-              />
-              {errors.title && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors.title.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Detailed Description
-              </label>
-              <Textarea
-                className="min-h-32 rounded-lg"
-                placeholder="Describe the problem in detail. When did it start? What have you tried? Any recent changes or work done?"
-                {...register("description")}
-              />
-              {errors.description && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors.description.message}
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="space-y-6 mt-10">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-slate-900 mb-2">
-                Contact information
-              </h2>
-              <p className="text-slate-600">
-                How can we reach you to confirm the appointment?
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-8 w-full mt-4"
+          >
+            <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Full Name
-                </label>
-                <Input
-                  placeholder="John Smith"
-                  {...register("contactName")}
-                  className="rounded-lg"
-                />
-                {errors.contactName && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.contactName.message}
-                  </p>
-                )}
+                <h2 className="font-display text-2xl font-bold text-slate-900 mb-2">
+                  Tell us about the issue
+                </h2>
+                <p className="text-slate-600">
+                  Provide details so we can prepare the right tools and parts
+                </p>
               </div>
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={loading}
+                        placeholder="e.g., Kitchen sink leaking under cabinet"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Detailed Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        disabled={loading}
+                        placeholder="Describe the problem in detail. When did it start? What have you tried? Any recent changes or work done?"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="assets"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <ImageUpload
+                        value={(field.value || []).map((a) => a.url)}
+                        disabled={loading}
+                        multiple={true}
+                        onChange={(urls) => {
+                          field.onChange(
+                            Array.isArray(urls)
+                              ? urls.map((u) => ({ url: u }))
+                              : []
+                          );
+                        }}
+                        onRemove={(url) => {
+                          field.onChange(
+                            (field.value || []).filter((a) => a.url !== url)
+                          );
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="space-y-6 mt-10">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Phone Number
-                </label>
-                <Input
-                  placeholder="(555) 123-4567"
-                  {...register("phone")}
-                  className="rounded-lg"
+                <h2 className="font-display text-2xl font-bold text-slate-900 mb-2">
+                  Contact information
+                </h2>
+                <p className="text-slate-600">
+                  How can we reach you to confirm the appointment?
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={loading}
+                          placeholder="John Smith"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-                {errors.phone && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.phone.message}
-                  </p>
-                )}
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={loading}
+                          placeholder="(555) 123-4567"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="">
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={loading}
+                          placeholder="xyz, New York"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Email (Optional)
-              </label>
-              <Input
-                type="email"
-                placeholder="john@example.com"
-                {...register("email")}
-                className="rounded-lg"
-              />
-              {errors.email && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors.email.message}
-                </p>
-              )}
+            <div className="flex justify-center pt-8">
+              <Button
+                type="submit"
+                className="rounded-full bg-blue-600 hover:bg-blue-700"
+              >
+                submit
+              </Button>
             </div>
-            <div className="">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Address
-              </label>
-              <Input
-                type="text"
-                placeholder="xyz, new yourk"
-                {...register("address")}
-                className="rounded-lg"
-              />
-              {errors.email && (
-                <p className="mt-1 text-xs text-red-600">
-                  {errors.email.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-center pt-8">
-            <Button
-              type="button"
-              // onClick={nextStep}
-              className="rounded-full bg-blue-600 hover:bg-blue-700"
-            >
-              submit
-            </Button>
-          </div>
-        </form>
+          </form>
+        </Form>
       </Card>
     </div>
   );

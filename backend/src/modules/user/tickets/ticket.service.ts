@@ -13,12 +13,40 @@ export const createTicketService = async (
   data: createTicketInput,
   customerId: string
 ) => {
-  const { title, description, address, assets } = data;
+  const { title, description, name, phone, address, assets } = data;
+
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId },
+    select: { phone: true, address: true, name: true },
+  });
+
+  if (!customer) {
+    throw new NotFoundError("Customer not found");
+  }
+
+  const updateData: { phone?: string; address?: string } = {};
+
+  if (!customer.phone && phone) {
+    updateData.phone = phone;
+  }
+
+  if (!customer.address && address) {
+    updateData.address = address;
+  }
+
+  if (Object.keys(updateData).length > 0) {
+    await prisma.customer.update({
+      where: { id: customerId },
+      data: updateData,
+    });
+  }
 
   const ticket = await prisma.ticket.create({
     data: {
       title,
       description,
+      name,
+      phone,
       address,
       customerId,
       assets: {

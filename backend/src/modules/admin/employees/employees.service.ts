@@ -54,7 +54,32 @@ export const getAllEmployeesService = async ({
     },
   });
 
-  return { employees, total };
+  return {
+    success: true,
+    message: "Employees fetched successfully",
+    data: employees,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
+
+export const getTechniciansWithDepartmentIdService = async (deptId: string) => {
+  const technicians = await prisma.admin.findMany({
+    where: {
+      role: "TECHNICIAN",
+      departmentId: deptId,
+    },
+  });
+
+  return {
+    success: true,
+    message: "Technicians fetched successfully",
+    data: technicians,
+  };
 };
 
 export const getEmployeeByIdService = async (id: string) => {

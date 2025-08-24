@@ -13,6 +13,10 @@ export const createDepartmentSchema = z.object({
     .or(z.literal(""))
     .nullable()
     .optional(),
+  technicians: z
+    .array(z.string().regex(objectIdRegex, "Invalid technician ID"))
+    .optional()
+    .default([]),
   isActive: z.boolean().optional(),
 });
 
@@ -27,6 +31,9 @@ export const updateDepartmentSchema = z.object({
     .regex(objectIdRegex, "Invalid admin ID")
     .or(z.literal(""))
     .nullable()
+    .optional(),
+  technicians: z
+    .array(z.string().regex(objectIdRegex, "Invalid technician ID"))
     .optional(),
   isActive: z.boolean().optional(),
 });

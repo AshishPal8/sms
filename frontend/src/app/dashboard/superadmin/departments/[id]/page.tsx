@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { baseUrl } from "../../../../../../config";
+import { baseUrl } from "../../../../../config";
 import { useParams } from "next/navigation";
 import { DepartmentForm } from "@/components/dashboard/departments/dep-form";
 
@@ -13,8 +13,6 @@ function EditDepartment() {
     isActive: true,
   });
   const { id } = useParams();
-
-  console.log("department", department);
 
   useEffect(() => {
     if (!id) return;

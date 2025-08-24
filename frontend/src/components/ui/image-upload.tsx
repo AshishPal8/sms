@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Button } from "./button";
 import { ImagePlus, Trash } from "lucide-react";
 import Image from "next/image";
 import axios from "axios";
 import { Label } from "./label";
 import { Input } from "./input";
-import { baseUrl } from "../../../config";
+import { baseUrl } from "../../config";
 
 interface ImageUploadProps {
   disabled?: boolean;
@@ -32,68 +32,92 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
+  const [images, setImages] = useState<string[]>(value || []);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const uploadFile = async (file: File, tempId: string) => {
-    const formData = new FormData();
-    formData.append("files", file);
+  useEffect(() => {
+    setImages(value || []);
+  }, [value]);
 
-    try {
-      const response = await axios.post(`${baseUrl}/upload/assets`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const progress = Math.round(
-              (progressEvent.loaded / progressEvent.total) * 100
-            );
-            setUploadingFiles((prev) =>
-              prev.map((f) => (f.tempId === tempId ? { ...f, progress } : f))
-            );
+  const uploadFile = useCallback(
+    async (file: File, tempId: string) => {
+      const formData = new FormData();
+      formData.append("files", file);
+
+      try {
+        const response = await axios.post(
+          `${baseUrl}/upload/assets`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.total) {
+                const progress = Math.round(
+                  (progressEvent.loaded / progressEvent.total) * 100
+                );
+                setUploadingFiles((prev) =>
+                  prev.map((f) =>
+                    f.tempId === tempId ? { ...f, progress } : f
+                  )
+                );
+              }
+            },
           }
-        },
-      });
+        );
 
-      const uploadedFiles = response.data.data;
-      if (multiple) {
-        onChange([
-          ...value,
-          ...uploadedFiles.map((f: { url: string }) => f.url),
-        ]);
-      } else {
-        onChange(uploadedFiles[0]?.url || "");
+        const uploadedFiles = response.data.data;
+        const uploadedUrl = uploadedFiles[0]?.url;
+
+        if (multiple) {
+          setImages((prev) => {
+            const updated = [...prev, uploadedUrl];
+            onChange(updated);
+            return updated;
+          });
+        } else {
+          setImages([uploadedUrl]);
+          onChange(uploadedUrl);
+        }
+      } catch (error) {
+        console.error("File upload failed", error);
+      } finally {
+        setUploadingFiles((prev) => prev.filter((f) => f.tempId !== tempId));
       }
-    } catch (error) {
-      console.error("File upload failed", error);
-    } finally {
-      setUploadingFiles((prev) => prev.filter((f) => f.tempId !== tempId));
-    }
-  };
+    },
+    [multiple, onChange]
+  );
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+  const handleFileUpload = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
 
-    if (!multiple || files.length === 0) {
-      setUploadingFiles([]);
-      const file = files[0];
-      const tempId = `${file.name}-${Date.now()}`;
-      setUploadingFiles([{ file, progress: 0, tempId }]);
-      uploadFile(file, tempId);
-    } else {
-      Array.from(files).forEach((file) => {
+      if (!multiple || files.length === 0) {
+        setUploadingFiles([]);
+        setImages([]);
+        onChange(multiple ? [] : "");
+
+        const file = files[0];
         const tempId = `${file.name}-${Date.now()}`;
-        setUploadingFiles((prev) => [...prev, { file, progress: 0, tempId }]);
+        setUploadingFiles([{ file, progress: 0, tempId }]);
         uploadFile(file, tempId);
-      });
-    }
+      } else {
+        Array.from(files).forEach((file) => {
+          const tempId = `${file.name}-${Date.now()}-${Math.random()}`;
+          setUploadingFiles((prev) => [...prev, { file, progress: 0, tempId }]);
+          uploadFile(file, tempId);
+        });
+      }
 
-    event.target.value = "";
-  };
+      event.target.value = "";
+    },
+    [multiple, onChange, uploadFile]
+  );
 
   if (!isMounted) {
     return null;
@@ -103,7 +127,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     <div className="flex flex-col gap-5">
       {/* Uploaded files */}
       <div className="flex items-center flex-wrap gap-4">
-        {value.map((url) => (
+        {images.map((url) => (
           <div
             key={url}
             className="relative w-[150px] h-[150px] rounded-lg overflow-hidden border"
@@ -111,7 +135,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             <div className="absolute top-2 right-2 z-10">
               <Button
                 type="button"
-                onClick={() => onRemove(url)}
+                onClick={() => {
+                  const filtered = images.filter((img) => img !== url);
+                  setImages(filtered);
+                  onChange(filtered);
+                  onRemove(url);
+                }}
                 variant="destructive"
                 size="icon"
               >

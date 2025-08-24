@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
 import { ChevronDown, LayoutDashboard, Menu } from "lucide-react";
 import axios from "axios";
-import { baseUrl } from "../../../config";
+import { baseUrl } from "../../config";
 import { usePathname, useRouter } from "next/navigation";
 import DashMobileSidebar from "./dash-mobile-sidebar";
 
@@ -37,7 +37,7 @@ const DashHeader = () => {
   };
 
   return (
-    <div className="w-full px-3 md:px-10 py-2 border-b">
+    <div className="fixed top-0 right-0 w-full md:w-4/5 bg-white px-3 md:px-10 py-2 border-b z-30">
       <div className="flex items-center justify-between">
         <div className="flex gap-2 items-center justify-center">
           <Menu
@@ -86,12 +86,10 @@ const DashHeader = () => {
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <Link href="/profile" className="cursor-pointer">
-                <DropdownMenuItem>{user.name}</DropdownMenuItem>
-              </Link>
+              <DropdownMenuItem>{user.name}</DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link
-                  href="/profile"
+                  href="/dashboard/profile"
                   className="flex items-center cursor-pointer"
                 >
                   <LayoutDashboard className="h-4 w-4 mr-2" />

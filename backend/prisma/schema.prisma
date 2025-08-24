@@ -52,22 +52,37 @@ enum AssignmentRole {
   DEPARTMENT
 }
 
+enum NotificationType {
+  TICKET
+  DEPARTMENT
+}
+
+enum ActionType {
+  LOG
+  NOTIFY
+}
+
 //customer
 model Customer {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  id             String  @id @default(auto()) @map("_id") @db.ObjectId
   name           String
-  email          String    @unique
+  email          String  @unique
   phone          String?
   profilePicture String?
-  loginType      LoginType @default(EMAIL)
-  isVerified     Boolean   @default(false)
-  isRegistered   Boolean   @default(false)
-  isDeleted      Boolean   @default(false)
+
+  address      String?
+  loginType    LoginType @default(EMAIL)
+  isVerified   Boolean   @default(false)
+  isRegistered Boolean   @default(false)
+  isDeleted    Boolean   @default(false)
 
   tickets Ticket[]
 
   assignedByTicketItems TicketItem[] @relation("AssignedByCustomer")
   assignedToTicketItems TicketItem[] @relation("AssignedToCustomer")
+
+  NotificationSenderCustomer   Notification[]         @relation("NotificationSenderCustomer")
+  NotificationReceiverCustomer NotificationReceiver[] @relation("NotificationReceiverCustomer")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -96,25 +111,39 @@ model Admin {
   isDeleted      Boolean   @default(false)
   isActive       Boolean   @default(true)
 
+  departmentId String?     @db.ObjectId
+  department   Department? @relation("TechnicianDepartment", fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  managedDepartment Department[] @relation("ManagerOfDepartment")
+
   assignedByTicketItems TicketItem[] @relation("AssignedByAdmin")
   assignedToTicketItems TicketItem[] @relation("AssignedToAdmin")
 
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  Department Department[]
+  NotificationSenderAdmin   Notification[]         @relation("NotificationSenderAdmin")
+  NotificationReceiverAdmin NotificationReceiver[] @relation("NotificationReceiverAdmin")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 //department
 model Department {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  name      String
-  adminId   String? @db.ObjectId
-  admin     Admin?  @relation(fields: [adminId], references: [id])
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+
+  adminId String? @db.ObjectId
+  admin   Admin?  @relation("ManagerOfDepartment", fields: [adminId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  technicians Admin[] @relation("TechnicianDepartment")
+
   isActive  Boolean @default(true)
   isDeleted Boolean @default(false)
 
   assignedByTicketItems TicketItem[] @relation("AssignedByDept")
   assignedToTicketItems TicketItem[] @relation("AssignedToDept")
+
+  NotificationSenderDept   Notification[]         @relation("NotificationSenderDept")
+  NotificationReceiverDept NotificationReceiver[] @relation("NotificationReceiverDept")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -125,6 +154,9 @@ model Ticket {
   id          String         @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String?
+  name        String?
+  phone       String?
+  email       String?
   address     String?
   priority    TicketPriority @default(MEDIUM)
   status      TicketStatus   @default(OPEN)
@@ -189,4 +221,45 @@ model TicketItemAsset {
   url          String
   type         AssetType
   createdAt    DateTime   @default(now())
+}
+
+//notificaiton
+model Notification {
+  id               String           @id @default(auto()) @map("_id") @db.ObjectId
+  title            String
+  description      String
+  notificationType NotificationType
+  actionType       ActionType
+  data             Json
+
+  senderRole       AssignmentRole // SUPERADMIN, MANAGER, ASSISTANT, TECHNICIAN, CUSTOMER
+  senderAdminId    String?        @db.ObjectId
+  senderAdmin      Admin?         @relation("NotificationSenderAdmin", fields: [senderAdminId], references: [id])
+  senderCustomerId String?        @db.ObjectId
+  senderCustomer   Customer?      @relation("NotificationSenderCustomer", fields: [senderCustomerId], references: [id])
+  senderDeptId     String?        @db.ObjectId
+  senderDept       Department?    @relation("NotificationSenderDept", fields: [senderDeptId], references: [id])
+
+  receivers NotificationReceiver[]
+
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model NotificationReceiver {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  notificationId String       @db.ObjectId
+  notification   Notification @relation(fields: [notificationId], references: [id])
+
+  receiverRole       AssignmentRole
+  receiverAdminId    String?        @db.ObjectId
+  receiverAdmin      Admin?         @relation("NotificationReceiverAdmin", fields: [receiverAdminId], references: [id])
+  receiverCustomerId String?        @db.ObjectId
+  receiverCustomer   Customer?      @relation("NotificationReceiverCustomer", fields: [receiverCustomerId], references: [id])
+  receiverDeptId     String?        @db.ObjectId
+  receiverDept       Department?    @relation("NotificationReceiverDept", fields: [receiverDeptId], references: [id])
+
+  isRead    Boolean   @default(false)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
 }

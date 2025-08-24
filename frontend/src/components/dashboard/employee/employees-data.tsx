@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import { format } from "date-fns";
 import { DataTable } from "@/components/ui/data-table";
-import { baseUrl } from "../../../../config";
+import { baseUrl } from "../../../config";
 import { EmployeeActions } from "./cell-action";
 import Pagination from "../pagination";
 import { IEmployee } from "@/types/employee.types";

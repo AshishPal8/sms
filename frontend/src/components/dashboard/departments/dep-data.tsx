@@ -3,7 +3,7 @@ import axios from "axios";
 import { format } from "date-fns";
 import { DataTable } from "@/components/ui/data-table";
 import React, { useEffect, useState } from "react";
-import { baseUrl } from "../../../../config";
+import { baseUrl } from "../../../config";
 import { useSearchParams } from "next/navigation";
 import { DepartmentActions } from "./cell-action";
 import Pagination from "../pagination";

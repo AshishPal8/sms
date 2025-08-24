@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select";
 import ImageUpload from "@/components/ui/image-upload";
 import axios from "axios";
-import { baseUrl } from "../../../../config";
+import { baseUrl } from "../../../config";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -51,8 +51,6 @@ interface EmployeeFormProps {
 
 export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
   const router = useRouter();
-
-  console.log("initial data", initialData);
 
   const [loading, setLoading] = useState(false);
 
@@ -144,7 +142,11 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
                         value={field.value ? [field.value] : []}
                         disabled={loading}
                         multiple={false}
-                        onChange={(url) => field.onChange(url)}
+                        onChange={(url) =>
+                          field.onChange(
+                            typeof url === "string" ? url : url[0] || ""
+                          )
+                        }
                         onRemove={() => field.onChange("")}
                       />
                     </FormControl>

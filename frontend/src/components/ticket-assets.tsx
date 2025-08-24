@@ -1,0 +1,104 @@
+import { AssetType } from "@/enums/TicketAssetTypes";
+import {
+  Download,
+  FileText,
+  FileSpreadsheet,
+  File,
+  Music,
+  Icon,
+} from "lucide-react";
+
+export interface IAsset {
+  id: string;
+  url: string;
+  type: AssetType;
+}
+
+export default function TicketAssets({ assets }: { assets?: IAsset[] }) {
+  if (!assets || assets.length === 0) return null;
+
+  const handleDownload = (url: string) => {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = url.split("/").pop() || "file";
+    link.click();
+  };
+
+  const renderAsset = (asset: IAsset) => {
+    switch (asset.type) {
+      case AssetType.IMAGE:
+        return (
+          <img
+            src={asset.url}
+            alt="Asset"
+            className="w-full h-32 object-cover"
+          />
+        );
+
+      case AssetType.VIDEO:
+        return (
+          <video controls className="w-full h-32 object-cover">
+            <source src={asset.url} />
+            Your browser does not support the video tag.
+          </video>
+        );
+
+      case AssetType.AUDIO:
+        return (
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Music size={18} className="text-blue-500" />
+              <span className="text-sm font-medium">Audio File</span>
+            </div>
+            <button
+              onClick={() => handleDownload(asset.url)}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              <Download size={18} />
+            </button>
+          </div>
+        );
+
+      case AssetType.PDF:
+      case AssetType.DOC:
+      case AssetType.EXCEL:
+      case AssetType.OTHER:
+        const icon =
+          asset.type === AssetType.PDF
+            ? FileText
+            : asset.type === AssetType.EXCEL
+            ? FileSpreadsheet
+            : File;
+        return (
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Icon size={18} className="text-gray-500" />
+              <span className="text-sm font-medium">{asset.type} File</span>
+            </div>
+            <button
+              onClick={() => handleDownload(asset.url)}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              <Download size={18} />
+            </button>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
+      {assets.map((asset) => (
+        <div
+          key={asset.id}
+          className="rounded-lg overflow-hidden border border-gray-200 shadow-sm"
+        >
+          {renderAsset(asset)}
+        </div>
+      ))}
+    </div>
+  );
+}

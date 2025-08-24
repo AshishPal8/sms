@@ -7,6 +7,7 @@ import {
   getAllEmployees,
   getEmployeeById,
   getEmployeeProfile,
+  getTechniciansWithDepartmentIdController,
   updateEmployee,
 } from "./employees.controller";
 import { authMiddleware } from "../../../middlewares/authMiddleware";
@@ -29,6 +30,12 @@ router.get(
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN),
   getEmployeeById
+);
+
+router.get(
+  "/dept/:id",
+  authMiddleware,
+  getTechniciansWithDepartmentIdController
 );
 
 router.post(
