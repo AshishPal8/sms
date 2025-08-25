@@ -1,6 +1,6 @@
 import type { Response } from "express";
 
-// export const COOKIE_OPTIONS_LOCAL = {
+// export const COOKIE_OPTIONS = {
 //   httpOnly: true,
 //   secure: false,
 //   sameSite: "lax" as "lax",
@@ -8,7 +8,7 @@ import type { Response } from "express";
 //   maxAge: 1000 * 60 * 60 * 24 * 30,
 // };
 
-export const COOKIE_OPTIONS_PROD = {
+export const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: true,
   sameSite: "none" as const,
@@ -18,9 +18,9 @@ export const COOKIE_OPTIONS_PROD = {
 };
 
 export const setAuthCookie = (res: Response, token: string) => {
-  res.cookie("token", token, COOKIE_OPTIONS_PROD);
+  res.cookie("token", token, COOKIE_OPTIONS);
 };
 
 export const clearAuthCookie = (res: Response) => {
-  res.clearCookie("token", { ...COOKIE_OPTIONS_PROD, maxAge: undefined });
+  res.clearCookie("token", { ...COOKIE_OPTIONS, maxAge: undefined });
 };
