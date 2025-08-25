@@ -14,7 +14,7 @@ export const COOKIE_OPTIONS_PROD = {
   sameSite: "none" as const,
   path: "/",
   maxAge: 1000 * 60 * 60 * 24 * 30,
-  domain: ".sms-opal-five.vercel.app",
+  domain: "sms-opal-five.vercel.app",
 };
 
 export const setAuthCookie = (res: Response, token: string) => {

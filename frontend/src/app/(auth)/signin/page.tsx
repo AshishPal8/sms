@@ -62,7 +62,9 @@ export default function SigninForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      const res = await axios.post(`${baseUrl}/user/auth/signin`, values);
+      const res = await axios.post(`${baseUrl}/user/auth/signin`, values, {
+        withCredentials: true,
+      });
       setEmail(values.email);
       const { data } = res.data;
 
