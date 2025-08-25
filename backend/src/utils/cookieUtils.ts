@@ -10,10 +10,11 @@ import type { Response } from "express";
 
 export const COOKIE_OPTIONS_PROD = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  secure: true,
   sameSite: "none" as const,
   path: "/",
   maxAge: 1000 * 60 * 60 * 24 * 30,
+  domain: ".sms-opal-five.vercel.app",
 };
 
 export const setAuthCookie = (res: Response, token: string) => {
