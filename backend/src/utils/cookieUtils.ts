@@ -4,7 +4,7 @@ export const COOKIE_OPTIONS = {
   httpOnly: true,
   // secure: false,
   // sameSite: "lax" as "lax",
-  secure: process.env.NODE_ENV === "production",
+  secure: true,
   sameSite: "none" as "none",
   path: "/",
   maxAge: 1000 * 60 * 60 * 24 * 30,
