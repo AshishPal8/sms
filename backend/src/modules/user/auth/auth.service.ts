@@ -68,7 +68,7 @@ export const signinService = async (data: customerSigninInput) => {
   if (admin) {
     return {
       success: true,
-      message: "Admin login successful.",
+      message: "Enter Password to login",
       data: {
         id: admin.id,
         email: admin.email,
