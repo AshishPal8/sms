@@ -1,4 +1,3 @@
-// lib/routeAccess.ts
 import { roles } from "./utils";
 
 export const routeAccess = {
@@ -8,25 +7,27 @@ export const routeAccess = {
 
   protected: {
     [roles.SUPERADMIN]: [
-      "/dashboard/superadmin",
+      "/dashboard",
+      "/dashboard/employees",
+      "/dashboard/departments",
       "/dashboard/tickets",
       "/dashboard/notification",
       "/dashboard/profile",
     ],
     [roles.MANAGER]: [
-      "/dashboard/department",
+      "/dashboard",
       "/dashboard/tickets",
       "/dashboard/notification",
       "/dashboard/profile",
     ],
     [roles.TECHNICIAN]: [
-      "/dashboard/technician",
+      "/dashboard",
       "/dashboard/tickets",
       "/dashboard/notification",
       "/dashboard/profile",
     ],
     [roles.ASSISTANT]: [
-      "/dashboard/assistant",
+      "/dashboard",
       "/dashboard/tickets",
       "/dashboard/notification",
       "/dashboard/profile",

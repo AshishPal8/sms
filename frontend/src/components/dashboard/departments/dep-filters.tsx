@@ -11,7 +11,7 @@ const DepartmentFilters = () => {
       <SearchInput placeholder="Search with Name" />
       <div className="flex gap-2 items-center">
         <FilterDropdown />
-        <Link href="/dashboard/superadmin/departments/add">
+        <Link href="/dashboard/departments/add">
           <Button className="cursor-pointer">
             <Plus size={20} /> Add
           </Button>
