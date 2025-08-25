@@ -16,13 +16,20 @@ import customerRoutes from "./modules/user/user.routes";
 export const app = express();
 
 app.use(express.json());
+
+// trust proxy for secure cookies in production
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
+
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   })
 );
+
 app.use(cookieParser());
 app.use(requestLogger);
 
