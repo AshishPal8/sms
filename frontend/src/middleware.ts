@@ -39,8 +39,6 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(signInUrl);
   }
 
-  const allowedRoutes = routeAccess.protected[user.role] || [];
-
   if (user.role === roles.CUSTOMER) {
     if (pathname.startsWith("/dashboard")) {
       return NextResponse.redirect(new URL("/", req.url));
@@ -48,14 +46,25 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname === "/dashboard") {
+    return NextResponse.next();
+  }
+
+  if (
+    pathname.startsWith("/dashboard/employees") ||
+    pathname.startsWith("/dashboard/departments")
+  ) {
+    if (user.role !== roles.SUPERADMIN) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+    return NextResponse.next();
+  }
+
+  const allowedRoutes = routeAccess.protected[user.role] || [];
   const isAllowed = allowedRoutes.some((route) => pathname.startsWith(route));
 
   if (!isAllowed) {
-    if (allowedRoutes.length > 0) {
-      return NextResponse.redirect(new URL(allowedRoutes[0], req.url));
-    }
-
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return NextResponse.next();

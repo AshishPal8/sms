@@ -11,37 +11,19 @@ import {
 export const navItems = [
   {
     label: "Dashboard",
-    href: "/dashboard/superadmin",
+    href: "/dashboard",
     icon: LayoutDashboard,
-    roles: [roles.SUPERADMIN],
-  },
-  {
-    label: "Dasboard",
-    href: "/dashboard/assistant",
-    icon: LayoutDashboard,
-    roles: [roles.ASSISTANT],
-  },
-  {
-    label: "Dasboard",
-    href: "/dashboard/department",
-    icon: LayoutDashboard,
-    roles: [roles.MANAGER],
-  },
-  {
-    label: "Dasboard",
-    href: "/dashboard/technician",
-    icon: LayoutDashboard,
-    roles: [roles.TECHNICIAN],
+    roles: [roles.SUPERADMIN, roles.ASSISTANT, roles.MANAGER, roles.TECHNICIAN],
   },
   {
     label: "Employees",
-    href: "/dashboard/superadmin/employees",
+    href: "/dashboard/employees",
     icon: Users,
     roles: [roles.SUPERADMIN],
   },
   {
     label: "Departments",
-    href: "/dashboard/superadmin/departments",
+    href: "/dashboard/departments",
     icon: Building2,
     roles: [roles.SUPERADMIN],
   },

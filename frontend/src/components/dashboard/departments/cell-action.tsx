@@ -4,7 +4,7 @@ import { Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
-import { baseUrl } from "../../../config";
+import { baseUrl } from "@/config";
 import { useState } from "react";
 import AlertModal from "@/modals/alert-modal";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ export function DepartmentActions({
   const [open, setOpen] = useState(false);
 
   const handleEdit = () => {
-    router.push(`/dashboard/superadmin/departments/${id}`);
+    router.push(`/dashboard/departments/${id}`);
   };
 
   const handleDelete = async () => {

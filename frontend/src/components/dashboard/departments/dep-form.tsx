@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import axios from "axios";
-import { baseUrl } from "../../../config";
+import { baseUrl } from "@/config";
 import Link from "next/link";
 import { ArrowLeft, Trash } from "lucide-react";
 import { IEmployee } from "@/types/employee.types";
@@ -147,7 +147,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
       toast.success(
         `Department ${isEdit ? "updated" : "created"} successfully`
       );
-      router.push("/dashboard/superadmin/departments");
+      router.push("/dashboard/departments");
     } catch (error) {
       toast.error("Something went wrong!");
       console.error("Error submitting form:", error);
@@ -161,7 +161,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center mb-2 gap-4">
           <Link
-            href="/dashboard/superadmin/departments"
+            href="/dashboard/departments"
             className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center"
           >
             <ArrowLeft size={25} />

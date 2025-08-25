@@ -10,16 +10,13 @@ function NavLinks() {
   const { user } = useAuthStore();
 
   const roleDashboards: Record<string, string> = {
-    [roles.SUPERADMIN]: "/dashboard/superadmin",
-    [roles.ASSISTANT]: "/dashboard/assistant",
-    [roles.MANAGER]: "/dashboard/department",
-    [roles.TECHNICIAN]: "/dashboard/technician",
+    [roles.SUPERADMIN]: "/dashboard",
+    [roles.ASSISTANT]: "/dashboard",
+    [roles.MANAGER]: "/dashboard",
+    [roles.TECHNICIAN]: "/dashboard",
   };
 
-  const dashboardHref =
-    user && user.role !== roles.CUSTOMER
-      ? roleDashboards[user.role] || "/dashboard"
-      : null;
+  const admin = user && user?.role !== roles.CUSTOMER;
 
   return (
     <nav className="hidden md:flex items-center space-x-10">
@@ -37,14 +34,10 @@ function NavLinks() {
         </Link>
       ))}
 
-      {dashboardHref && (
+      {admin && (
         <Link
-          href={dashboardHref}
-          className={`hover:text-primary font-medium transition-colors ${
-            pathname.startsWith("/dashboard")
-              ? "text-primary font-extrabold"
-              : "text-gray-800"
-          }`}
+          href="/dashboard"
+          className="hover:text-primary font-medium transition-colors"
         >
           Dashboard
         </Link>

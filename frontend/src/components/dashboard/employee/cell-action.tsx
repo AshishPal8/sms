@@ -21,7 +21,7 @@ export function EmployeeActions({ id, onDeleteSuccess }: EmployeeActionsProps) {
   const [open, setOpen] = useState(false);
 
   const handleEdit = () => {
-    router.push(`/dashboard/superadmin/employees/${id}`);
+    router.push(`/dashboard/employees/${id}`);
   };
 
   const handleDelete = async () => {

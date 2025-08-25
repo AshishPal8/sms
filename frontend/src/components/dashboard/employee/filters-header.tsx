@@ -11,7 +11,7 @@ const EmployeeFilters = () => {
       <SearchInput placeholder="Search with Name & Email" />
       <div className="flex gap-2 items-center">
         <FilterDropdown />
-        <Link href="/dashboard/superadmin/employees/add">
+        <Link href="/dashboard/employees/add">
           <Button className="cursor-pointer">
             <Plus size={20} /> Add
           </Button>
