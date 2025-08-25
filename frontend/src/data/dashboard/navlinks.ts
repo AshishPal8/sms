@@ -5,6 +5,7 @@ import {
   Building2,
   Users,
   Settings,
+  Bell,
 } from "lucide-react";
 
 export const navItems = [
@@ -48,6 +49,12 @@ export const navItems = [
     label: "Tickets",
     href: "/dashboard/tickets",
     icon: Ticket,
+    roles: [roles.SUPERADMIN, roles.ASSISTANT, roles.MANAGER, roles.TECHNICIAN],
+  },
+  {
+    label: "Notifications",
+    href: "/dashboard/notifications",
+    icon: Bell,
     roles: [roles.SUPERADMIN, roles.ASSISTANT, roles.MANAGER, roles.TECHNICIAN],
   },
   {

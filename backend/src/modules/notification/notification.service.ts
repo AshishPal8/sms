@@ -1,5 +1,6 @@
 import prisma from "../../db";
 import type { AssignmentRole } from "../../generated/prisma";
+import { NotFoundError } from "../../middlewares/error";
 import { roles } from "../../utils/roles";
 import type { CreateNotificationInput } from "./notification.schema";
 
@@ -53,14 +54,14 @@ export const getNotificationsService = async (
   userId: string,
   role: AssignmentRole
 ) => {
-  let deptIds: string[] | undefined;
+  let deptId: string[] | undefined;
 
   if (role === roles.MANAGER) {
     const manager = await prisma.admin.findUnique({
       where: { id: userId },
       select: { department: { select: { id: true } } },
     });
-    deptIds = manager?.department.map((dept) => dept.id) || [];
+    deptId = manager?.department?.id;
   }
 
   const receiverConditions: any[] = [];
@@ -78,7 +79,7 @@ export const getNotificationsService = async (
   }
 
   if (role === roles.MANAGER) {
-    receiverConditions.push({ receiverDeptId: { in: deptIds } });
+    receiverConditions.push({ receiverDeptId: deptId });
   }
 
   if (receiverConditions.length === 0) {
@@ -117,5 +118,33 @@ export const getNotificationsService = async (
     },
   });
 
-  return notifications;
+  return {
+    success: true,
+    message: "Notifications fetched successfully",
+    data: notifications,
+  };
+};
+
+export const markNotificationAsReadService = async (notificationId: string) => {
+  const notification = await prisma.notification.findUnique({
+    where: { id: notificationId },
+  });
+
+  if (!notification) {
+    throw new NotFoundError("Notification not found");
+  }
+
+  const updatedNotification = await prisma.notification.update({
+    where: { id: notificationId },
+    data: { isRead: true },
+  });
+
+  return {
+    success: true,
+    message: "Notification marked as read successfully",
+    data: {
+      id: updatedNotification.id,
+      isRead: updatedNotification.isRead,
+    },
+  };
 };

@@ -11,7 +11,7 @@ import type { Response } from "express";
 export const COOKIE_OPTIONS_PROD = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "none" as "none",
+  sameSite: "none" as const,
   path: "/",
   maxAge: 1000 * 60 * 60 * 24 * 30,
 };
