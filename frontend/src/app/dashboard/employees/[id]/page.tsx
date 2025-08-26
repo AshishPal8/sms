@@ -3,7 +3,7 @@
 import { EmployeeForm } from "@/components/dashboard/employee/employee-form";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { baseUrl } from "../../../../../config";
+import { baseUrl } from "@/config";
 import { useParams } from "next/navigation";
 import { Role } from "@/types/role.types";
 

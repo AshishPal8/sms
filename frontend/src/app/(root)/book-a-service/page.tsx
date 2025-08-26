@@ -1,6 +1,6 @@
+import React from "react";
 import BookingForm from "@/components/book-a-service/booking-form";
 import ServiceHero from "@/components/book-a-service/hero";
-import React from "react";
 
 const BookAService = () => {
   return (

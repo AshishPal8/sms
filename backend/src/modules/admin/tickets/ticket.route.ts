@@ -72,12 +72,6 @@ router.delete(
 router.post(
   "/item/create",
   authMiddleware,
-  requireRole(
-    AdminRole.SUPERADMIN,
-    AdminRole.MANAGER,
-    AdminRole.ASSISTANT,
-    AdminRole.TECHNICIAN
-  ),
   validateRequest(createTicketItemSchema),
   createTicketItemController
 );

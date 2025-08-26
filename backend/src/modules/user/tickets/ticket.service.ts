@@ -141,6 +141,7 @@ export const getCustomerTicketsService = async (
         description: true,
         address: true,
         status: true,
+        assets: true,
         createdAt: true,
         updatedAt: true,
       },
