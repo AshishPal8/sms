@@ -50,6 +50,7 @@ enum AssignmentRole {
   SUPERADMIN
   MANAGER
   DEPARTMENT
+  NONE
 }
 
 enum NotificationType {
@@ -232,6 +233,8 @@ model Notification {
   actionType       ActionType
   data             Json
 
+  isPublic Boolean @default(false)
+
   senderRole       AssignmentRole // SUPERADMIN, MANAGER, ASSISTANT, TECHNICIAN, CUSTOMER
   senderAdminId    String?        @db.ObjectId
   senderAdmin      Admin?         @relation("NotificationSenderAdmin", fields: [senderAdminId], references: [id])
@@ -251,7 +254,7 @@ model NotificationReceiver {
   notificationId String       @db.ObjectId
   notification   Notification @relation(fields: [notificationId], references: [id])
 
-  receiverRole       AssignmentRole
+  receiverRole       AssignmentRole @default(NONE)
   receiverAdminId    String?        @db.ObjectId
   receiverAdmin      Admin?         @relation("NotificationReceiverAdmin", fields: [receiverAdminId], references: [id])
   receiverCustomerId String?        @db.ObjectId

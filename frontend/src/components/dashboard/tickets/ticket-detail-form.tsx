@@ -167,11 +167,11 @@ const TicketDetailForm = ({ ticket }: { ticket: ITicketById }) => {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>Subject</FormLabel>
                     <FormControl>
                       <Input
                         disabled={loading}
-                        placeholder="Enter ticket title"
+                        placeholder="Enter subject"
                         {...field}
                       />
                     </FormControl>

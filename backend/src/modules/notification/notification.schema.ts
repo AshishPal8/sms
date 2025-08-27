@@ -12,6 +12,7 @@ export const createNotificationSchema = z.object({
   notificationType: z.enum(NotificationType),
   actionType: z.enum(ActionType),
   data: z.record(z.string(), z.any()).optional(),
+  isPublic: z.boolean().optional(),
 
   sender: z.object({
     role: z.enum(roles),
