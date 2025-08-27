@@ -368,6 +368,7 @@ export const createticketItemService = async (
     throw new BadRequestError("Invalid user performing this action");
 
   let assignedByData: any = {};
+  let isPublic = false;
 
   if ("role" in assigner) {
     assignedByData.assignedByRole = assigner.role;
@@ -379,62 +380,65 @@ export const createticketItemService = async (
   } else {
     assignedByData.assignedByRole = "CUSTOMER";
     assignedByData.assignedByCustomerId = assigner.id;
+    isPublic = true;
   }
 
   let assignedToData: any = {};
 
-  if (assignedToAdminId) {
-    const admin = await prisma.admin.findUnique({
-      where: { id: assignedToAdminId },
-    });
-    if (!admin) throw new BadRequestError("Assigned admin not found");
+  if (!isPublic) {
+    if (assignedToAdminId) {
+      const admin = await prisma.admin.findUnique({
+        where: { id: assignedToAdminId },
+      });
+      if (!admin) throw new BadRequestError("Assigned admin not found");
 
-    assignedToData = {
-      assignedToRole: admin.role,
-      assignedToAdminId: admin.id,
-    };
-  } else if (assignedToDeptId) {
-    const dept = await prisma.department.findUnique({
-      where: { id: assignedToDeptId },
-      include: { admin: true },
-    });
-    if (!dept) throw new BadRequestError("Assigned department not found");
-    if (!dept.admin)
-      throw new BadRequestError("No manager assigned to this department");
+      assignedToData = {
+        assignedToRole: admin.role,
+        assignedToAdminId: admin.id,
+      };
+    } else if (assignedToDeptId) {
+      const dept = await prisma.department.findUnique({
+        where: { id: assignedToDeptId },
+        include: { admin: true },
+      });
+      if (!dept) throw new BadRequestError("Assigned department not found");
+      if (!dept.admin)
+        throw new BadRequestError("No manager assigned to this department");
 
-    assignedToData = {
-      assignedToRole: "MANAGER",
-      assignedToDeptId: dept.id,
-      assignedToAdminId: dept.admin.id,
-    };
-  } else if (assignedToCustomerId) {
-    const customer = await prisma.customer.findUnique({
-      where: { id: assignedToCustomerId },
-    });
-    if (!customer) throw new BadRequestError("Assigned customer not found");
+      assignedToData = {
+        assignedToRole: "MANAGER",
+        assignedToDeptId: dept.id,
+        assignedToAdminId: dept.admin.id,
+      };
+    } else if (assignedToCustomerId) {
+      const customer = await prisma.customer.findUnique({
+        where: { id: assignedToCustomerId },
+      });
+      if (!customer) throw new BadRequestError("Assigned customer not found");
 
-    assignedToData = {
-      assignedToRole: "CUSTOMER",
-      assignedToCustomerId: customer.id,
-    };
-  } else if (user.role === "TECHNICIAN") {
-    const technician = await prisma.admin.findUnique({
-      where: { id: user.id },
-      include: { department: true },
-    });
+      assignedToData = {
+        assignedToRole: "CUSTOMER",
+        assignedToCustomerId: customer.id,
+      };
+    } else if (user.role === "TECHNICIAN") {
+      const technician = await prisma.admin.findUnique({
+        where: { id: user.id },
+        include: { department: true },
+      });
 
-    if (!technician?.department?.id)
-      throw new BadRequestError(
-        "Technician is not associated with any department"
-      );
+      if (!technician?.department?.id)
+        throw new BadRequestError(
+          "Technician is not associated with any department"
+        );
 
-    assignedToData = {
-      assignedToRole: "MANAGER",
-      assignedToAdminId: null,
-      assignedToDeptId: technician.department.id,
-    };
-  } else {
-    throw new Error("No valid assignment target provided");
+      assignedToData = {
+        assignedToRole: "MANAGER",
+        assignedToAdminId: null,
+        assignedToDeptId: technician.department.id,
+      };
+    } else {
+      throw new Error("No valid assignment target provided");
+    }
   }
 
   const ticketItem = await prisma.ticketItem.create({
@@ -442,6 +446,7 @@ export const createticketItemService = async (
       ticketId,
       title,
       description,
+      isPublic,
       ...assignedByData,
       ...assignedToData,
     },
@@ -516,6 +521,7 @@ export const createticketItemService = async (
     description: `A ticket update has been assigned.`,
     notificationType: "TICKET",
     actionType: ActionType.NOTIFY,
+    isPublic: true,
     data: {
       ticketId,
       ticketItemId: ticketItem.id,
@@ -705,6 +711,7 @@ export const getTicketWithItemsService = async (
           id: true,
           title: true,
           description: true,
+          isPublic: true,
           assignedByRole: true,
           assignedByAdminId: true,
           assignedByAdmin: {
@@ -787,14 +794,18 @@ export const getTicketWithItemsService = async (
 
     filteredItems = ticket.items.filter(
       (item) =>
-        item.assignedToDeptId === deptId || item.assignedByDeptId === deptId
+        item.assignedToDeptId === deptId ||
+        item.assignedByDeptId === deptId ||
+        item.isPublic
     );
   }
 
   if (user.role === roles.TECHNICIAN) {
     filteredItems = ticket.items.filter(
       (item) =>
-        item.assignedToAdminId === user.id || item.assignedByAdminId === user.id
+        item.assignedToAdminId === user.id ||
+        item.assignedByAdminId === user.id ||
+        item.isPublic
     );
   }
 
@@ -802,7 +813,8 @@ export const getTicketWithItemsService = async (
     filteredItems = ticket.items.filter(
       (item) =>
         item.assignedToCustomerId === user.id ||
-        item.assignedByCustomerId === user.id
+        item.assignedByCustomerId === user.id ||
+        item.isPublic
     );
   }
 

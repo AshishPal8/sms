@@ -14,6 +14,7 @@ export const createNotificationService = async (
         description: data.description ?? "",
         notificationType: data.notificationType,
         actionType: data.actionType,
+        isPublic: data.isPublic,
         data: data.data ?? {},
         senderRole: data.sender.role as AssignmentRole,
         ...(data.sender.adminId && { senderAdminId: data.sender.adminId }),
@@ -54,50 +55,115 @@ export const getNotificationsService = async (
   userId: string,
   role: AssignmentRole
 ) => {
-  let deptId: string[] | undefined;
+  let deptId: string | undefined;
 
-  if (role === roles.MANAGER) {
-    const manager = await prisma.admin.findUnique({
+  if ([roles.MANAGER, roles.TECHNICIAN].includes(role)) {
+    const admin = await prisma.admin.findUnique({
       where: { id: userId },
       select: { department: { select: { id: true } } },
     });
-    deptId = manager?.department?.id;
+    deptId = admin?.department?.id;
   }
 
+  if ([roles.SUPERADMIN, roles.ASSISTANT].includes(role)) {
+    const notifications = await prisma.notification.findMany({
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        notificationType: true,
+        actionType: true,
+        data: true,
+        createdAt: true,
+        senderRole: true,
+        senderAdminId: true,
+        senderCustomerId: true,
+        senderDeptId: true,
+        isRead: true,
+        receivers: {
+          select: {
+            receiverRole: true,
+            receiverAdminId: true,
+            receiverCustomerId: true,
+            receiverDeptId: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return {
+      success: true,
+      message: "Notifications fetched successfully",
+      data: notifications,
+    };
+  }
+
+  const userTickets = await prisma.ticket.findMany({
+    where: {
+      isDeleted: false,
+      OR: [
+        role === roles.TECHNICIAN
+          ? { items: { some: { assignedToAdminId: userId } } }
+          : undefined,
+        role === roles.TECHNICIAN
+          ? { items: { some: { assignedByAdminId: userId } } }
+          : undefined,
+        role === roles.MANAGER && deptId
+          ? { items: { some: { assignedToDeptId: deptId } } }
+          : undefined,
+        role === roles.MANAGER && deptId
+          ? { items: { some: { assignedByDeptId: deptId } } }
+          : undefined,
+        role === roles.CUSTOMER
+          ? { items: { some: { assignedToCustomerId: userId } } }
+          : undefined,
+        role === roles.CUSTOMER
+          ? { items: { some: { assignedByCustomerId: userId } } }
+          : undefined,
+      ].filter(Boolean),
+    },
+    select: { id: true },
+  });
+
+  const ticketIds = userTickets.map((t) => t.id);
+
+  const whereConditions: any[] = [];
+
+  // STEP 2: Build conditions for notifications
   const receiverConditions: any[] = [];
 
   if (role === roles.CUSTOMER) {
     receiverConditions.push({ receiverCustomerId: userId });
   }
 
-  if (
-    role === roles.SUPERADMIN ||
-    role === roles.ASSISTANT ||
-    role === roles.TECHNICIAN
-  ) {
+  if ([roles.TECHNICIAN].includes(role)) {
     receiverConditions.push({ receiverAdminId: userId });
   }
 
-  if (role === roles.MANAGER) {
+  if (role === roles.MANAGER && deptId) {
     receiverConditions.push({ receiverDeptId: deptId });
   }
 
-  if (receiverConditions.length === 0) {
-    return [];
+  if (receiverConditions.length > 0) {
+    whereConditions.push({ receivers: { some: { OR: receiverConditions } } });
   }
 
-  const notifications = await prisma.notification.findMany({
+  if (ticketIds.length > 0) {
+    whereConditions.push({
+      isPublic: true,
+    });
+  }
+
+  let notifications = await prisma.notification.findMany({
     where: {
-      receivers: {
-        some: {
-          OR: receiverConditions,
-        },
-      },
+      OR: whereConditions,
     },
     select: {
       id: true,
       title: true,
       description: true,
+      isPublic: true,
       notificationType: true,
       actionType: true,
       data: true,
@@ -116,7 +182,17 @@ export const getNotificationsService = async (
         },
       },
     },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
+
+  if (ticketIds.length > 0) {
+    notifications = notifications.filter((n) => {
+      const ticketId = n.data?.ticketId;
+      return !n.isPublic || (ticketId && ticketIds.includes(ticketId));
+    });
+  }
 
   return {
     success: true,
