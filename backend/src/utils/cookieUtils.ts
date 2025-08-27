@@ -12,6 +12,7 @@ export const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: true,
   sameSite: "none" as const,
+  domain: ".ashishpro.com",
   path: "/",
   maxAge: 1000 * 60 * 60 * 24 * 30,
 };
