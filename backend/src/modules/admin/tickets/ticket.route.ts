@@ -49,7 +49,7 @@ router.get(
 router.post(
   "/create",
   authMiddleware,
-  requireRole(AdminRole.ASSISTANT),
+  requireRole(AdminRole.SUPERADMIN, AdminRole.ASSISTANT),
   validateRequest(createTicketSchema),
   createTicketController
 );
@@ -57,7 +57,7 @@ router.post(
 router.put(
   "/update/:id",
   authMiddleware,
-  requireRole(AdminRole.ASSISTANT),
+  requireRole(AdminRole.SUPERADMIN, AdminRole.ASSISTANT),
   validateRequest(updateTicketSchema),
   updateTicketController
 );
@@ -65,7 +65,7 @@ router.put(
 router.delete(
   "/delete/:id",
   authMiddleware,
-  requireRole(AdminRole.ASSISTANT),
+  requireRole(AdminRole.SUPERADMIN, AdminRole.ASSISTANT),
   deleteTicketController
 );
 

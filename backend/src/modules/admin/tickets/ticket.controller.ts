@@ -9,7 +9,11 @@ import {
   updateTicketItemService,
   updateTicketService,
 } from "./ticket.service";
-import type { TicketPriority, TicketStatus } from "../../../generated/prisma";
+import type {
+  TicketPriority,
+  TicketStatus,
+  TicketUrgency,
+} from "../../../generated/prisma";
 import { BadRequestError, UnauthorizedError } from "../../../middlewares/error";
 
 export const createTicketController = async (
@@ -80,6 +84,7 @@ export const getTicketsController = async (
       toDate,
       priority,
       status,
+      urgencyLevel,
       search,
       sortBy,
       sortOrder,
@@ -95,6 +100,7 @@ export const getTicketsController = async (
       toDate: toDate as string,
       priority: priority as TicketPriority,
       status: status as TicketStatus,
+      urgencyLevel: urgencyLevel as TicketUrgency,
       search: search as string,
       sortBy: sortBy as string,
       sortOrder: (sortOrder as "asc" | "desc") || "desc",

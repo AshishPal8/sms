@@ -33,6 +33,11 @@ enum TicketStatus {
   CLOSED
 }
 
+enum TicketUrgency {
+  COLD
+  WARM
+}
+
 enum AssetType {
   IMAGE
   VIDEO
@@ -152,15 +157,16 @@ model Department {
 
 //ticket
 model Ticket {
-  id          String         @id @default(auto()) @map("_id") @db.ObjectId
-  title       String
-  description String?
-  name        String?
-  phone       String?
-  email       String?
-  address     String?
-  priority    TicketPriority @default(MEDIUM)
-  status      TicketStatus   @default(OPEN)
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  description  String?
+  name         String?
+  phone        String?
+  email        String?
+  address      String?
+  priority     TicketPriority @default(MEDIUM)
+  status       TicketStatus   @default(OPEN)
+  urgencyLevel TicketUrgency  @default(COLD)
 
   customerId String   @db.ObjectId
   customer   Customer @relation(fields: [customerId], references: [id])

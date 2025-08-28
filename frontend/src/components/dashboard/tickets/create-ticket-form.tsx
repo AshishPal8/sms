@@ -1,4 +1,8 @@
-import { TicketPriorityOptions, TicketStatusOptions } from "@/lib/ticket";
+import {
+  TicketPriorityOptions,
+  TicketStatusOptions,
+  TicketUrgencyOptions,
+} from "@/lib/ticket";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -43,6 +47,7 @@ export const createTicketSchema = z
 
     priority: z.enum(TicketPriorityOptions).optional(),
     status: z.enum(TicketStatusOptions).optional(),
+    urgencyLevel: z.enum(TicketUrgencyOptions).optional(),
     assets: z
       .array(
         z.object({
@@ -73,6 +78,7 @@ export const CreateTicketForm = () => {
       address: "",
       priority: "LOW",
       status: "OPEN",
+      urgencyLevel: "COLD",
       assets: [],
     },
   });
@@ -227,7 +233,7 @@ export const CreateTicketForm = () => {
               )}
             />
 
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
               <FormField
                 control={form.control}
                 name="priority"
@@ -275,6 +281,34 @@ export const CreateTicketForm = () => {
                       </FormControl>
                       <SelectContent>
                         {TicketStatusOptions.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="urgencyLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Urgency</FormLabel>
+                    <Select
+                      disabled={loading}
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select urgency" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {TicketUrgencyOptions.map((s) => (
                           <SelectItem key={s} value={s}>
                             {s}
                           </SelectItem>

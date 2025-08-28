@@ -5,3 +5,4 @@ export const TicketStatusOptions = [
   "RESOLVED",
   "CLOSED",
 ] as const;
+export const TicketUrgencyOptions = ["WARM", "COLD"] as const;
