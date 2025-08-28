@@ -18,14 +18,13 @@ const TicketFilters = () => {
       <SearchInput placeholder="Search with name, email, title, description" />
       <div className="flex gap-2 items-center">
         <FilterDropdown />
-        {user.role === roles.ASSISTANT ||
-          (user.role === roles.SUPERADMIN && (
-            <Link href="/dashboard/tickets/add">
-              <Button className="cursor-pointer">
-                <Plus size={20} /> Add
-              </Button>
-            </Link>
-          ))}
+        {(user.role === roles.ASSISTANT || user.role === roles.SUPERADMIN) && (
+          <Link href="/dashboard/tickets/add">
+            <Button className="cursor-pointer">
+              <Plus size={20} /> Add
+            </Button>
+          </Link>
+        )}
       </div>
     </div>
   );

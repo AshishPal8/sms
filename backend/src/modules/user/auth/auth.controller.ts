@@ -5,6 +5,7 @@ import {
   resendOTPService,
   verifyOTPService,
   getCustomerService,
+  updateCustomerService,
 } from "./auth.service";
 import { generateToken } from "../../../utils/auth";
 import { clearAuthCookie, setAuthCookie } from "../../../utils/cookieUtils";
@@ -111,6 +112,25 @@ export const getCustomerProfileController = async (
       message: "Customer profile fetched successfully",
       data: customer,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateCustomerController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const customerId = req.user?.id;
+    if (!customerId) {
+      throw new BadRequestError("Customer id is required");
+    }
+
+    const customer = await updateCustomerService(customerId, req.body);
+
+    res.status(200).json(customer);
   } catch (error) {
     next(error);
   }

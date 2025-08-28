@@ -13,6 +13,12 @@ export const createTicketSchema = z.object({
       })
     )
     .optional(),
+  insuranceCompany: z.string().optional(),
+  insuranceDeductable: z
+    .number()
+    .min(0, "Deductable cannot be negative")
+    .optional(),
+  isRoofCovered: z.boolean().default(false).optional(),
 });
 
 export const updateTicketSchema = z.object({

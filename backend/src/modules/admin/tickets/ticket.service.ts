@@ -26,6 +26,9 @@ export const createTicketService = async (data: CreateTicketInput) => {
     status,
     urgencyLevel,
     assets,
+    insuranceCompany,
+    insuranceDeductable,
+    isRoofCovered,
   } = data;
 
   return prisma.$transaction(async (tx) => {
@@ -46,6 +49,9 @@ export const createTicketService = async (data: CreateTicketInput) => {
           email: email || `${Date.now()}@temp.local`,
           phone,
           address,
+          insuranceCompany,
+          insuranceDeductable,
+          isRoofCovered,
           isRegistered: false,
           isVerified: false,
         },
@@ -337,6 +343,11 @@ export const getTicketByIdService = async (id: string) => {
         select: {
           id: true,
           name: true,
+          email: true,
+          phone: true,
+          insuranceCompany: true,
+          insuranceDeductable: true,
+          isRoofCovered: true,
         },
       },
       assets: {

@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import ImageUpload from "@/components/ui/image-upload";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const createTicketSchema = z
   .object({
@@ -55,6 +56,12 @@ export const createTicketSchema = z
         })
       )
       .optional(),
+    insuranceCompany: z.string().optional(),
+    insuranceDeductable: z
+      .number()
+      .min(0, "Deductable cannot be negative")
+      .optional(),
+    isRoofCovered: z.boolean().default(false).optional(),
   })
   .refine((v) => Boolean(v.email) || Boolean(v.phone), {
     path: ["email"],
@@ -80,6 +87,9 @@ export const CreateTicketForm = () => {
       status: "OPEN",
       urgencyLevel: "COLD",
       assets: [],
+      insuranceCompany: "",
+      insuranceDeductable: 0,
+      isRoofCovered: false,
     },
   });
 
@@ -158,7 +168,6 @@ export const CreateTicketForm = () => {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="email"
@@ -178,6 +187,57 @@ export const CreateTicketForm = () => {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="insuranceCompany"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Insurance Company</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={loading}
+                        placeholder="Enter insurance company"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="insuranceDeductable"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Insurance Deductable</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={loading}
+                        placeholder="Enter insurance deductable in %"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="isRoofCovered"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Roof Covered</FormLabel>
+                    <FormControl>
+                      <Checkbox
+                        disabled={loading}
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="address"

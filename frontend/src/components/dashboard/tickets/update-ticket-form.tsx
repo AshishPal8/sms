@@ -172,6 +172,30 @@ export const UpdateTicketForm = () => {
                   {ticket?.address ?? "-"}
                 </p>
               </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Insurance Company
+                </p>
+                <p className="text-lg font-semibold">
+                  {ticket?.customer.insuranceCompany ?? "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Insurance Deductable
+                </p>
+                <p className="text-lg font-semibold">
+                  {ticket?.customer.insuranceDeductable ?? "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Roof covered
+                </p>
+                <p className="text-lg font-semibold">
+                  {ticket?.customer.isRoofCovered ?? "-"}
+                </p>
+              </div>
             </div>
             <Separator />
             <FormField

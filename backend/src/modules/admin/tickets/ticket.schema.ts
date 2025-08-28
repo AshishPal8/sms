@@ -24,6 +24,13 @@ export const createTicketSchema = z
     email: z.email("Enter a valid email").trim().optional(),
     address: z.string().optional(),
 
+    insuranceCompany: z.string().optional(),
+    insuranceDeductable: z
+      .number()
+      .min(0, "Deductable cannot be negative")
+      .optional(),
+    isRoofCovered: z.boolean().default(false).optional(),
+
     priority: z.enum(TicketPriority).optional(),
     status: z.enum(TicketStatus).optional(),
     urgencyLevel: z.enum(TicketUrgency).optional(),
