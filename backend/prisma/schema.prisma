@@ -75,8 +75,12 @@ model Customer {
   email          String  @unique
   phone          String?
   profilePicture String?
+  address        String?
 
-  address      String?
+  insuranceCompany    String?
+  insuranceDeductable Int     @default(0)
+  isRoofCovered       Boolean @default(false)
+
   loginType    LoginType @default(EMAIL)
   isVerified   Boolean   @default(false)
   isRegistered Boolean   @default(false)

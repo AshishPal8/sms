@@ -13,18 +13,33 @@ export const createTicketService = async (
   data: createTicketInput,
   customerId: string
 ) => {
-  const { title, description, name, phone, address, assets } = data;
+  const {
+    title,
+    description,
+    name,
+    phone,
+    address,
+    assets,
+    insuranceCompany,
+    insuranceDeductable,
+    isRoofCovered,
+  } = data;
 
   const customer = await prisma.customer.findUnique({
     where: { id: customerId },
-    select: { phone: true, address: true, name: true },
   });
 
   if (!customer) {
     throw new NotFoundError("Customer not found");
   }
 
-  const updateData: { phone?: string; address?: string } = {};
+  const updateData: {
+    phone?: string;
+    address?: string;
+    insuranceCompany?: string;
+    insuranceDeductable?: number;
+    isRoofCovered?: boolean;
+  } = {};
 
   if (!customer.phone && phone) {
     updateData.phone = phone;
@@ -32,6 +47,17 @@ export const createTicketService = async (
 
   if (!customer.address && address) {
     updateData.address = address;
+  }
+  if (!customer.insuranceCompany && insuranceCompany) {
+    updateData.insuranceCompany = insuranceCompany;
+  }
+
+  if (!customer.insuranceDeductable && insuranceDeductable) {
+    updateData.insuranceDeductable = insuranceDeductable;
+  }
+
+  if (!customer.isRoofCovered && isRoofCovered) {
+    updateData.isRoofCovered = isRoofCovered;
   }
 
   if (Object.keys(updateData).length > 0) {

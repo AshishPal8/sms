@@ -21,6 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
+import { Checkbox } from "../ui/checkbox";
 
 const formSchema = z.object({
   title: z
@@ -40,6 +41,12 @@ const formSchema = z.object({
     .min(7, "Enter a valid phone.")
     .regex(/^[0-9+()\-\s]+$/, "Only digits and + ( ) - allowed."),
   address: z.string().min(6, "Enter a valid address."),
+  insuranceCompany: z.string().optional(),
+  insuranceDeductable: z
+    .number()
+    .min(0, "Deductable cannot be negative")
+    .optional(),
+  isRoofCovered: z.boolean().default(false).optional(),
 });
 
 type TicketFormValues = z.infer<typeof formSchema>;
@@ -57,6 +64,9 @@ export default function BookingForm() {
       name: "",
       phone: "",
       address: "",
+      insuranceCompany: "",
+      insuranceDeductable: 0,
+      isRoofCovered: false,
     },
   });
 
@@ -270,8 +280,7 @@ export default function BookingForm() {
                     </FormItem>
                   )}
                 />
-              </div>
-              <div className="">
+
                 <FormField
                   control={form.control}
                   name="address"
@@ -283,6 +292,63 @@ export default function BookingForm() {
                           disabled={loading}
                           placeholder="xyz, New York"
                           {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="insuranceCompany"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Insurance Company</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={loading}
+                          placeholder="Enter insurance company"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="insuranceDeductable"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Insurance Deductable (%)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          disabled={loading}
+                          placeholder="Enter insurance deductable in %"
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value ? Number(e.target.value) : ""
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="isRoofCovered"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Roof Covered</FormLabel>
+                      <FormControl>
+                        <Checkbox
+                          disabled={loading}
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />

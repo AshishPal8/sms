@@ -62,26 +62,24 @@ export function TicketActions({ id, onDeleteSuccess }: TicketActionsProps) {
         loading={loading}
       />
       <div className="flex items-center gap-2">
-        {user.role === roles.ASSISTANT ||
-          (user.role === roles.SUPERADMIN && (
-            <Button
-              size="icon"
-              onClick={handleEdit}
-              className="p-2 bg-blue-200 rounded text-blue-800 hover:bg-blue-300"
-            >
-              <Edit size={16} />
-            </Button>
-          ))}
-        {user.role === roles.ASSISTANT ||
-          (user.role === roles.SUPERADMIN && (
-            <Button
-              size="icon"
-              onClick={() => setOpen(true)}
-              className="p-2 bg-red-200 rounded text-red-600 hover:bg-red-300"
-            >
-              <Trash2 size={16} />
-            </Button>
-          ))}
+        {(user.role === roles.ASSISTANT || user.role === roles.SUPERADMIN) && (
+          <Button
+            size="icon"
+            onClick={handleEdit}
+            className="p-2 bg-blue-200 rounded text-blue-800 hover:bg-blue-300"
+          >
+            <Edit size={16} />
+          </Button>
+        )}
+        {(user.role === roles.ASSISTANT || user.role === roles.SUPERADMIN) && (
+          <Button
+            size="icon"
+            onClick={() => setOpen(true)}
+            className="p-2 bg-red-200 rounded text-red-600 hover:bg-red-300"
+          >
+            <Trash2 size={16} />
+          </Button>
+        )}
         <Button
           size="icon"
           onClick={handleTicketDetails}

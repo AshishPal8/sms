@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
 import ImageUpload from "@/components/ui/image-upload";
 import { baseUrl } from "@/config";
+import { Checkbox } from "../ui/checkbox";
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -31,6 +32,12 @@ const formSchema = z.object({
   phone: z.string().optional(),
   profilePicture: z.string().optional(),
   address: z.string().optional(),
+  insuranceCompany: z.string().optional(),
+  insuranceDeductable: z
+    .number()
+    .min(0, "Deductable cannot be negative")
+    .optional(),
+  isRoofCovered: z.boolean().default(false).optional(),
 });
 
 type ProfileFormValues = z.infer<typeof formSchema>;
@@ -48,6 +55,9 @@ export const ProfileHeader = () => {
       phone: "",
       address: "",
       profilePicture: "",
+      insuranceCompany: "",
+      insuranceDeductable: 0,
+      isRoofCovered: false,
     },
   });
 
@@ -68,6 +78,9 @@ export const ProfileHeader = () => {
           phone: data.phone || "",
           address: data.address || "",
           profilePicture: data.profilePicture || "",
+          insuranceCompany: data.insuranceCompany || "",
+          insuranceDeductable: data.insuranceDeductable || "",
+          isRoofCovered: data.isRoofCovered || "",
         });
       } catch (error) {
         toast.error("Failed to load profile details");
@@ -219,6 +232,63 @@ export const ProfileHeader = () => {
                         disabled={loading}
                         placeholder="Enter address"
                         {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="insuranceCompany"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Insurance Company</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={loading}
+                        placeholder="Enter insurance company"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="insuranceDeductable"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Insurance Deductable (%)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        disabled={loading}
+                        placeholder="Enter insurance deductable in %"
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value ? Number(e.target.value) : ""
+                          )
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="isRoofCovered"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Roof Covered</FormLabel>
+                    <FormControl>
+                      <Checkbox
+                        disabled={loading}
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />

@@ -5,6 +5,7 @@ import type {
   customerSigninInput,
   customerSignupInput,
   resendOtpInput,
+  updateCustomerInput,
   verifyOtpInput,
 } from "./auth.schema";
 
@@ -254,6 +255,9 @@ export const getCustomerService = async (id: string) => {
       phone: true,
       address: true,
       profilePicture: true,
+      insuranceCompany: true,
+      insuranceDeductable: true,
+      isRoofCovered: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -262,4 +266,44 @@ export const getCustomerService = async (id: string) => {
   if (!customer) throw new NotFoundError("Customer not found");
 
   return customer;
+};
+
+export const updateCustomerService = async (
+  customerId: string,
+  data: updateCustomerInput
+) => {
+  const {
+    name,
+    phone,
+    profilePicture,
+    address,
+    insuranceCompany,
+    insuranceDeductable,
+    isRoofCovered,
+  } = data;
+
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId },
+  });
+
+  if (!customer) throw new NotFoundError("Customer not found");
+
+  const updatedCustomer = await prisma.customer.update({
+    where: { id: customerId },
+    data: {
+      name,
+      phone,
+      profilePicture,
+      address,
+      insuranceCompany,
+      insuranceDeductable,
+      isRoofCovered,
+    },
+  });
+
+  return {
+    success: true,
+    message: "Customer updated successfully",
+    data: updatedCustomer,
+  };
 };

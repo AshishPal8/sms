@@ -30,5 +30,10 @@ export interface ITicketById {
   customer: {
     id: string;
     name: string;
+    email: string;
+    phone: string;
+    insuranceCompany: string;
+    insuranceDeductable: number;
+    isRoofCovered: boolean;
   };
 }
