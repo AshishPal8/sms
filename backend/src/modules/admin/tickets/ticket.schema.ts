@@ -1,7 +1,10 @@
 import { z } from "zod";
 import { phoneRegex } from "../../../utils/regex";
-import { TicketPriority, TicketStatus } from "../../../generated/prisma";
-import { roles } from "../../../utils/roles";
+import {
+  TicketPriority,
+  TicketStatus,
+  TicketUrgency,
+} from "../../../generated/prisma";
 
 export const ticketAssetSchema = z.object({
   url: z.url("Invalid asset URL"),
@@ -23,6 +26,7 @@ export const createTicketSchema = z
 
     priority: z.enum(TicketPriority).optional(),
     status: z.enum(TicketStatus).optional(),
+    urgencyLevel: z.enum(TicketUrgency).optional(),
     assets: z.array(ticketAssetSchema).optional(),
   })
   .refine((v) => Boolean(v.email) || Boolean(v.phone), {
@@ -41,6 +45,7 @@ export const updateTicketSchema = z.object({
   address: z.string().optional(),
   priority: z.enum(TicketPriority).optional(),
   status: z.enum(TicketStatus).optional(),
+  urgencyLevel: z.enum(TicketUrgency).optional(),
   assets: z.array(ticketAssetSchema).optional(),
 });
 

@@ -1,15 +1,22 @@
 import jwt from "jsonwebtoken";
-import { jwtSecret } from "./config";
+import crypto from "crypto";
 import prisma from "../db";
+import { jwtSecret } from "./config";
 
 export const generateToken = (payload: object) => {
   return jwt.sign(payload, jwtSecret, { expiresIn: "30d" });
 };
 
 export function generateOTP(length = 6) {
-  return Math.floor(100000 + Math.random() * 900000)
-    .toString()
-    .slice(0, length);
+  const digit = "0123456789";
+  let otp = "";
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = crypto.randomInt(0, digit.length);
+    otp += digit[randomIndex];
+  }
+
+  return otp;
 }
 
 export async function saveOtp(email: string, otp: string) {

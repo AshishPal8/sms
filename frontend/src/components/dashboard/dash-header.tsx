@@ -25,7 +25,7 @@ const DashHeader = () => {
 
   const handleSignout = async () => {
     await axios.post(
-      `${baseUrl}/user/auth/logout`,
+      `${baseUrl}/auth/signout`,
       {},
       {
         withCredentials: true,

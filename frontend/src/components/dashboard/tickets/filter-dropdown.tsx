@@ -18,7 +18,11 @@ import { CalendarIcon, Filter } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { TicketPriorityOptions, TicketStatusOptions } from "@/lib/ticket";
+import {
+  TicketPriorityOptions,
+  TicketStatusOptions,
+  TicketUrgencyOptions,
+} from "@/lib/ticket";
 import { Calendar } from "@/components/ui/calendar";
 
 const FilterDropdown = () => {
@@ -37,6 +41,9 @@ const FilterDropdown = () => {
   );
   const [priority, setPriority] = useState(searchParams.get("priority") || "");
   const [status, setStatus] = useState(searchParams.get("status") || "");
+  const [urgencyLevel, setUrgencyLevel] = useState(
+    searchParams.get("urgencyLevel") || ""
+  );
   const [sortOrder, setSortOrder] = useState(
     searchParams.get("sortOrder") || "desc"
   );
@@ -59,6 +66,9 @@ const FilterDropdown = () => {
     if (status) params.set("status", status);
     else params.delete("status");
 
+    if (urgencyLevel) params.set("urgencyLevel", urgencyLevel);
+    else params.delete("urgencyLevel");
+
     if (sortOrder) params.set("sortOrder", sortOrder);
     else params.delete("sortOrder");
 
@@ -74,6 +84,7 @@ const FilterDropdown = () => {
     params.delete("toDate");
     params.delete("priority");
     params.delete("status");
+    params.delete("urgencyLevel");
     params.delete("sortOrder");
     params.delete("page");
 
@@ -83,6 +94,7 @@ const FilterDropdown = () => {
     setToDate(undefined);
     setPriority("");
     setStatus("");
+    setUrgencyLevel("");
     setSortOrder("desc");
     setDropdownOpen(false);
   };
@@ -194,6 +206,26 @@ const FilterDropdown = () => {
               </SelectTrigger>
               <SelectContent>
                 {TicketStatusOptions.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Urgency level */}
+          <div>
+            <Label className="block font-medium mb-2">Urgency</Label>
+            <Select
+              onValueChange={(v) => setUrgencyLevel(v)}
+              value={urgencyLevel}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select urgency" />
+              </SelectTrigger>
+              <SelectContent>
+                {TicketUrgencyOptions.map((s) => (
                   <SelectItem key={s} value={s}>
                     {s}
                   </SelectItem>

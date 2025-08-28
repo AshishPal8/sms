@@ -247,7 +247,15 @@ export const updateDepartmentService = async (
 ) => {
   const { name, adminId, technicians, isActive } = data;
 
-  if (name) {
+  const currentDepartment = await prisma.department.findUnique({
+    where: { id },
+  });
+
+  if (!currentDepartment) {
+    throw new BadRequestError("Department not found");
+  }
+
+  if (name && name !== currentDepartment.name) {
     const existingDepartment = await prisma.department.findFirst({
       where: {
         name,

@@ -7,7 +7,7 @@ import {
   getCustomerService,
 } from "./auth.service";
 import { generateToken } from "../../../utils/auth";
-import { setAuthCookie } from "../../../utils/cookieUtils";
+import { clearAuthCookie, setAuthCookie } from "../../../utils/cookieUtils";
 import { BadRequestError } from "../../../middlewares/error";
 
 export const customerSignupController = async (
@@ -83,11 +83,7 @@ export const customerLogoutController = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-    });
+    clearAuthCookie(res);
 
     res
       .status(200)

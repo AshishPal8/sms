@@ -192,12 +192,15 @@ export default function SigninForm() {
           <CardHeader className="text-center">
             <Logo />
             <CardTitle className="text-2xl font-bold">
-              {step === "form" ? "Welcome Back 👋" : "Verify OTP"}
+              {step === "form" && "Welcome Back 👋"}
+              {step === "otp" && "Verify OTP"}
+              {step === "password" && "Enter Your Password"}
             </CardTitle>
             <CardDescription className="text-neutral-600">
-              {step === "form"
-                ? "Sign up to get services"
-                : `Enter the OTP sent to ${email}`}
+              {step === "form" &&
+                "Sign in to access your account and services."}
+              {step === "otp" && `Enter the OTP sent to ${email}`}
+              {step === "password" && `Please enter your password to continue.`}
             </CardDescription>
           </CardHeader>
           <CardContent>

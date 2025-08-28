@@ -33,11 +33,12 @@ import Link from "next/link";
 import { ArrowLeft, Trash } from "lucide-react";
 import { IEmployee } from "@/types/employee.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 const formSchema = z.object({
   name: z.string(),
   adminId: z.string(),
-  technicians: z.string(),
+  technicians: z.array(z.string()).optional(),
   isActive: z.boolean(),
 });
 
@@ -52,12 +53,11 @@ interface DepartmentFormProps {
 export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
   const router = useRouter();
 
+  console.log(initialData);
+
   const [loading, setLoading] = useState(false);
   const [managers, setManagers] = useState<IEmployee[]>([]);
-  const [technicians, setTechnicians] = useState<IEmployee[]>([]);
-  const [selectedTechnicians, setSelectedTechnicians] = useState<IEmployee[]>(
-    []
-  );
+  const [technicians, setTechnicians] = useState([]);
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -72,14 +72,15 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
         ]);
 
         setManagers(managersRes.data.data);
-        setTechnicians(techniciansRes.data.data);
 
-        if (initialData?.technicians) {
-          const selected = techniciansRes.data.data.filter((tech: IEmployee) =>
-            initialData.technicians?.includes(tech.id)
-          );
-          setSelectedTechnicians(selected);
-        }
+        const mappedTechnicians = techniciansRes.data.data.map(
+          (tech: IEmployee) => ({
+            value: tech.id,
+            label: tech.name,
+          })
+        );
+
+        setTechnicians(mappedTechnicians);
       } catch (error) {
         console.error("Error fetching employees:", error);
       }
@@ -93,26 +94,21 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
     defaultValues: initialData || {
       name: "",
       adminId: "",
-      technicians: "",
+      technicians: [],
       isActive: true,
     },
   });
 
+  console.log("Initial form values:", form.getValues());
+
   useEffect(() => {
     if (initialData) {
-      form.reset(initialData);
-
-      if (initialData?.technicians && technicians.length > 0) {
-        const technicianIds = initialData.technicians.map((t: any) => t.id);
-        const selected = technicians.filter((tech: IEmployee) =>
-          technicianIds.includes(tech.id)
-        );
-        setSelectedTechnicians(selected);
-      } else {
-        setSelectedTechnicians([]);
-      }
+      form.reset({
+        ...initialData,
+        technicians: initialData.technicians?.map((tech) => tech.id) || [],
+      });
     }
-  }, [initialData, form, technicians]);
+  }, [initialData, form]);
 
   const isEdit = !!initialData;
 
@@ -125,10 +121,8 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
         ...values,
         adminId:
           !values.adminId || values.adminId === "none" ? null : values.adminId,
-        technicians: [values.technicians],
+        technicians: values.technicians,
       };
-
-      console.log("Payload", payload);
 
       if (isEdit) {
         await axios.put(
@@ -199,7 +193,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-2">
+              <div className="grid grid-cols-2 gap-5">
                 <FormField
                   control={form.control}
                   name="adminId"
@@ -264,63 +258,19 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
                   control={form.control}
                   name="technicians"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Technician</FormLabel>
-                      <Select
-                        disabled={loading}
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Technician" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem
-                            value="none"
-                            className="text-black font-semibold text-[12px]"
-                          >
-                            None
-                          </SelectItem>
-                          {technicians.map((technician) => (
-                            <SelectItem
-                              key={technician.id}
-                              value={technician.id}
-                            >
-                              <div className="flex items-center gap-2">
-                                <Avatar className="w-8 h-8">
-                                  <AvatarImage
-                                    src={
-                                      `${technician.profilePicture}?tr=w-32,h-32` ||
-                                      "/default.webp"
-                                    }
-                                    alt={technician.name}
-                                    className="object-cover"
-                                  />
-                                  <AvatarFallback className="text-xs">
-                                    {technician.name[0] || "T"}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <h2 className="text-black font-semibold text-sm">
-                                    {technician.name}
-                                  </h2>
-                                  <p className="text-gray-600 capitalize text-xs">
-                                    {technician.role
-                                      ? technician.role
-                                          .charAt(0)
-                                          .toUpperCase() +
-                                        technician.role.slice(1).toLowerCase()
-                                      : ""}
-                                  </p>
-                                </div>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <FormItem className="col-span-3">
+                      <FormLabel>Technicians</FormLabel>
+                      <FormControl>
+                        <MultiSelect
+                          options={technicians}
+                          value={field.value || []}
+                          onValueChange={field.onChange}
+                          defaultValue={field.value || []}
+                          placeholder="Select Technicians"
+                          maxCount={50}
+                          className=""
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

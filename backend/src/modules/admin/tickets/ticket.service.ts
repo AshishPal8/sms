@@ -1,6 +1,6 @@
 import prisma from "../../../db";
 import { ActionType } from "../../../generated/prisma";
-import { Prisma, TicketPriority } from "../../../generated/prisma";
+import { Prisma } from "../../../generated/prisma";
 import { BadRequestError, NotFoundError } from "../../../middlewares/error";
 import type { TicketFilters } from "../../../types/ticket.types";
 import { getAssetTypeFromUrl } from "../../../utils/getAssetType";
@@ -24,6 +24,7 @@ export const createTicketService = async (data: CreateTicketInput) => {
     address,
     priority,
     status,
+    urgencyLevel,
     assets,
   } = data;
 
@@ -61,6 +62,7 @@ export const createTicketService = async (data: CreateTicketInput) => {
         address,
         priority,
         status,
+        urgencyLevel,
         customerId: customer.id,
       },
       select: { id: true, title: true, customerId: true },
@@ -94,16 +96,25 @@ export const updateTicketService = async (
   ticketId: string,
   data: UpdateTicketInput
 ) => {
-  const { title, description, address, priority, status, assets } = data;
+  const {
+    title,
+    description,
+    address,
+    priority,
+    status,
+    urgencyLevel,
+    assets,
+  } = data;
   return prisma.$transaction(async (tx) => {
     const updatedTicket = await tx.ticket.update({
       where: { id: ticketId, isDeleted: false },
       data: {
-        title: title,
-        description: description,
-        address: address,
-        priority: priority,
-        status: status,
+        title,
+        description,
+        address,
+        priority,
+        status,
+        urgencyLevel,
         updatedAt: new Date(),
       },
       select: { id: true, title: true, status: true, priority: true },
@@ -127,8 +138,6 @@ export const updateTicketService = async (
       data: {
         id: updatedTicket.id,
         title: updatedTicket.title,
-        priority: updatedTicket.priority,
-        status: updatedTicket.status,
       },
     };
   });
@@ -180,6 +189,11 @@ export const getTicketsService = async (
     where.status = filters.status;
   }
 
+  //Ticket urgency filter
+  if (filters.urgencyLevel) {
+    where.urgencyLevel = filters.urgencyLevel;
+  }
+
   //search filter
   if (filters.search) {
     where.OR = [
@@ -215,6 +229,7 @@ export const getTicketsService = async (
         title: true,
         priority: true,
         status: true,
+        urgencyLevel: true,
         name: true,
         email: true,
         customer: { select: { id: true, name: true, email: true } },

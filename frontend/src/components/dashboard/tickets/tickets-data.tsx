@@ -7,7 +7,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { baseUrl } from "../../../config";
 import Pagination from "../pagination";
 import { TicketActions } from "./cell-action";
-import { priorityStyles, statusStyles } from "@/styles/color";
+import { priorityStyles, statusStyles, urgencyStyles } from "@/styles/color";
 import { Badge } from "@/components/ui/badge";
 import { ITicket } from "@/types/ticket.types";
 
@@ -20,6 +20,7 @@ const TicketsData = () => {
   const sortOrder = searchParams.get("sortOrder") || "desc";
   const priority = searchParams.get("priority") || "";
   const status = searchParams.get("status") || "";
+  const urgencyLevel = searchParams.get("urgencyLevel") || "";
   const fromDate = searchParams.get("fromDate") || "";
   const toDate = searchParams.get("toDate") || "";
   const page = Number(searchParams.get("page")) || 1;
@@ -33,6 +34,7 @@ const TicketsData = () => {
             sortOrder,
             priority,
             status,
+            urgencyLevel,
             fromDate,
             toDate,
             page,
@@ -49,13 +51,23 @@ const TicketsData = () => {
     };
 
     fetchTickets();
-  }, [search, sortOrder, priority, status, fromDate, toDate, page]);
+  }, [
+    search,
+    sortOrder,
+    priority,
+    status,
+    urgencyLevel,
+    fromDate,
+    toDate,
+    page,
+  ]);
 
   const formatTickets = tickets.map((ticket: ITicket) => ({
     id: ticket.id,
     name: ticket.name,
     title: ticket.title,
     priority: ticket.priority,
+    urgencyLevel: ticket.urgencyLevel,
     status: ticket.status,
     createdAt: ticket.createdAt
       ? format(new Date(ticket.createdAt), "dd-MM-yyyy")
@@ -85,6 +97,19 @@ const TicketsData = () => {
         <Badge
           className={`capitalize font-bold px-3 rounded-md ${
             statusStyles[value] || ""
+          }`}
+        >
+          {value.replace("_", " ").toLowerCase()}
+        </Badge>
+      ),
+    },
+    {
+      header: "Urgency",
+      accessor: "urgencyLevel",
+      render: (value: string) => (
+        <Badge
+          className={`capitalize font-bold px-3 rounded-md ${
+            urgencyStyles[value] || ""
           }`}
         >
           {value.replace("_", " ").toLowerCase()}

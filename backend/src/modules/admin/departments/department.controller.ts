@@ -69,11 +69,7 @@ export const getDepartmentByIdController = async (
     }
 
     const department = await getDepartmentByIdService(id);
-    res.status(200).json({
-      success: true,
-      message: "Department fetched successfully",
-      data: department,
-    });
+    res.status(200).json(department);
   } catch (err) {
     next(err);
   }
