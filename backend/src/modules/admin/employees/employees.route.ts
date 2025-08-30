@@ -7,6 +7,7 @@ import {
   getAllEmployees,
   getEmployeeById,
   getEmployeeProfile,
+  getEmployeeStatsController,
   getTechniciansWithDepartmentIdController,
   updateEmployee,
 } from "./employees.controller";
@@ -23,6 +24,13 @@ router.get(
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN),
   getAllEmployees
+);
+
+router.get(
+  "/stats",
+  authMiddleware,
+  requireRole(AdminRole.SUPERADMIN),
+  getEmployeeStatsController
 );
 
 router.get(

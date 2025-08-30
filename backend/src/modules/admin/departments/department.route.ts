@@ -9,6 +9,7 @@ import {
   getActiveDepartmentsController,
   getAllDepartmentController,
   getDepartmentByIdController,
+  getDepartmentsStatsController,
   updateDepartmentController,
 } from "./department.controller";
 import {
@@ -23,6 +24,13 @@ router.get(
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN),
   getAllDepartmentController
+);
+
+router.get(
+  "/stats",
+  authMiddleware,
+  requireRole(AdminRole.SUPERADMIN),
+  getDepartmentsStatsController
 );
 
 router.get(

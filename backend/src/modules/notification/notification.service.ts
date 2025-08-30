@@ -151,7 +151,7 @@ export const getNotificationsService = async (
 
   if (ticketIds.length > 0) {
     whereConditions.push({
-      isPublic: true,
+      AND: [{ isPublic: true }, { notificationType: "TICKET_ITEM" }],
     });
   }
 

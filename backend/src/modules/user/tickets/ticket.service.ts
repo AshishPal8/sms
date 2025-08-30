@@ -1,7 +1,10 @@
 import prisma from "../../../db";
+import { NotificationType } from "../../../generated/prisma";
+import { ActionType } from "../../../generated/prisma";
 import { AssignmentRole } from "../../../generated/prisma";
 import { NotFoundError } from "../../../middlewares/error";
 import { getAssetTypeFromUrl } from "../../../utils/getAssetType";
+import { createNotificationService } from "../../notification/notification.service";
 import type {
   createTicketInput,
   createTicketItemInput,
@@ -83,6 +86,22 @@ export const createTicketService = async (
       },
     },
     include: { assets: true },
+  });
+
+  await createNotificationService({
+    title: `New Ticket Created - ${title}`,
+    description: `${customer.name || "A customer"} has created a new ticket.`,
+    notificationType: NotificationType.TICKET_ITEM,
+    actionType: ActionType.NOTIFY,
+    isPublic: true,
+    data: {
+      ticketId: ticket.id,
+    },
+    sender: {
+      role: "CUSTOMER",
+      customerId: customer.id,
+    },
+    receivers: [],
   });
 
   return {

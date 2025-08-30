@@ -212,9 +212,15 @@ export const CreateTicketForm = () => {
                     <FormLabel>Insurance Deductable</FormLabel>
                     <FormControl>
                       <Input
+                        type="number"
                         disabled={loading}
                         placeholder="Enter insurance deductable in %"
-                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value ? Number(e.target.value) : ""
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />

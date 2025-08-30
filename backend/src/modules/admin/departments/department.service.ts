@@ -76,6 +76,30 @@ export const getAllDepartmentsService = async ({
   };
 };
 
+export const getDepartmentsStatsService = async () => {
+  const totalDepartments = await prisma.department.count({
+    where: { isDeleted: false },
+  });
+
+  const newDepartmentssLast30Days = await prisma.department.count({
+    where: {
+      isDeleted: false,
+      createdAt: {
+        gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+      },
+    },
+  });
+
+  return {
+    success: true,
+    message: "Department stats fetched successfully",
+    data: {
+      totalDepartments,
+      newDepartmentssLast30Days,
+    },
+  };
+};
+
 export const getActiveDepartmentsService = async () => {
   const departments = await prisma.department.findMany({
     where: { isActive: true, isDeleted: false },
