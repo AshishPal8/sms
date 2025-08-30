@@ -5,6 +5,7 @@ import { BadRequestError, NotFoundError } from "../../../middlewares/error";
 import type { TicketFilters } from "../../../types/ticket.types";
 import { getAssetTypeFromUrl } from "../../../utils/getAssetType";
 import { roles } from "../../../utils/roles";
+import { subDays } from "../../../utils/subDays";
 import { createNotificationService } from "../../notification/notification.service";
 import type {
   CreateTicketInput,
@@ -56,6 +57,24 @@ export const createTicketService = async (data: CreateTicketInput) => {
           isVerified: false,
         },
       });
+    } else {
+      const updateData: any = {};
+
+      if (!customer.phone && phone) updateData.phone = phone;
+      if (!customer.address && address) updateData.address = address;
+      if (!customer.insuranceCompany && insuranceCompany)
+        updateData.insuranceCompany = insuranceCompany;
+      if (!customer.insuranceDeductable && insuranceDeductable)
+        updateData.insuranceDeductable = insuranceDeductable;
+      if (customer.isRoofCovered === null && isRoofCovered !== undefined)
+        updateData.isRoofCovered = isRoofCovered;
+
+      if (Object.keys(updateData).length > 0) {
+        customer = await tx.customer.update({
+          where: { id: customer.id },
+          data: updateData,
+        });
+      }
     }
 
     const ticket = await tx.ticket.create({
@@ -319,6 +338,158 @@ export const getTicketsService = async (
       page,
       limit,
       totalPages: Math.ceil(filteredTickets.length / limit),
+    },
+  };
+};
+
+export const getTicketStatsService = async (user: {
+  id: string;
+  role: string;
+}) => {
+  const { id: userId, role } = user;
+
+  let where: any = {
+    isDeleted: false,
+  };
+
+  if ([roles.SUPERADMIN, roles.ASSISTANT].includes(role)) {
+  } else if (role === roles.MANAGER) {
+    const manager = await prisma.admin.findUnique({
+      where: { id: userId },
+      include: { department: true },
+    });
+
+    if (manager?.department?.id) {
+      where.items = {
+        some: {
+          OR: [
+            { assignedByDeptId: manager.department.id },
+            { assignedToDeptId: manager.department.id },
+          ],
+        },
+      };
+    } else {
+      return {
+        success: true,
+        message: "No department assigned.",
+        data: {},
+      };
+    }
+  } else if (role === roles.TECHNICIAN) {
+    where.items = {
+      some: {
+        OR: [{ assignedByAdminId: userId }, { assignedToAdminId: userId }],
+      },
+    };
+  } else if (role === roles.CUSTOMER) {
+    where.OR = [
+      { customerId: userId },
+      {
+        items: {
+          some: {
+            OR: [
+              { assignedByCustomerId: userId },
+              { assignedToCustomerId: userId },
+            ],
+          },
+        },
+      },
+    ];
+  }
+
+  const last30DaysDate = subDays(new Date(), 30);
+  const last7DaysDate = subDays(new Date(), 7);
+
+  const [
+    totalTickets,
+    last30DaysTickets,
+    last7DaysTickets,
+    statusStats,
+    ticketPriority,
+    urgencyTickets,
+    ticketsLast30Days,
+  ] = await Promise.all([
+    prisma.ticket.count({ where }),
+    prisma.ticket.count({
+      where: {
+        ...where,
+        createdAt: { gte: last30DaysDate },
+      },
+    }),
+    prisma.ticket.count({
+      where: {
+        ...where,
+        createdAt: { gte: last7DaysDate },
+      },
+    }),
+    prisma.ticket.groupBy({
+      by: ["status"],
+      _count: { status: true },
+      where,
+    }),
+    prisma.ticket.findMany({
+      where,
+      select: { priority: true },
+    }),
+    prisma.ticket.findMany({
+      where,
+      select: { urgencyLevel: true },
+    }),
+    prisma.ticket.findMany({
+      where: { ...where, createdAt: { gte: last30DaysDate } },
+      select: { createdAt: true },
+    }),
+  ]);
+
+  const statusSummary = statusStats.reduce((acc, item) => {
+    acc[item.status] = item._count.status;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const prioritySummary = ticketPriority.reduce((acc, t) => {
+    const key = t.priority ?? "LOW";
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const urgencySummary = urgencyTickets.reduce((acc, t) => {
+    const key = t.urgencyLevel ?? "UNASSIGNED";
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  // --- Trend (last 30 days by date) ---
+  const today = new Date();
+  const trendMap: Record<string, number> = {};
+
+  for (let i = 0; i < 30; i++) {
+    const d = subDays(today, i);
+    const key = d.toISOString().split("T")[0] ?? ""; // YYYY-MM-DD
+    trendMap[key] = 0;
+  }
+
+  ticketsLast30Days.forEach((t) => {
+    const key = t.createdAt.toISOString().split("T")[0] ?? "";
+    if (trendMap[key] !== undefined) {
+      trendMap[key]++;
+    }
+  });
+
+  const trend = Object.entries(trendMap)
+    .map(([date, count]) => ({ date, count }))
+    .sort((a, b) => (a.date > b.date ? 1 : -1));
+
+  return {
+    success: true,
+    message: "Ticket stats fetched successfully",
+    data: {
+      totalTickets,
+      last30Days: last30DaysTickets,
+      last7Days: last7DaysTickets,
+      status: statusSummary,
+      priority: prioritySummary,
+      urgency: urgencySummary,
+      trend,
     },
   };
 };

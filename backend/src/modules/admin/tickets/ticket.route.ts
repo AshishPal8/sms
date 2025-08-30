@@ -9,6 +9,7 @@ import {
   getTicketByIdController,
   getTicketItemController,
   getTicketsController,
+  getTicketStatsController,
   updateTicketController,
   updateTicketItemController,
 } from "./ticket.controller";
@@ -32,6 +33,18 @@ router.get(
     AdminRole.TECHNICIAN
   ),
   getTicketsController
+);
+
+router.get(
+  "/stats",
+  authMiddleware,
+  requireRole(
+    AdminRole.SUPERADMIN,
+    AdminRole.MANAGER,
+    AdminRole.ASSISTANT,
+    AdminRole.TECHNICIAN
+  ),
+  getTicketStatsController
 );
 
 router.get(

@@ -67,6 +67,37 @@ export const getAllEmployeesService = async ({
   };
 };
 
+export const getEmployeeStatsService = async () => {
+  const totalEmployees = await prisma.admin.count({
+    where: { isDeleted: false },
+  });
+
+  const newEmployeesLast30Days = await prisma.admin.count({
+    where: {
+      isDeleted: false,
+      createdAt: {
+        gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+      },
+    },
+  });
+
+  const byRole = await prisma.admin.groupBy({
+    by: ["role"],
+    _count: { role: true },
+    where: { isDeleted: false },
+  });
+
+  return {
+    success: true,
+    message: "Employee stats fetched successfully",
+    data: {
+      totalEmployees,
+      newEmployeesLast30Days,
+      byRole,
+    },
+  };
+};
+
 export const getTechniciansWithDepartmentIdService = async (deptId: string) => {
   const technicians = await prisma.admin.findMany({
     where: {

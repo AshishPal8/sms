@@ -4,6 +4,7 @@ import {
   deleteEmployeeService,
   getAllEmployeesService,
   getEmployeeByIdService,
+  getEmployeeStatsService,
   getTechniciansWithDepartmentIdService,
   updateEmployeeService,
 } from "./employees.service";
@@ -46,6 +47,19 @@ export const getAllEmployees = async (
       isActive: isActiveBoolean,
     });
 
+    res.status(200).json(employees);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getEmployeeStatsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const employees = await getEmployeeStatsService();
     res.status(200).json(employees);
   } catch (err) {
     next(err);

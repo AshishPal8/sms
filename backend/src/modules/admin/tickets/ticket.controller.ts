@@ -8,6 +8,7 @@ import {
   getTicketWithItemsService,
   updateTicketItemService,
   updateTicketService,
+  getTicketStatsService,
 } from "./ticket.service";
 import type {
   TicketPriority,
@@ -113,6 +114,25 @@ export const getTicketsController = async (
     res.status(200).json(tickets);
   } catch (error) {
     next(error);
+  }
+};
+
+export const getTicketStatsController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+
+    const tickets = await getTicketStatsService(user);
+    res.status(200).json(tickets);
+  } catch (err) {
+    next(err);
   }
 };
 

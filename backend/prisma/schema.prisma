@@ -61,6 +61,7 @@ enum AssignmentRole {
 enum NotificationType {
   TICKET
   DEPARTMENT
+  TICKET_ITEM
 }
 
 enum ActionType {
