@@ -1,4 +1,6 @@
+"use client";
 import Image from "next/image";
+import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -16,63 +18,63 @@ export default function Hero() {
               className="object-cover"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-            <div className="absolute bottom-6 left-6 right-6 text-white md:bottom-12 md:left-12 md:right-12">
-              <div>
-                <h1 className="font-display text-3xl font-bold tracking-tight drop-shadow-lg md:text-6xl lg:text-7xl">
-                  Expert Home Services
-                  <span className="block text-blue-300">You Can Trust</span>
-                </h1>
-              </div>
-              <div>
-                <p className="mt-4 max-w-2xl text-lg text-white/90 md:text-xl">
-                  Professional plumbing, electrical, and HVAC services.
-                  Licensed, insured, and available 24/7 for emergencies.
-                </p>
-              </div>
-              <div>
-                <div className="mt-8 flex flex-wrap items-center gap-4">
-                  <Button
-                    asChild
-                    size="lg"
-                    className="rounded-full bg-blue-600 px-8 py-3 text-white hover:bg-blue-700 hover-lift"
-                  >
-                    <Link href="/book-a-service">Book Service Now</Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="lg"
-                    className="rounded-full border-white/70 bg-white/10 px-8 py-3 text-white backdrop-blur-sm hover:bg-white/20 hover-lift"
-                  >
-                    <a href="tel:+1-555-0123">Call (555) 012-3456</a>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* Trust indicators */}
-        <div>
-          <div className="mx-auto mt-8 flex w-full max-w-7xl flex-col items-center px-4 text-center md:px-8">
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-600 md:gap-8 md:text-base">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span>Licensed & Insured</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                <span>24/7 Emergency Service</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-orange-500"></div>
-                <span>Same-Day Service</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-purple-500"></div>
-                <span>100% Satisfaction Guarantee</span>
-              </div>
-            </div>
+
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+
+            {/* Motion Content */}
+            <motion.div
+              className="absolute bottom-4 left-4 right-4 text-white md:bottom-12 md:left-12 md:right-12"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              {/* Heading */}
+              <motion.h1
+                className="font-display text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight drop-shadow-lg"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                Expert Home Services
+                <span className="block text-blue-300">You Can Trust</span>
+              </motion.h1>
+
+              {/* Subtext */}
+              <motion.p
+                className="mt-3 max-w-lg sm:max-w-2xl text-sm sm:text-base md:text-lg lg:text-xl text-white/90"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                Professional plumbing, electrical, and HVAC services. Licensed,
+                insured, and available 24/7 for emergencies.
+              </motion.p>
+
+              {/* Buttons */}
+              <motion.div
+                className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap items-center gap-3 sm:gap-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <Button
+                  asChild
+                  size="lg"
+                  className="w-full sm:w-auto rounded-full bg-blue-600 px-6 sm:px-8 py-3 text-white hover:bg-blue-700 hover-lift"
+                >
+                  <Link href="/book-a-service">Book Service Now</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="w-full sm:w-auto rounded-full border-white/70 bg-white/10 px-6 sm:px-8 py-3 text-white backdrop-blur-sm hover:bg-white/20 hover-lift"
+                >
+                  <a href="tel:+1-555-0123">Call (555) 012-3456</a>
+                </Button>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       </div>

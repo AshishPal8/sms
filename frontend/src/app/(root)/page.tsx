@@ -1,13 +1,19 @@
-import Featured from "@/components/home/featured";
 import Hero from "@/components/home/hero";
+import HowItWorks from "@/components/home/how-it-works";
 import Stats from "@/components/home/stats";
+import Services from "@/components/home/services";
+import Testimonials from "@/components/home/testimonial";
+import CTASection from "@/components/home/cta-section";
 
 export default function Home() {
   return (
     <div className="max-w-7xl mx-auto pt-10">
       <Hero />
       <Stats />
-      <Featured />
+      <HowItWorks />
+      <Services />
+      <Testimonials />
+      <CTASection />
     </div>
   );
 }
