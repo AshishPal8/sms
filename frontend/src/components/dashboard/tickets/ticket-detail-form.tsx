@@ -26,10 +26,9 @@ import { baseUrl } from "@/config";
 import { roles } from "@/lib/utils";
 import useAuthStore from "@/store/user";
 import { IEmployee } from "@/types/employee.types";
-import { ITicketById } from "@/types/ticket.types";
+import { ITicketById, ITicketItem } from "@/types/ticket.types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
-import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -56,15 +55,19 @@ const createTicketItemSchema = z.object({
 
 type CreateTicketItemFormValues = z.infer<typeof createTicketItemSchema>;
 
-const TicketDetailForm = ({ ticket }: { ticket: ITicketById }) => {
+const TicketDetailForm = ({
+  ticket,
+  onItemCreated,
+}: {
+  ticket: ITicketById;
+  onItemCreated: (item: ITicketItem) => void;
+}) => {
   const [departments, setDepartments] = useState([]);
   const [technicians, setTechnicians] = useState<IEmployee[]>([]);
   const [loading, setLoading] = useState(false);
   const [assignTo, setAssignTo] = useState<
     "CUSTOMER" | "DEPARTMENT" | "TECHNICIAN" | ""
   >("");
-
-  const router = useRouter();
   const { user } = useAuthStore();
 
   console.log("departments", departments);
@@ -139,12 +142,17 @@ const TicketDetailForm = ({ ticket }: { ticket: ITicketById }) => {
   const onSubmit = async (values: CreateTicketItemFormValues) => {
     try {
       setLoading(true);
-      await axios.post(`${baseUrl}/tickets/item/create`, values, {
+      const res = await axios.post(`${baseUrl}/tickets/item/create`, values, {
         withCredentials: true,
       });
 
-      toast.success("Ticket item created successfully");
-      router.refresh();
+      const newItem: ITicketItem = res.data?.data;
+
+      if (newItem) {
+        onItemCreated(newItem);
+        form.reset();
+        toast.success("Ticket item created successfully");
+      }
     } catch (error) {
       toast.error("Something went wrong!");
       console.error("Error creating ticket item:", error);

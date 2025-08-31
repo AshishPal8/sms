@@ -21,8 +21,10 @@ const SidebarLinks = () => {
           <li key={item.href}>
             <Link
               href={item.href}
-              className={`flex gap-4 items-center justify-start p-3 rounded-lg hover:bg-[#4880FF] duration-300 text-gray-600 hover:text-white cursor-pointer ${
-                pathname.endsWith(item.href) ? "bg-[#4880FF] text-white" : ""
+              className={`flex gap-4 items-center justify-start p-3 rounded-lg hover:bg-primary duration-300 text-gray-600 hover:text-primary-foreground cursor-pointer ${
+                pathname.endsWith(item.href)
+                  ? "bg-primary text-primary-foreground"
+                  : ""
               }`}
             >
               <item.icon size={20} />

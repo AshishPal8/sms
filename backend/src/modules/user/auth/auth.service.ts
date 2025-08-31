@@ -1,6 +1,7 @@
 import prisma from "../../../db";
 import { BadRequestError, NotFoundError } from "../../../middlewares/error";
 import { generateOTP, saveOtp, verifyOTP } from "../../../utils/auth";
+import { emailService } from "../../email/email.service";
 import type {
   customerSigninInput,
   customerSignupInput,
@@ -43,6 +44,7 @@ export const customerSignupService = async (data: customerSignupInput) => {
   await saveOtp(normalizedEmail, otp);
 
   //send email
+  // await emailService.sendCustomerSignupOtpMail(normalizedEmail, { name, otp });
 
   return {
     success: true,
@@ -101,6 +103,10 @@ export const signinService = async (data: customerSigninInput) => {
   await saveOtp(normalizedEmail, otp);
 
   //send email
+  // await emailService.sendCustomerSigninOtpMail(normalizedEmail, {
+  //   name: customer.name,
+  //   otp,
+  // });
 
   return {
     success: true,
@@ -147,6 +153,10 @@ export const verifyOTPService = async (data: verifyOtpInput) => {
     await prisma.oTP.deleteMany({
       where: { email: normalizedEmail },
     });
+
+    // await emailService.sendWelcomeCustomerMail(normalizedEmail, {
+    //   name: verifiedCustomer.name,
+    // });
 
     return {
       success: true,
@@ -232,7 +242,12 @@ export const resendOTPService = async (data: resendOtpInput) => {
   const otp = generateOTP();
   await saveOtp(normalizedEmail, otp);
 
-  //send email
+  // resend email
+  // await emailService.sendResendOtpMail(normalizedEmail, {
+  //   name: customer.name,
+  //   otp,
+  //   action,
+  // });
 
   return {
     success: true,

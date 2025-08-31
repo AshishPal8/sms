@@ -1,5 +1,5 @@
 "use client";
-import { ITicketById } from "@/types/ticket.types";
+import { ITicketById, ITicketItem } from "@/types/ticket.types";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -34,6 +34,12 @@ const TicketDetails = () => {
     fetchTicket();
   }, [params.id]);
 
+  const handleItemCreated = (newItem: ITicketItem) => {
+    setTicket((prev) =>
+      prev ? { ...prev, items: [newItem, ...(prev.items ?? [])] } : prev
+    );
+  };
+
   if (loading) {
     return (
       <div className="w-[90%] mx-auto py-10 text-center text-gray-500">
@@ -53,7 +59,7 @@ const TicketDetails = () => {
   return (
     <div>
       <TicketHeader ticket={ticket} />
-      <TicketItemForm ticket={ticket} />
+      <TicketItemForm ticket={ticket} onItemCreated={handleItemCreated} />
     </div>
   );
 };

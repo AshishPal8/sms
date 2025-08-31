@@ -13,7 +13,7 @@ import ImageUpload from "@/components/ui/image-upload";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { baseUrl } from "@/config";
-import { ITicketById } from "@/types/ticket.types";
+import { ITicketById, ITicketItem } from "@/types/ticket.types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -39,7 +39,13 @@ const createTicketItemSchema = z.object({
 
 type CreateTicketItemFormValues = z.infer<typeof createTicketItemSchema>;
 
-const TicketItemForm = ({ ticket }: { ticket: ITicketById }) => {
+const TicketItemForm = ({
+  ticket,
+  onItemCreated,
+}: {
+  ticket: ITicketById;
+  onItemCreated: (item: ITicketItem) => void;
+}) => {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
@@ -57,12 +63,17 @@ const TicketItemForm = ({ ticket }: { ticket: ITicketById }) => {
   const onSubmit = async (values: CreateTicketItemFormValues) => {
     try {
       setLoading(true);
-      await axios.post(`${baseUrl}/tickets/item/create`, values, {
+      const res = await axios.post(`${baseUrl}/tickets/item/create`, values, {
         withCredentials: true,
       });
 
-      toast.success("Ticket item created successfully");
-      router.refresh();
+      const newItem: ITicketItem = res.data?.data;
+
+      if (newItem) {
+        onItemCreated(newItem);
+        form.reset();
+        toast.success("Ticket item submitted successfully");
+      }
     } catch (error) {
       toast.error("Something went wrong!");
       console.error("Error creating ticket item:", error);

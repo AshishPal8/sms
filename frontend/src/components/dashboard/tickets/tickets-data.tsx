@@ -11,7 +11,7 @@ import { priorityStyles, statusStyles, urgencyStyles } from "@/styles/color";
 import { Badge } from "@/components/ui/badge";
 import { ITicket } from "@/types/ticket.types";
 
-const TicketsData = () => {
+const TicketsData = ({ view }: { view: "table" | "card" }) => {
   const searchParams = useSearchParams();
   const [tickets, setTickets] = useState([]);
   const [totalPage, setTotalPage] = useState(0);
@@ -136,7 +136,74 @@ const TicketsData = () => {
 
   return (
     <div>
-      <DataTable columns={columns} data={formatTickets} />
+      {view === "table" ? (
+        <DataTable columns={columns} data={formatTickets} />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+          {tickets.map((ticket: ITicket) => (
+            <div
+              key={ticket.id}
+              className="p-5 border rounded-xl shadow-sm bg-white flex flex-col justify-between"
+            >
+              <div>
+                <p className="text-xs text-gray-400">
+                  Created:{" "}
+                  {ticket.createdAt
+                    ? format(new Date(ticket.createdAt), "dd-MM-yyyy")
+                    : "N/A"}
+                </p>
+                <p className="text-sm text-gray-600 mb-1">
+                  Name: {ticket.name}
+                </p>
+                <h3 className="font-bold text-lg mb-2">{ticket.title}</h3>
+
+                <div className="flex flex-col gap-2 mb-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm text-gray-600">Priority: </p>
+                    <Badge
+                      className={`capitalize font-bold px-3 rounded-md ${
+                        priorityStyles[ticket.priority] || ""
+                      }`}
+                    >
+                      {ticket.priority.toLowerCase()}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm text-gray-600">Status: </p>
+                    <Badge
+                      className={`capitalize font-bold px-3 rounded-md ${
+                        statusStyles[ticket.status] || ""
+                      }`}
+                    >
+                      {ticket.status.replace("_", " ").toLowerCase()}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm text-gray-600">Urgency: </p>
+                    <Badge
+                      className={`capitalize font-bold px-3 rounded-md ${
+                        urgencyStyles[ticket.urgencyLevel] || ""
+                      }`}
+                    >
+                      {ticket.urgencyLevel.toLowerCase()}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions at bottom center */}
+              <div className="mt-4 flex justify-center">
+                <TicketActions
+                  id={ticket.id}
+                  onDeleteSuccess={(deletedId: string) =>
+                    setTickets((prev) => prev.filter((e) => e.id !== deletedId))
+                  }
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <Pagination page={Number(page)} totalPages={totalPage} />
     </div>
   );

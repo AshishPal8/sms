@@ -4,6 +4,7 @@ import { ActionType } from "../../../generated/prisma";
 import { AssignmentRole } from "../../../generated/prisma";
 import { NotFoundError } from "../../../middlewares/error";
 import { getAssetTypeFromUrl } from "../../../utils/getAssetType";
+import { emailService } from "../../email/email.service";
 import { createNotificationService } from "../../notification/notification.service";
 import type {
   createTicketInput,
@@ -103,6 +104,13 @@ export const createTicketService = async (
     },
     receivers: [],
   });
+
+  // Send confirmation email
+  // await emailService.sendTicketCreatedMail(customer.email, {
+  //   customerName: customer.name,
+  //   ticketTitle: ticket.title,
+  //   ticketId: ticket.id,
+  // });
 
   return {
     success: true,
