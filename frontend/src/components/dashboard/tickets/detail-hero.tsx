@@ -5,6 +5,7 @@ import { ITicketById } from "@/types/ticket.types";
 import TicketAssets from "@/components/ticket-assets";
 
 const TicketDetailHero = ({ ticket }: { ticket: ITicketById }) => {
+  console.log("Ticket ", ticket);
   return (
     <section className="w-[90%] py-8 md:py-10 mx-auto">
       <div className="grid grid-cols-1 md:grid-cols-3 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-400 via-white to-cyan-400 border border-blue-100 shadow-lg">

@@ -29,7 +29,7 @@ export default function StatCard({
       </CardHeader>
 
       <CardContent>
-        <div className="text-4xl font-serif font-extrabold text-primary">
+        <div className="text-4xl text-black font-serif font-extrabold">
           {value}
         </div>
 

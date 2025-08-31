@@ -49,7 +49,7 @@ const DashHeader = () => {
             pathname.endsWith(nav.href) ? (
               <h1
                 key={nav.href}
-                className="font-extrabold text-xl md:text-2xl text-primary"
+                className="font-extrabold text-xl md:text-2xl text-black"
               >
                 {nav.label}
               </h1>

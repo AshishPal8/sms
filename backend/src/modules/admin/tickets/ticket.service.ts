@@ -6,6 +6,7 @@ import type { TicketFilters } from "../../../types/ticket.types";
 import { getAssetTypeFromUrl } from "../../../utils/getAssetType";
 import { roles } from "../../../utils/roles";
 import { subDays } from "../../../utils/subDays";
+import { emailService } from "../../email/email.service";
 import { createNotificationService } from "../../notification/notification.service";
 import type {
   CreateTicketInput,
@@ -104,6 +105,13 @@ export const createTicketService = async (data: CreateTicketInput) => {
         data: assetsData,
       });
     }
+
+    // Send confirmation email
+    // await emailService.sendTicketCreatedMail(customer.email, {
+    //   customerName: customer.name,
+    //   ticketTitle: ticket.title,
+    //   ticketId: ticket.id,
+    // });
 
     return {
       success: true,

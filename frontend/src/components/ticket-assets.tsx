@@ -1,3 +1,4 @@
+"use client";
 import { AssetType } from "@/enums/TicketAssetTypes";
 import {
   Download,
@@ -5,8 +6,10 @@ import {
   FileSpreadsheet,
   File,
   Music,
-  Icon,
+  X,
 } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 export interface IAsset {
   id: string;
@@ -15,6 +18,8 @@ export interface IAsset {
 }
 
 export default function TicketAssets({ assets }: { assets?: IAsset[] }) {
+  const [selectedAsset, setSelectedAsset] = useState<IAsset | null>(null);
+
   if (!assets || assets.length === 0) return null;
 
   const handleDownload = (url: string) => {
@@ -24,20 +29,34 @@ export default function TicketAssets({ assets }: { assets?: IAsset[] }) {
     link.click();
   };
 
+  const handleOpen = (asset: IAsset) => {
+    if (asset.type === AssetType.IMAGE || asset.type === AssetType.VIDEO) {
+      setSelectedAsset(asset); // open modal
+    } else {
+      window.open(asset.url, "_blank"); // open in new tab
+    }
+  };
+
   const renderAsset = (asset: IAsset) => {
     switch (asset.type) {
       case AssetType.IMAGE:
         return (
-          <img
-            src={asset.url}
+          <Image
+            src={`${asset.url}?tr=w-120,h-120`}
             alt="Asset"
-            className="w-full h-32 object-cover"
+            width={128}
+            height={128}
+            className="w-full h-32 object-cover cursor-pointer hover:opacity-90"
+            onClick={() => handleOpen(asset)}
           />
         );
 
       case AssetType.VIDEO:
         return (
-          <video controls className="w-full h-32 object-cover">
+          <video
+            className="w-full h-32 object-cover cursor-pointer"
+            onClick={() => handleOpen(asset)}
+          >
             <source src={asset.url} />
             Your browser does not support the video tag.
           </video>
@@ -63,24 +82,29 @@ export default function TicketAssets({ assets }: { assets?: IAsset[] }) {
       case AssetType.DOC:
       case AssetType.EXCEL:
       case AssetType.OTHER:
-        const icon =
+        const Icon =
           asset.type === AssetType.PDF
             ? FileText
             : asset.type === AssetType.EXCEL
             ? FileSpreadsheet
             : File;
         return (
-          <div className="p-4 flex items-center justify-between">
+          <div
+            onClick={() => handleOpen(asset)}
+            className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
+          >
             <div className="flex items-center gap-2">
               <Icon size={18} className="text-gray-500" />
               <span className="text-sm font-medium">{asset.type} File</span>
             </div>
-            <button
-              onClick={() => handleDownload(asset.url)}
+            <Download
+              size={18}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownload(asset.url);
+              }}
               className="text-blue-600 hover:text-blue-800"
-            >
-              <Download size={18} />
-            </button>
+            />
           </div>
         );
 
@@ -90,15 +114,53 @@ export default function TicketAssets({ assets }: { assets?: IAsset[] }) {
   };
 
   return (
-    <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
-      {assets.map((asset) => (
-        <div
-          key={asset.id}
-          className="rounded-lg overflow-hidden border border-gray-200 shadow-sm"
-        >
-          {renderAsset(asset)}
+    <>
+      <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
+        {assets.map((asset) => (
+          <div
+            key={asset.id}
+            className="rounded-lg overflow-hidden border border-gray-200 shadow-sm"
+          >
+            {renderAsset(asset)}
+          </div>
+        ))}
+      </div>
+
+      {selectedAsset && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+          <div className="relative max-w-3xl w-full p-4">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedAsset(null);
+              }}
+              className="absolute z-10 top-4 right-4 bg-white rounded-full p-2 shadow cursor-pointer"
+            >
+              <X className="h-5 w-5 text-gray-600" />
+            </button>
+
+            {selectedAsset.type === AssetType.IMAGE && (
+              <Image
+                src={selectedAsset.url}
+                alt="Preview"
+                width={700}
+                height={400}
+                className="w-full max-h-[80vh] object-contain rounded-lg shadow-lg"
+              />
+            )}
+
+            {selectedAsset.type === AssetType.VIDEO && (
+              <video
+                controls
+                autoPlay
+                className="w-full max-h-[80vh] rounded-lg shadow-lg"
+              >
+                <source src={selectedAsset.url} />
+              </video>
+            )}
+          </div>
         </div>
-      ))}
-    </div>
+      )}
+    </>
   );
 }
