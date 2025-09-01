@@ -18,24 +18,29 @@ export const uploadFileService = async (files: Express.Multer.File[]) => {
 
     let fileBuffer = file.buffer;
 
-    if (type === AssetType.IMAGE) {
-      fileBuffer = await sharp(file.buffer)
-        .resize({ width: 1200 })
-        .jpeg({ quality: 75 })
-        .toBuffer();
+    // if (type === AssetType.IMAGE) {
+    //   fileBuffer = await sharp(file.buffer)
+    //     .resize({ width: 1200 })
+    //     .jpeg({ quality: 75 })
+    //     .toBuffer();
+    // }
+
+    try {
+      const uploadResponse = await imageKit.upload({
+        file: fileBuffer,
+        fileName: `${Date.now()}-${file.originalname}`,
+        folder: "sms",
+      });
+
+      uploadedFiles.push({
+        url: uploadResponse.url,
+        fileName: uploadResponse.name,
+        type,
+      });
+    } catch (err: any) {
+      console.error("ImageKit upload failed:", err.message, err);
+      throw err;
     }
-
-    const uploadResponse = await imageKit.upload({
-      file: fileBuffer,
-      fileName: `${Date.now()}-${file.originalname}`,
-      folder: "/sms",
-    });
-
-    uploadedFiles.push({
-      url: uploadResponse.url,
-      fileName: uploadResponse.name,
-      type,
-    });
   }
 
   return uploadedFiles;
