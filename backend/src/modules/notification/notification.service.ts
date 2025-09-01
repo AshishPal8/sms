@@ -43,9 +43,11 @@ export const createNotificationService = async (
       return base;
     });
 
-    await tx.notificationReceiver.createMany({
-      data: receiverData,
-    });
+    if (receiverData.length > 0) {
+      await tx.notificationReceiver.createMany({
+        data: receiverData,
+      });
+    }
 
     return notification;
   });
@@ -205,6 +207,8 @@ export const markNotificationAsReadService = async (notificationId: string) => {
   const notification = await prisma.notification.findUnique({
     where: { id: notificationId },
   });
+
+  console.log("Notificaiton", notification);
 
   if (!notification) {
     throw new NotFoundError("Notification not found");

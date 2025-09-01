@@ -22,6 +22,7 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Checkbox } from "../ui/checkbox";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   title: z
@@ -70,7 +71,7 @@ export default function BookingForm() {
     },
   });
 
-  const { setValue } = form;
+  const { setValue, reset } = form;
 
   useEffect(() => {
     const fetchCustomerProfile = async () => {
@@ -84,6 +85,12 @@ export default function BookingForm() {
           if (profile.name) setValue("name", profile.name);
           if (profile.phone) setValue("phone", profile.phone);
           if (profile.address) setValue("address", profile.address);
+          if (profile.insuranceCompany)
+            setValue("insuranceCompany", profile.insuranceCompany);
+          if (profile.insuranceDeductable)
+            setValue("insuranceDeductable", profile.insuranceDeductable);
+          if (profile.isRoofCovered)
+            setValue("isRoofCovered", profile.isRoofCovered);
         }
       } catch (error) {
         console.error("No logged-in user or failed to fetch profile", error);
@@ -109,6 +116,8 @@ export default function BookingForm() {
 
       const result = res.data.data;
       setSubmitted({ id: result.id });
+      toast.success("Thanks! Our team will reach out soon.");
+      reset();
     } catch (err) {
       console.error("Error creating ticket", err);
     } finally {
@@ -141,11 +150,8 @@ export default function BookingForm() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button
-            asChild
-            className="rounded-full bg-blue-600 hover:bg-blue-700"
-          >
-            <Link href="/">Return Home</Link>
+          <Button asChild>
+            <Link href="/profile">View Ticket</Link>
           </Button>
           <Button variant="outline" className="rounded-full bg-transparent">
             Book Another Service
@@ -358,12 +364,7 @@ export default function BookingForm() {
               </div>
             </div>
             <div className="flex justify-center pt-8">
-              <Button
-                type="submit"
-                className="rounded-full bg-blue-600 hover:bg-blue-700"
-              >
-                submit
-              </Button>
+              <Button type="submit">submit</Button>
             </div>
           </form>
         </Form>

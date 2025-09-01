@@ -60,7 +60,7 @@ const TicketDetailForm = ({
   onItemCreated,
 }: {
   ticket: ITicketById;
-  onItemCreated: (item: ITicketItem) => void;
+  onItemCreated: () => void;
 }) => {
   const [departments, setDepartments] = useState([]);
   const [technicians, setTechnicians] = useState<IEmployee[]>([]);
@@ -69,8 +69,6 @@ const TicketDetailForm = ({
     "CUSTOMER" | "DEPARTMENT" | "TECHNICIAN" | ""
   >("");
   const { user } = useAuthStore();
-
-  console.log("departments", departments);
 
   const form = useForm<CreateTicketItemFormValues>({
     resolver: zodResolver(createTicketItemSchema),
@@ -149,7 +147,7 @@ const TicketDetailForm = ({
       const newItem: ITicketItem = res.data?.data;
 
       if (newItem) {
-        onItemCreated(newItem);
+        onItemCreated();
         form.reset();
         toast.success("Ticket item created successfully");
       }

@@ -896,12 +896,18 @@ export const getTicketWithItemsService = async (
       description: true,
       priority: true,
       status: true,
+      urgencyLevel: true,
       createdAt: true,
       updatedAt: true,
       customer: {
         select: {
           id: true,
           name: true,
+          email: true,
+          phone: true,
+          insuranceCompany: true,
+          insuranceDeductable: true,
+          isRoofCovered: true,
         },
       },
       assets: {

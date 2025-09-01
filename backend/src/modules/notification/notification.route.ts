@@ -8,6 +8,6 @@ import {
 const router = Router();
 
 router.get("/", authMiddleware, getNotificationsController);
-router.patch("/:id", authMiddleware, markNotificationAsReadController);
+router.patch("/read/:id", authMiddleware, markNotificationAsReadController);
 
 export default router;

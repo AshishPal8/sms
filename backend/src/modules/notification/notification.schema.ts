@@ -30,7 +30,8 @@ export const createNotificationSchema = z.object({
         deptId: z.string().optional(),
       })
     )
-    .min(1, "At least one receiver is required"),
+    .optional()
+    .default([]),
 });
 
 export type CreateNotificationInput = z.infer<typeof createNotificationSchema>;
