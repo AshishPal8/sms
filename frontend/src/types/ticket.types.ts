@@ -60,6 +60,7 @@ export interface ITicketById {
   assets?: IAsset[];
   priority: "LOW" | "MEDIUM" | "HIGH";
   status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
+  urgencyLevel: "COLD" | "WARM";
   createdAt: string;
   customer: {
     id: string;

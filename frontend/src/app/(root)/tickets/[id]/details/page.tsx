@@ -12,32 +12,30 @@ const TicketDetails = () => {
   const [loading, setLoading] = useState(false);
   const [ticket, setTicket] = useState<ITicketById | null>(null);
 
-  useEffect(() => {
-    const fetchTicket = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get(`${baseUrl}/tickets/item/${params.id}`, {
-          withCredentials: true,
-        });
+  const fetchTicket = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${baseUrl}/tickets/item/${params.id}`, {
+        withCredentials: true,
+      });
 
-        const data = res.data?.data;
-        if (data) {
-          setTicket(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch ticket:", error);
-      } finally {
-        setLoading(false);
+      const data = res.data?.data;
+      if (data) {
+        setTicket(data);
       }
-    };
+    } catch (error) {
+      console.error("Failed to fetch ticket:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchTicket();
-  }, [params.id]);
+  }, []);
 
-  const handleItemCreated = (newItem: ITicketItem) => {
-    setTicket((prev) =>
-      prev ? { ...prev, items: [newItem, ...(prev.items ?? [])] } : prev
-    );
+  const handleItemCreated = async () => {
+    await fetchTicket();
   };
 
   if (loading) {

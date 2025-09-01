@@ -16,7 +16,6 @@ import { baseUrl } from "@/config";
 import { ITicketById, ITicketItem } from "@/types/ticket.types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
-import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -44,11 +43,9 @@ const TicketItemForm = ({
   onItemCreated,
 }: {
   ticket: ITicketById;
-  onItemCreated: (item: ITicketItem) => void;
+  onItemCreated: () => void;
 }) => {
   const [loading, setLoading] = useState(false);
-
-  const router = useRouter();
 
   const form = useForm<CreateTicketItemFormValues>({
     resolver: zodResolver(createTicketItemSchema),
@@ -70,7 +67,7 @@ const TicketItemForm = ({
       const newItem: ITicketItem = res.data?.data;
 
       if (newItem) {
-        onItemCreated(newItem);
+        onItemCreated();
         form.reset();
         toast.success("Ticket item submitted successfully");
       }

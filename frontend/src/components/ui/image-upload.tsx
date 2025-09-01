@@ -2,12 +2,20 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { Button } from "./button";
-import { ImagePlus, Trash } from "lucide-react";
+import {
+  FileSpreadsheet,
+  FileText,
+  ImagePlus,
+  Music,
+  Trash,
+} from "lucide-react";
 import Image from "next/image";
 import axios from "axios";
 import { Label } from "./label";
 import { Input } from "./input";
 import { baseUrl } from "../../config";
+import { getAssetTypeFromUrl } from "@/lib/getAssetType";
+import { AssetType } from "@/enums/TicketAssetTypes";
 
 interface ImageUploadProps {
   disabled?: boolean;
@@ -119,6 +127,125 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     [multiple, onChange, uploadFile]
   );
 
+  const renderAssetPreview = (url: string) => {
+    const assetType = getAssetTypeFromUrl(url);
+
+    switch (assetType) {
+      case AssetType.IMAGE:
+        return (
+          <div className="relative w-full h-full">
+            <Image
+              src={`${url}?tr=w-150,h-150`}
+              alt="Asset"
+              fill
+              className="object-cover"
+            />
+            <div className="absolute top-2 right-2 z-10">
+              <Button
+                type="button"
+                onClick={() => {
+                  const filtered = images.filter((img) => img !== url);
+                  setImages(filtered);
+                  onChange(filtered);
+                  onRemove(url);
+                }}
+                variant="destructive"
+                size="icon"
+                className="h-8 w-8"
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        );
+
+      case AssetType.VIDEO:
+        return (
+          <div className="relative w-full h-full">
+            <video className="w-full h-full object-cover">
+              <source src={url} />
+              Your browser does not support the video tag.
+            </video>
+            <div className="absolute top-2 right-2 z-10">
+              <Button
+                type="button"
+                onClick={() => {
+                  const filtered = images.filter((img) => img !== url);
+                  setImages(filtered);
+                  onChange(filtered);
+                  onRemove(url);
+                }}
+                variant="destructive"
+                size="icon"
+                className="h-8 w-8"
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        );
+
+      case AssetType.AUDIO:
+        return (
+          <div className="p-4 flex flex-col items-center justify-center h-full">
+            <Music size={24} className="text-blue-500 mb-2" />
+            <span className="text-sm font-medium text-center">Audio File</span>
+            <Button
+              type="button"
+              onClick={() => {
+                const filtered = images.filter((img) => img !== url);
+                setImages(filtered);
+                onChange(filtered);
+                onRemove(url);
+              }}
+              variant="destructive"
+              size="icon"
+              className="h-8 w-8 mt-2"
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          </div>
+        );
+
+      case AssetType.PDF:
+      case AssetType.DOC:
+      case AssetType.EXCEL:
+      case AssetType.OTHER:
+        const Icon =
+          assetType === AssetType.PDF
+            ? FileText
+            : assetType === AssetType.EXCEL
+            ? FileSpreadsheet
+            : FileText;
+
+        return (
+          <div className="p-4 flex flex-col items-center justify-center h-full">
+            <Icon size={24} className="text-gray-500 mb-2" />
+            <span className="text-sm font-medium text-center">
+              {assetType} File
+            </span>
+            <Button
+              type="button"
+              onClick={() => {
+                const filtered = images.filter((img) => img !== url);
+                setImages(filtered);
+                onChange(filtered);
+                onRemove(url);
+              }}
+              variant="destructive"
+              size="icon"
+              className="h-8 w-8 mt-2"
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   if (!isMounted) {
     return null;
   }
@@ -132,27 +259,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             key={url}
             className="relative w-[150px] h-[150px] rounded-lg overflow-hidden border"
           >
-            <div className="absolute top-2 right-2 z-10">
-              <Button
-                type="button"
-                onClick={() => {
-                  const filtered = images.filter((img) => img !== url);
-                  setImages(filtered);
-                  onChange(filtered);
-                  onRemove(url);
-                }}
-                variant="destructive"
-                size="icon"
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </div>
-            <Image
-              alt="upload"
-              fill
-              style={{ objectFit: "cover" }}
-              src={`${url}?tr=w-150,h-150`}
-            />
+            {renderAssetPreview(url)}
           </div>
         ))}
       </div>

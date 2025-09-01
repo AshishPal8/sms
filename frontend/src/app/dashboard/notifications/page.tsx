@@ -38,7 +38,7 @@ const NotificationsPage = () => {
 
     axios
       .patch(
-        `${baseUrl}/notifications/${notif.id}`,
+        `${baseUrl}/notifications/read/${notif.id}`,
         { isRead: true },
         { withCredentials: true }
       )
@@ -46,7 +46,6 @@ const NotificationsPage = () => {
         console.log(`Notification ${notif.id} marked as read`);
       })
       .catch((error) => {
-        toast.error("Failed to update notification status");
         console.error(error);
       });
   };
