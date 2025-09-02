@@ -4,14 +4,13 @@ import sharp from "sharp";
 
 import { getAssetTypeFromUrl } from "../../utils/getAssetType";
 import { AssetType } from "../../generated/prisma";
+import { backendUrl } from "../../utils/config";
 
 const UPLOAD_DIR = path.join(__dirname, "../../../uploads");
 
 if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
-
-const BASE_URL = process.env.APP_BASE_URL;
 
 export const uploadFileService = async (files: Express.Multer.File[]) => {
   const uploadedFiles = [];
@@ -35,7 +34,9 @@ export const uploadFileService = async (files: Express.Multer.File[]) => {
       }
     }
 
-    const fileUrl = `${BASE_URL}/uploads/${fileName}`;
+    fs.writeFileSync(filePath, fileBuffer);
+
+    const fileUrl = `${backendUrl}/uploads/${fileName}`;
 
     uploadedFiles.push({
       url: fileUrl,
