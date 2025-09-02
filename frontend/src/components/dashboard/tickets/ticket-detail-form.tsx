@@ -306,7 +306,7 @@ const TicketDetailForm = ({
                                     <Avatar className="w-8 h-8">
                                       <AvatarImage
                                         src={
-                                          `${tech.profilePicture}?tr=w-32,h-32` ||
+                                          `${tech.profilePicture}` ||
                                           "/default.webp"
                                         }
                                         alt={tech.name}

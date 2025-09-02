@@ -14,10 +14,14 @@ import departmentRoutes from "./modules/admin/departments/department.route";
 import ticketRoutes from "./modules/admin/tickets/ticket.route";
 import notificationsRoutes from "./modules/notification/notification.route";
 import customerRoutes from "./modules/user/user.routes";
+import path from "path";
 
 export const app = express();
 
 app.use(express.json());
+
+const UPLOADS_PATH = path.join(__dirname, "../uploads");
+app.use("/uploads", express.static(UPLOADS_PATH));
 
 // trust proxy for secure cookies in production
 if (process.env.NODE_ENV === "production") {
