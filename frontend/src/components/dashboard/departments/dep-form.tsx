@@ -224,7 +224,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
                                 <Avatar className="w-8 h-8">
                                   <AvatarImage
                                     src={
-                                      `${manager.profilePicture}?tr=w-32,h-32` ||
+                                      `${manager.profilePicture}` ||
                                       "/default.webp"
                                     }
                                     alt={manager.name}

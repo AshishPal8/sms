@@ -62,7 +62,7 @@ const EmployeesData = () => {
       render: (value: string, row: any) => (
         <Avatar className="w-12 h-12">
           <AvatarImage
-            src={`${value}?tr=w-50,h-50`}
+            src={`${value}`}
             alt={row.name}
             className="w-12 h-12 object-cover"
           />

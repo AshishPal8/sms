@@ -31,9 +31,9 @@ export default function TicketAssets({ assets }: { assets?: IAsset[] }) {
 
   const handleOpen = (asset: IAsset) => {
     if (asset.type === AssetType.IMAGE || asset.type === AssetType.VIDEO) {
-      setSelectedAsset(asset); // open modal
+      setSelectedAsset(asset);
     } else {
-      window.open(asset.url, "_blank"); // open in new tab
+      window.open(asset.url, "_blank");
     }
   };
 
@@ -42,7 +42,7 @@ export default function TicketAssets({ assets }: { assets?: IAsset[] }) {
       case AssetType.IMAGE:
         return (
           <Image
-            src={`${asset.url}?tr=w-120,h-120`}
+            src={`${asset.url}`}
             alt="Asset"
             width={128}
             height={128}

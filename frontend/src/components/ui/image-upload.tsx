@@ -134,12 +134,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       case AssetType.IMAGE:
         return (
           <div className="relative w-full h-full">
-            <Image
-              src={`${url}?tr=w-150,h-150`}
-              alt="Asset"
-              fill
-              className="object-cover"
-            />
+            <Image src={`${url}`} alt="Asset" fill className="object-cover" />
             <div className="absolute top-2 right-2 z-10">
               <Button
                 type="button"
