@@ -22,7 +22,7 @@ interface DataTableProps<T> {
 
 export function DataTable<T>({ columns, data }: DataTableProps<T>) {
   return (
-    <Table className="border border-gray-200 mt-4 bg-white rounded-xl shadow-sm overflow-hidden">
+    <Table className="border border-gray-200 bg-white rounded-xl shadow-sm overflow-hidden">
       <TableHeader className="bg-gray-50">
         <TableRow className="border-b border-gray-200">
           {columns.map((col, i) => (

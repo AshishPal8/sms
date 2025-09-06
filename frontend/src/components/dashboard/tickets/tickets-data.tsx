@@ -10,6 +10,9 @@ import { TicketActions } from "./cell-action";
 import { priorityStyles, statusStyles, urgencyStyles } from "@/styles/color";
 import { Badge } from "@/components/ui/badge";
 import { ITicket } from "@/types/ticket.types";
+import { exportToExcel } from "@/lib/exportExcel";
+import { Button } from "@/components/ui/button";
+import { ArrowDownToLine } from "lucide-react";
 
 const TicketsData = ({ view }: { view: "table" | "card" }) => {
   const searchParams = useSearchParams();
@@ -134,8 +137,28 @@ const TicketsData = ({ view }: { view: "table" | "card" }) => {
     },
   ];
 
+  const handleExport = () => {
+    const rowsForExport = formatTickets.map((r) => ({
+      "Ticket ID": r.id,
+      Name: r.name,
+      Title: r.title,
+      Priority: r.priority,
+      Status: r.status,
+      Urgency: r.urgencyLevel,
+      "Created At": r.createdAt,
+    }));
+
+    exportToExcel(rowsForExport, "tickets_export");
+  };
+
   return (
-    <div>
+    <div className="mt-4">
+      <div className="flex items-center justify-end">
+        <Button onClick={handleExport} variant="ghost" className="text-sm">
+          <ArrowDownToLine size={16} />
+          Export
+        </Button>
+      </div>
       {view === "table" ? (
         <DataTable columns={columns} data={formatTickets} />
       ) : (

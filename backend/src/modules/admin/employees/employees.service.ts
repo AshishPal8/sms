@@ -143,6 +143,17 @@ export const addEmployeeService = async (data: addEmployeeInput) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  let existingPhoneEmployee = null;
+  if (phone) {
+    existingPhoneEmployee = await prisma.admin.findUnique({
+      where: { phone },
+    });
+  }
+
+  if (existingPhoneEmployee && !existingPhoneEmployee.isDeleted) {
+    throw new BadRequestError("Employee already exists with this phone number");
+  }
+
   if (existingEmployee) {
     if (!existingEmployee.isDeleted) {
       throw new BadRequestError("Employee already exists with this email");

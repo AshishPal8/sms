@@ -8,12 +8,15 @@ import { useSearchParams } from "next/navigation";
 import { DepartmentActions } from "./cell-action";
 import Pagination from "../pagination";
 
+interface IManager {
+  id: string;
+  name: string;
+}
+
 interface IDepartment {
   id: string;
   name: string;
-  admin?: {
-    name: string;
-  };
+  managers?: IManager[];
   createdAt: string;
   isActive: boolean;
 }
@@ -53,7 +56,10 @@ const DepartmentData = () => {
   const formatDepartments = departments.map((department: IDepartment) => ({
     id: department.id,
     name: department.name,
-    assignedTo: department.admin?.name || "Not Assigned",
+    assignedTo:
+      department.managers && department.managers.length > 0
+        ? department.managers.map((manager) => manager.name).join(", ")
+        : "Not Assigned",
     isActive: department.isActive,
     createdAt: format(new Date(department.createdAt), "dd-MM-yyyy"),
   }));
@@ -81,7 +87,7 @@ const DepartmentData = () => {
   ];
 
   return (
-    <div>
+    <div className="mt-4">
       <DataTable columns={columns} data={formatDepartments} />
       <Pagination page={Number(page)} totalPages={totalPage} />
     </div>

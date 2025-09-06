@@ -604,16 +604,24 @@ export const createticketItemService = async (
     } else if (assignedToDeptId) {
       const dept = await prisma.department.findUnique({
         where: { id: assignedToDeptId },
-        include: { admin: true },
+        include: {
+          managers: {
+            include: {
+              admin: true,
+            },
+          },
+        },
       });
       if (!dept) throw new BadRequestError("Assigned department not found");
-      if (!dept.admin)
+      const firstManager = dept.managers?.[0]?.admin;
+      if (!firstManager) {
         throw new BadRequestError("No manager assigned to this department");
+      }
 
       assignedToData = {
         assignedToRole: "MANAGER",
         assignedToDeptId: dept.id,
-        assignedToAdminId: dept.admin.id,
+        assignedToAdminId: firstManager.id,
       };
     } else if (assignedToCustomerId) {
       const customer = await prisma.customer.findUnique({
@@ -779,16 +787,24 @@ export const updateTicketItemService = async (
   } else if (assignedToDeptId) {
     const dept = await prisma.department.findUnique({
       where: { id: assignedToDeptId },
-      include: { admin: true },
+      include: {
+        managers: {
+          include: {
+            admin: true,
+          },
+        },
+      },
     });
     if (!dept) throw new BadRequestError("Assigned department not found");
-    if (!dept.admin)
+    const firstManager = dept.managers?.[0]?.admin;
+    if (!firstManager) {
       throw new BadRequestError("No manager assigned to this department");
+    }
 
     assignedToData = {
       assignedToRole: "MANAGER",
       assignedToDeptId: dept.id,
-      assignedToAdminId: dept.admin.id,
+      assignedToAdminId: firstManager.id,
       assignedToCustomerId: undefined,
     };
   } else if (assignedToCustomerId) {
