@@ -99,7 +99,7 @@ const EmployeesData = () => {
   ];
 
   return (
-    <div>
+    <div className="mt-4">
       <DataTable columns={columns} data={formatEmployees} />
       <Pagination page={Number(page)} totalPages={totalPage} />
     </div>

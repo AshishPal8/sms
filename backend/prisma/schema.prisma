@@ -125,7 +125,7 @@ model Admin {
   departmentId String?     @db.ObjectId
   department   Department? @relation("TechnicianDepartment", fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  managedDepartment Department[] @relation("ManagerOfDepartment")
+  managedDepartments ManagedDepartment[] @relation("ManagedDepartments")
 
   assignedByTicketItems TicketItem[] @relation("AssignedByAdmin")
   assignedToTicketItems TicketItem[] @relation("AssignedToAdmin")
@@ -142,8 +142,7 @@ model Department {
   id   String @id @default(auto()) @map("_id") @db.ObjectId
   name String
 
-  adminId String? @db.ObjectId
-  admin   Admin?  @relation("ManagerOfDepartment", fields: [adminId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  managers ManagedDepartment[] @relation("ManagedDepartments")
 
   technicians Admin[] @relation("TechnicianDepartment")
 
@@ -158,6 +157,23 @@ model Department {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ManagedDepartment {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  adminId String @db.ObjectId
+  admin   Admin  @relation("ManagedDepartments", fields: [adminId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  departmentId String     @db.ObjectId
+  department   Department @relation("ManagedDepartments", fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  assignedAt DateTime @default(now())
+  roleLabel  String?
+
+  @@unique([adminId, departmentId])
+  @@index([adminId])
+  @@index([departmentId])
 }
 
 //ticket

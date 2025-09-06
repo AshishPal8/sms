@@ -32,6 +32,7 @@ import axios from "axios";
 import { baseUrl } from "../../../config";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { handleApiError } from "@/lib/handleApiErrors";
 
 const formSchema = z.object({
   name: z.string(),
@@ -53,6 +54,7 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
+  const { setError } = useForm<EmployeeFormValues>();
 
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(formSchema),
@@ -98,9 +100,8 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
 
       toast.success(`Employee ${isEdit ? "updated" : "created"} successfully`);
       router.push("/dashboard/employees");
-    } catch (error) {
-      toast.error("Something went wrong!");
-      console.error("Error submitting form:", error);
+    } catch (error: unknown) {
+      handleApiError<EmployeeFormValues>(error, setError);
     } finally {
       setLoading(false);
     }

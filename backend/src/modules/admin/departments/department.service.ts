@@ -37,11 +37,11 @@ export const getAllDepartmentsService = async ({
     select: {
       id: true,
       name: true,
-      adminId: true,
-      admin: {
-        select: {
-          id: true,
-          name: true,
+      managers: {
+        include: {
+          admin: {
+            select: { id: true, name: true },
+          },
         },
       },
       technicians: {
@@ -55,18 +55,28 @@ export const getAllDepartmentsService = async ({
     },
   });
 
-  const departmentWithFilteredTechnicians = departments.map((department) => ({
-    ...department,
-    technicians: department.technicians.filter(
-      (tech) => tech.id !== department.adminId
-    ),
-    adminId: undefined,
-  }));
+  const normalized = departments.map((dept) => {
+    const managerAdminIds = (dept.managers || []).map((m) => m.admin.id);
+
+    return {
+      id: dept.id,
+      name: dept.name,
+      isActive: dept.isActive,
+      createdAt: dept.createdAt,
+      managers: (dept.managers || []).map((m) => ({
+        id: m.admin.id,
+        name: m.admin.name,
+      })),
+      technicians: (dept.technicians || []).filter(
+        (t) => !managerAdminIds.includes(t.id)
+      ),
+    };
+  });
 
   return {
     success: true,
     message: "Department fetched successfully",
-    data: departmentWithFilteredTechnicians,
+    data: normalized,
     meta: {
       total,
       page,
@@ -106,37 +116,47 @@ export const getActiveDepartmentsService = async () => {
     select: {
       id: true,
       name: true,
-      adminId: true,
-      admin: {
-        select: {
-          id: true,
-          name: true,
+      managers: {
+        include: {
+          admin: {
+            select: { id: true, name: true, email: true, profilePicture: true },
+          },
         },
       },
       technicians: {
         select: {
           id: true,
           name: true,
+          email: true,
+          profilePicture: true,
         },
       },
     },
-    orderBy: {
-      name: "asc",
-    },
+    orderBy: { name: "asc" },
   });
 
-  const departmentWithFilteredTechnicians = departments.map((department) => ({
-    ...department,
-    technicians: department.technicians.filter(
-      (tech) => tech.id !== department.adminId
-    ),
-    adminId: undefined,
-  }));
+  const normalized = departments.map((dept) => {
+    const managerAdminIds = (dept.managers || []).map((m) => m.admin.id);
+
+    return {
+      id: dept.id,
+      name: dept.name,
+      managers: (dept.managers || []).map((m) => ({
+        id: m.admin.id,
+        name: m.admin.name,
+        email: m.admin.email,
+        profilePicture: m.admin.profilePicture,
+      })),
+      technicians: (dept.technicians || []).filter(
+        (t) => !managerAdminIds.includes(t.id)
+      ),
+    };
+  });
 
   return {
     success: true,
     message: "Active department fetched successfully",
-    data: departmentWithFilteredTechnicians,
+    data: normalized,
   };
 };
 
@@ -146,13 +166,26 @@ export const getDepartmentByIdService = async (id: string) => {
     select: {
       id: true,
       name: true,
-      adminId: true,
+      managers: {
+        include: {
+          admin: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profilePicture: true,
+              role: true,
+            },
+          },
+        },
+      },
       technicians: {
         select: {
           id: true,
           name: true,
           profilePicture: true,
           role: true,
+          email: true,
         },
       },
       isActive: true,
@@ -163,22 +196,38 @@ export const getDepartmentByIdService = async (id: string) => {
 
   if (!department) throw new NotFoundError("Department not found");
 
-  const filteredTechnicians = department.technicians.filter(
-    (tech) => tech.id !== department.adminId
+  const managerAdminIds = (department.managers || []).map((m) => m.admin.id);
+
+  const filteredTechnicians = (department.technicians || []).filter(
+    (tech) => !managerAdminIds.includes(tech.id)
   );
 
   return {
     success: true,
     message: "Department fetched successfully",
     data: {
-      ...department,
+      id: department.id,
+      name: department.name,
+      isActive: department.isActive,
+      createdAt: department.createdAt,
+      updatedAt: department.updatedAt,
+      managers: (department.managers || []).map((m) => ({
+        id: m.admin.id,
+        name: m.admin.name,
+        email: m.admin.email,
+        profilePicture: m.admin.profilePicture,
+        role: m.admin.role,
+      })),
       technicians: filteredTechnicians,
     },
   };
 };
 
 export const addDepartmentService = async (data: createDepartmentInput) => {
-  const { name, adminId, technicians, isActive } = data;
+  const { name, managers, technicians, isActive } = data;
+
+  const managerIds = Array.from(new Set(managers.filter(Boolean)));
+  const technicianIds = Array.from(new Set(technicians.filter(Boolean)));
 
   const existingDepartment = await prisma.department.findFirst({
     where: { name, isDeleted: false },
@@ -188,80 +237,119 @@ export const addDepartmentService = async (data: createDepartmentInput) => {
     throw new BadRequestError("Department already exists with this name");
   }
 
-  if (adminId) {
-    const existingManager = await prisma.department.findFirst({
-      where: { adminId, isDeleted: false },
+  if (managerIds.length > 0) {
+    const managerAdmins = await prisma.admin.findMany({
+      where: { id: { in: managerIds }, isDeleted: false },
+      select: { id: true, role: true, name: true },
     });
-    if (existingManager) {
+
+    if (managerAdmins.length !== managerIds.length) {
+      const foundIds = new Set(managerAdmins.map((m) => m.id));
+      const missing = managerIds.filter((id) => !foundIds.has(id));
       throw new BadRequestError(
-        `Admin ID ${adminId} is already assigned to department ${existingManager.name}`
+        `Some manager IDs are invalid: ${missing.join(", ")}`
+      );
+    }
+
+    const notManagers = managerAdmins.filter((m) => m.role !== "MANAGER");
+    if (notManagers.length > 0) {
+      throw new BadRequestError(
+        `Some admins are not MANAGER role: ${notManagers
+          .map((m) => m.name)
+          .join(", ")}`
       );
     }
   }
 
-  if (technicians.length > 0) {
+  if (technicianIds.length > 0) {
     const technicianAdmins = await prisma.admin.findMany({
       where: {
-        id: { in: technicians },
+        id: { in: technicianIds },
         role: "TECHNICIAN",
         isDeleted: false,
       },
+      select: { id: true, name: true, departmentId: true },
     });
 
-    if (technicianAdmins.length !== technicians.length) {
+    if (technicianAdmins.length !== technicianIds.length) {
+      const foundIds = new Set(technicianAdmins.map((t) => t.id));
+      const missing = technicianIds.filter((id) => !foundIds.has(id));
       throw new BadRequestError(
-        "Some technician IDs are invalid or not TECHNICIAN role"
+        `Some technician IDs are invalid: ${missing.join(", ")}`
       );
     }
 
-    const assignedTechnicians = await prisma.admin.findMany({
-      where: {
-        id: { in: technicians },
-        departmentId: { not: null },
-      },
-    });
-    if (assignedTechnicians.length > 0) {
+    const alreadyAssigned = technicianAdmins.filter(
+      (t) => t.departmentId !== null
+    );
+    if (alreadyAssigned.length > 0) {
       throw new BadRequestError(
-        `Technicians ${assignedTechnicians
+        `Technicians already assigned: ${alreadyAssigned
           .map((t) => t.name)
-          .join(", ")} are already assigned to other departments`
+          .join(", ")}`
       );
     }
   }
 
-  console.log("hello department data", data);
-
-  const department = await prisma.department.create({
-    data: {
-      name,
-      adminId: adminId ? adminId : null,
-      isActive,
-      technicians: {
-        connect: technicians.map((id) => ({ id })),
+  const created = await prisma.$transaction(async (tx) => {
+    const dept = await tx.department.create({
+      data: {
+        name,
+        isActive,
+        ...(managerIds.length > 0
+          ? {
+              managers: {
+                create: managerIds.map((id) => ({
+                  admin: { connect: { id } },
+                })),
+              },
+            }
+          : {}),
+        ...(technicianIds.length > 0
+          ? { technicians: { connect: technicianIds.map((id) => ({ id })) } }
+          : {}),
       },
+    });
+
+    const toUpdateAdminIds = Array.from(
+      new Set([...managerIds, ...technicianIds])
+    );
+    if (toUpdateAdminIds.length > 0) {
+      await tx.admin.updateMany({
+        where: { id: { in: toUpdateAdminIds } },
+        data: { departmentId: dept.id },
+      });
+    }
+
+    return dept;
+  });
+
+  const deptWithRelations = await prisma.department.findUnique({
+    where: { id: created.id },
+    include: {
+      managers: {
+        include: {
+          admin: { select: { id: true, name: true, email: true } },
+        },
+      },
+      technicians: { select: { id: true, name: true, email: true } },
     },
   });
 
-  console.log("Department", department);
-
-  if (adminId) {
-    await prisma.admin.update({
-      where: { id: adminId },
-      data: { departmentId: department.id },
-    });
-  }
-
-  if (technicians && technicians.length > 0) {
-    await prisma.admin.updateMany({
-      where: { id: { in: technicians } },
-      data: { departmentId: department.id },
-    });
-  }
-
   return {
-    id: department.id,
-    name: department.name,
-    isActive: department.isActive,
+    id: deptWithRelations!.id,
+    name: deptWithRelations!.name,
+    isActive: deptWithRelations!.isActive,
+    managers: (deptWithRelations!.managers || []).map((md) => ({
+      id: md.admin.id,
+      name: md.admin.name,
+      email: md.admin.email,
+    })),
+    technicians: (deptWithRelations!.technicians || []).map((t) => ({
+      id: t.id,
+      name: t.name,
+      email: t.email,
+    })),
   };
 };
 
@@ -269,10 +357,14 @@ export const updateDepartmentService = async (
   id: string,
   data: updateDepartmentInput
 ) => {
-  const { name, adminId, technicians, isActive } = data;
+  const { name, managers, technicians, isActive } = data;
 
   const currentDepartment = await prisma.department.findUnique({
     where: { id },
+    include: {
+      managers: { select: { adminId: true } },
+      technicians: { select: { id: true } },
+    },
   });
 
   if (!currentDepartment) {
@@ -292,29 +384,72 @@ export const updateDepartmentService = async (
     }
   }
 
-  if (technicians !== undefined) {
-    if (technicians.length > 0) {
+  const managerIds = managers
+    ? Array.from(new Set(managers.filter(Boolean)))
+    : undefined;
+  const technicianIds = technicians
+    ? Array.from(new Set(technicians.filter(Boolean)))
+    : undefined;
+
+  if (managerIds && managerIds.length > 0) {
+    const managerAdmins = await prisma.admin.findMany({
+      where: { id: { in: managerIds }, isDeleted: false },
+      select: { id: true, role: true, name: true, departmentId: true },
+    });
+
+    if (managerAdmins.length !== managerIds.length) {
+      const foundIds = new Set(managerAdmins.map((m) => m.id));
+      const missing = managerIds.filter((id) => !foundIds.has(id));
+      throw new BadRequestError(
+        `Some manager IDs are invalid: ${missing.join(", ")}`
+      );
+    }
+
+    const notManagers = managerAdmins.filter((m) => m.role !== "MANAGER");
+    if (notManagers.length > 0) {
+      throw new BadRequestError(
+        `Some admins are not MANAGER role: ${notManagers
+          .map((m) => m.name)
+          .join(", ")}`
+      );
+    }
+
+    const alreadyAssigned = managerAdmins.filter(
+      (m) => m.departmentId !== null && m.departmentId !== id
+    );
+    if (alreadyAssigned.length > 0) {
+      throw new BadRequestError(
+        `Managers already assigned to other departments: ${alreadyAssigned
+          .map((m) => m.name)
+          .join(", ")}`
+      );
+    }
+  }
+
+  if (technicianIds !== undefined) {
+    if (technicianIds.length > 0) {
       const technicianAdmins = await prisma.admin.findMany({
         where: {
-          id: { in: technicians },
+          id: { in: technicianIds },
           role: "TECHNICIAN",
           isDeleted: false,
         },
+        select: { id: true, name: true, departmentId: true },
       });
 
-      if (technicianAdmins.length !== technicians.length) {
+      if (technicianAdmins.length !== technicianIds.length) {
+        const foundIds = new Set(technicianAdmins.map((t) => t.id));
+        const missing = technicianIds.filter((id) => !foundIds.has(id));
         throw new BadRequestError(
-          "Some technician IDs are invalid or not TECHNICIAN role"
+          `Some technician IDs are invalid or/or not TECHNICIAN role: ${missing.join(
+            ", "
+          )}`
         );
       }
 
-      const assignedTechnicians = await prisma.admin.findMany({
-        where: {
-          id: { in: technicians },
-          AND: [{ departmentId: { not: null } }, { departmentId: { not: id } }],
-        },
-      });
-
+      const assignedTechnicians = technicianAdmins.filter(
+        (t) => t.departmentId !== null && t.departmentId !== id
+      );
       if (assignedTechnicians.length > 0) {
         throw new BadRequestError(
           `Technicians ${assignedTechnicians
@@ -325,46 +460,120 @@ export const updateDepartmentService = async (
     }
   }
 
-  const existingDept = await prisma.department.findUnique({
-    where: { id },
-    select: { adminId: true },
+  // compute previous manager and technician ids (arrays of strings)
+  const prevManagerIds = currentDepartment.managers.map((m) => m.adminId);
+  const prevTechnicianIds = currentDepartment.technicians.map((t) => t.id);
+
+  // compute which admins need departmentId cleared or set
+  // For clearing: previous managers/techs that are no longer present
+  const managersToRemove = managerIds
+    ? prevManagerIds.filter((pid) => !managerIds.includes(pid))
+    : [];
+  const techsToRemove = technicianIds
+    ? prevTechnicianIds.filter((pid) => !technicianIds.includes(pid))
+    : [];
+
+  // For setting: new managers/techs not previously present
+  const managersToAdd = managerIds
+    ? managerIds.filter((id_) => !prevManagerIds.includes(id_))
+    : [];
+  const techsToAdd = technicianIds
+    ? technicianIds.filter((id_) => !prevTechnicianIds.includes(id_))
+    : [];
+
+  const updatedDept = await prisma.$transaction(async (tx) => {
+    const dept = await tx.department.update({
+      where: { id },
+      data: {
+        name: name ?? undefined,
+        isActive: isActive ?? undefined,
+        // set technicians relation if provided; if technicians is provided as empty array it'll clear it
+        ...(technicianIds !== undefined
+          ? { technicians: { set: technicianIds.map((tid) => ({ id: tid })) } }
+          : {}),
+      },
+    });
+
+    if (managerIds !== undefined) {
+      // delete existing ManagedDepartment rows for this department
+      await tx.managedDepartment.deleteMany({ where: { departmentId: id } });
+
+      // create new ManagedDepartment rows for provided managerIds (if any)
+      if (managerIds.length > 0) {
+        await tx.managedDepartment
+          .createMany({
+            data: managerIds
+              .map((mgrId) => ({
+                id: undefined as any, // prisma will default auto id; createMany requires explicit fields - but we can instead use create in loop below for compatibility
+                adminId: mgrId,
+                departmentId: id,
+                // assignedAt will default to now() in DB; if prisma provider forbids createMany on ObjectId default, we can create via create
+              }))
+              .map(({ adminId, departmentId }) => ({ adminId, departmentId })),
+          })
+          .catch(async (err) => {
+            // fallback: if createMany fails (some adapters), create in loop
+            for (const mgrId of managerIds) {
+              await tx.managedDepartment.create({
+                data: {
+                  admin: { connect: { id: mgrId } },
+                  department: { connect: { id } },
+                },
+              });
+            }
+          });
+      }
+    }
+
+    const toClear = Array.from(
+      new Set([...managersToRemove, ...techsToRemove])
+    );
+    if (toClear.length > 0) {
+      await tx.admin.updateMany({
+        where: { id: { in: toClear } },
+        data: { departmentId: null },
+      });
+    }
+
+    // set departmentId for newly added admins (managersToAdd + techsToAdd)
+    const toSet = Array.from(new Set([...managersToAdd, ...techsToAdd]));
+    if (toSet.length > 0) {
+      await tx.admin.updateMany({
+        where: { id: { in: toSet } },
+        data: { departmentId: id },
+      });
+    }
+
+    return dept;
   });
 
-  const department = await prisma.department.update({
-    where: { id },
-    data: {
-      name,
-      adminId: adminId ? adminId : null,
-      technicians:
-        technicians !== undefined
-          ? { set: technicians.map((id) => ({ id })) }
-          : undefined,
-      isActive,
+  const deptWithRelations = await prisma.department.findUnique({
+    where: { id: updatedDept.id },
+    include: {
+      managers: {
+        include: { admin: { select: { id: true, name: true, email: true } } },
+      },
+      technicians: { select: { id: true, name: true, email: true } },
     },
   });
-
-  if (existingDept?.adminId && existingDept.adminId !== adminId) {
-    await prisma.admin.update({
-      where: { id: existingDept.adminId },
-      data: { departmentId: null },
-    });
-  }
-
-  if (technicians && technicians.length > 0) {
-    await prisma.admin.updateMany({
-      where: { id: { in: technicians } },
-      data: { departmentId: department.id },
-    });
-  }
 
   return {
     success: true,
     message: "Department updated Successfully",
     data: {
-      id: department.id,
-      name: department.name,
-      adminId: department.adminId,
-      isActive: department.isActive,
+      id: deptWithRelations!.id,
+      name: deptWithRelations!.name,
+      isActive: deptWithRelations!.isActive,
+      managers: (deptWithRelations!.managers || []).map((md) => ({
+        id: md.admin.id,
+        name: md.admin.name,
+        email: md.admin.email,
+      })),
+      technicians: (deptWithRelations!.technicians || []).map((t) => ({
+        id: t.id,
+        name: t.name,
+        email: t.email,
+      })),
     },
   };
 };
@@ -373,8 +582,8 @@ export const deleteDepartmentService = async (id: string) => {
   const existingDepartment = await prisma.department.findUnique({
     where: { id },
     include: {
-      admin: true,
-      technicians: true,
+      managers: { select: { adminId: true } },
+      technicians: { select: { id: true } },
     },
   });
 
@@ -382,24 +591,28 @@ export const deleteDepartmentService = async (id: string) => {
     throw new NotFoundError("Department not found or already deleted!");
   }
 
+  const managerAdminIds = (existingDepartment.managers || []).map(
+    (m) => m.adminId
+  );
+  const technicianIds = (existingDepartment.technicians || []).map((t) => t.id);
+  const adminIdsToClear = Array.from(
+    new Set([...managerAdminIds, ...technicianIds])
+  );
+
   await prisma.$transaction(async (tx) => {
     await tx.department.update({
       where: { id },
-      data: { isDeleted: true, adminId: null, technicians: { set: [] } },
+      data: {
+        isDeleted: true,
+        technicians: { set: [] },
+      },
     });
 
-    if (existingDepartment.admin) {
-      await tx.admin.update({
-        where: { id: existingDepartment.admin.id },
-        data: { departmentId: null },
-      });
-    }
+    await tx.managedDepartment.deleteMany({ where: { departmentId: id } });
 
-    if (existingDepartment.technicians?.length > 0) {
+    if (adminIdsToClear.length > 0) {
       await tx.admin.updateMany({
-        where: {
-          id: { in: existingDepartment.technicians.map((tech) => tech.id) },
-        },
+        where: { id: { in: adminIdsToClear } },
         data: { departmentId: null },
       });
     }

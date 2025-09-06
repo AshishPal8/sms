@@ -20,24 +20,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
 import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import axios from "axios";
 import { baseUrl } from "@/config";
 import Link from "next/link";
-import { ArrowLeft, Trash } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { IEmployee } from "@/types/employee.types";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MultiSelect } from "@/components/ui/multi-select";
 
 const formSchema = z.object({
   name: z.string(),
-  adminId: z.string(),
+  managers: z.array(z.string()).optional(),
   technicians: z.array(z.string()).optional(),
   isActive: z.boolean(),
 });
@@ -53,10 +45,10 @@ interface DepartmentFormProps {
 export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
   const router = useRouter();
 
-  console.log(initialData);
+  console.log("initial data", initialData);
 
   const [loading, setLoading] = useState(false);
-  const [managers, setManagers] = useState<IEmployee[]>([]);
+  const [managers, setManagers] = useState([]);
   const [technicians, setTechnicians] = useState([]);
 
   useEffect(() => {
@@ -71,8 +63,10 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
           }),
         ]);
 
-        setManagers(managersRes.data.data);
-
+        const mappedManagers = managersRes.data.data.map((tech: IEmployee) => ({
+          value: tech.id,
+          label: tech.name,
+        }));
         const mappedTechnicians = techniciansRes.data.data.map(
           (tech: IEmployee) => ({
             value: tech.id,
@@ -80,6 +74,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
           })
         );
 
+        setManagers(mappedManagers);
         setTechnicians(mappedTechnicians);
       } catch (error) {
         console.error("Error fetching employees:", error);
@@ -93,18 +88,17 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
       name: "",
-      adminId: "",
+      managers: [],
       technicians: [],
       isActive: true,
     },
   });
 
-  console.log("Initial form values:", form.getValues());
-
   useEffect(() => {
     if (initialData) {
       form.reset({
         ...initialData,
+        managers: initialData.managers?.map((manager) => manager.id) || [],
         technicians: initialData.technicians?.map((tech) => tech.id) || [],
       });
     }
@@ -113,14 +107,12 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
   const isEdit = !!initialData;
 
   const onSubmit = async (values: DepartmentFormValues) => {
-    console.log("submitting...");
     try {
       setLoading(true);
 
       const payload = {
         ...values,
-        adminId:
-          !values.adminId || values.adminId === "none" ? null : values.adminId,
+        managers: values.managers,
         technicians: values.technicians,
       };
 
@@ -196,60 +188,21 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
               <div className="grid grid-cols-2 gap-5">
                 <FormField
                   control={form.control}
-                  name="adminId"
+                  name="managers"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Manager</FormLabel>
-                      <Select
-                        disabled={loading}
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Employee" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem
-                            value="none"
-                            className="text-black font-semibold text-[12px]"
-                          >
-                            None
-                          </SelectItem>
-                          {managers.map((manager) => (
-                            <SelectItem key={manager.id} value={manager.id}>
-                              <div className="flex items-center gap-2">
-                                <Avatar className="w-8 h-8">
-                                  <AvatarImage
-                                    src={
-                                      `${manager.profilePicture}` ||
-                                      "/default.webp"
-                                    }
-                                    alt={manager.name}
-                                    className="object-cover"
-                                  />
-                                  <AvatarFallback className="text-xs">
-                                    {manager.name[0] || "T"}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <h2 className="text-black font-semibold text-sm">
-                                    {manager.name}
-                                  </h2>
-                                  <p className="text-gray-600 capitalize text-xs">
-                                    {manager.role
-                                      ? manager.role.charAt(0).toUpperCase() +
-                                        manager.role.slice(1).toLowerCase()
-                                      : ""}
-                                  </p>
-                                </div>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <FormItem className="col-span-3">
+                      <FormLabel>Managers</FormLabel>
+                      <FormControl>
+                        <MultiSelect
+                          options={managers}
+                          value={field.value || []}
+                          onValueChange={field.onChange}
+                          defaultValue={field.value || []}
+                          placeholder="Select managers"
+                          maxCount={50}
+                          className=""
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

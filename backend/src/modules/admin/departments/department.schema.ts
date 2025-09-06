@@ -7,12 +7,10 @@ export const createDepartmentSchema = z.object({
     .string()
     .min(2, { error: "Department name must be at least 2 characters" })
     .max(50, { error: "Department name must be at most 50 characters" }),
-  adminId: z
-    .string()
-    .regex(objectIdRegex, "Invalid admin ID")
-    .or(z.literal(""))
-    .nullable()
-    .optional(),
+  managers: z
+    .array(z.string().regex(objectIdRegex, "Invalid manager ID"))
+    .optional()
+    .default([]),
   technicians: z
     .array(z.string().regex(objectIdRegex, "Invalid technician ID"))
     .optional()
@@ -26,11 +24,8 @@ export const updateDepartmentSchema = z.object({
     .min(2, { error: "Department name must be at least 2 characters" })
     .max(50, { error: "Department name must be at most 50 characters" })
     .optional(),
-  adminId: z
-    .string()
-    .regex(objectIdRegex, "Invalid admin ID")
-    .or(z.literal(""))
-    .nullable()
+  managers: z
+    .array(z.string().regex(objectIdRegex, "Invalid manager ID"))
     .optional(),
   technicians: z
     .array(z.string().regex(objectIdRegex, "Invalid technician ID"))
