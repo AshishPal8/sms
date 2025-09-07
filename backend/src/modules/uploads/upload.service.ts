@@ -15,6 +15,16 @@ const imagekit = new ImageKit({
   urlEndpoint: imagekitUrlEndpoint,
 });
 
+console.log("Production ImageKit Config:", {
+  publicKey: imagekitPublicKey
+    ? `${imagekitPublicKey.substring(0, 10)}...`
+    : "MISSING",
+  privateKey: imagekitPrivateKey
+    ? `${imagekitPrivateKey.substring(0, 10)}...`
+    : "MISSING",
+  urlEndpoint: imagekitUrlEndpoint || "MISSING",
+});
+
 type UploadedFileResult = {
   url: string;
   fileName: string;
