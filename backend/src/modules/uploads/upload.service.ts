@@ -1,4 +1,4 @@
-import sharp from "sharp";
+// import sharp from "sharp";
 import ImageKit from "imagekit";
 
 import { getAssetTypeFromUrl } from "../../utils/getAssetType";
@@ -47,17 +47,17 @@ export const uploadFileService = async (
 
     let fileBuffer = file.buffer;
 
-    if (type === AssetType.IMAGE) {
-      try {
-        fileBuffer = await sharp(file.buffer)
-          .resize({ width: 1200, withoutEnlargement: true })
-          .jpeg({ quality: 75 })
-          .toBuffer();
-      } catch (err) {
-        console.error("Sharp optimization failed:", file.originalname, err);
-        fileBuffer = file.buffer;
-      }
-    }
+    // if (type === AssetType.IMAGE) {
+    //   try {
+    //     fileBuffer = await sharp(file.buffer)
+    //       .resize({ width: 1200, withoutEnlargement: true })
+    //       .jpeg({ quality: 75 })
+    //       .toBuffer();
+    //   } catch (err) {
+    //     console.error("Sharp optimization failed:", file.originalname, err);
+    //     fileBuffer = file.buffer;
+    //   }
+    // }
 
     try {
       const resp = await imagekit.upload({
