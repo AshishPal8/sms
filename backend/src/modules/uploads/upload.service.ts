@@ -1,27 +1,47 @@
 import sharp from "sharp";
-import ImageKit from "imagekit";
+import { v2 as cloudinary } from "cloudinary";
+import type { UploadApiOptions, UploadApiResponse } from "cloudinary";
+
+import streamifier from "streamifier";
 
 import { getAssetTypeFromUrl } from "../../utils/getAssetType";
 import { AssetType } from "../../generated/prisma";
 import {
-  imagekitPrivateKey,
-  imagekitPublicKey,
-  imagekitUrlEndpoint,
+  cloudinaryCloudName,
+  cloudinaryApiKey,
+  cloudinaryApiSecret,
 } from "../../utils/config";
 
-const imagekit = new ImageKit({
-  publicKey: imagekitPublicKey,
-  privateKey: imagekitPrivateKey,
-  urlEndpoint: imagekitUrlEndpoint,
+cloudinary.config({
+  cloud_name: cloudinaryCloudName,
+  api_key: cloudinaryApiKey,
+  api_secret: cloudinaryApiSecret,
 });
 
 type UploadedFileResult = {
   url: string;
   fileName: string;
   type: AssetType;
-  provider: "imagekit";
-  imagekitResponse?: any;
+  provider: "cloudinary";
+  cloudinaryResponse?: any;
 };
+
+function uploadBufferToCloudinary(
+  buffer: Buffer,
+  options: UploadApiOptions = {}
+): Promise<UploadApiResponse> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      options,
+      (error, result) => {
+        if (error) return reject(error);
+        if (!result) return reject(new Error("Empty Cloudinary response"));
+        resolve(result);
+      }
+    );
+    streamifier.createReadStream(buffer).pipe(uploadStream);
+  });
+}
 
 export const uploadFileService = async (
   files: Express.Multer.File[]
@@ -32,8 +52,9 @@ export const uploadFileService = async (
 
   for (const file of files) {
     const type = getAssetTypeFromUrl(file.originalname);
+
     const safeName = file.originalname.replace(/\s+/g, "_");
-    const fileName = `${Date.now()}-${safeName}`;
+    const publicId = `${Date.now()}-${safeName.replace(/\.[^/.]+$/, "")}`;
 
     let fileBuffer = file.buffer;
 
@@ -49,29 +70,35 @@ export const uploadFileService = async (
       }
     }
 
-    const mimeType = file.mimetype || "application/octet-stream";
-    const base64 = fileBuffer.toString("base64");
-    const dataUri = `data:${mimeType};base64,${base64}`;
+    const uploadOptions: UploadApiOptions = {
+      folder: "sms",
+      public_id: publicId,
+      use_filename: false,
+      unique_filename: true,
+      overwrite: false,
+      resource_type: type === AssetType.IMAGE ? "image" : "raw",
+      transformation: [{ width: 1200, crop: "limit" }],
+    };
 
     try {
-      const resp = await imagekit.upload({
-        file: dataUri,
-        fileName,
-        folder: "/sms",
-        useUniqueFileName: true,
-      });
+      const resp = await uploadBufferToCloudinary(fileBuffer, uploadOptions);
 
       uploadedFiles.push({
-        url: resp.url,
-        fileName: resp.name || fileName,
+        url: resp.secure_url || resp.url,
+        fileName: resp.public_id || publicId,
         type,
-        provider: "imagekit",
-        imagekitResponse: resp,
+        provider: "cloudinary",
+        cloudinaryResponse: resp,
       });
     } catch (err: any) {
-      console.error("ImageKit upload failed:", fileName, err?.message || err);
+      console.error(
+        "Cloudinary upload failed:",
+        publicId,
+        err?.message || err,
+        JSON.stringify(err, Object.getOwnPropertyNames(err))
+      );
       throw new Error(
-        `ImageKit upload failed for ${fileName}: ${err?.message}`
+        `Cloudinary upload failed for ${publicId}: ${err?.message || err}`
       );
     }
   }
