@@ -1,4 +1,4 @@
-// import sharp from "sharp";
+import sharp from "sharp";
 import ImageKit from "imagekit";
 
 import { getAssetTypeFromUrl } from "../../utils/getAssetType";
@@ -13,16 +13,6 @@ const imagekit = new ImageKit({
   publicKey: imagekitPublicKey,
   privateKey: imagekitPrivateKey,
   urlEndpoint: imagekitUrlEndpoint,
-});
-
-console.log("Production ImageKit Config:", {
-  publicKey: imagekitPublicKey
-    ? `${imagekitPublicKey.substring(0, 10)}...`
-    : "MISSING",
-  privateKey: imagekitPrivateKey
-    ? `${imagekitPrivateKey.substring(0, 10)}...`
-    : "MISSING",
-  urlEndpoint: imagekitUrlEndpoint || "MISSING",
 });
 
 type UploadedFileResult = {
@@ -47,23 +37,25 @@ export const uploadFileService = async (
 
     let fileBuffer = file.buffer;
 
-    // if (type === AssetType.IMAGE) {
-    //   try {
-    //     fileBuffer = await sharp(file.buffer)
-    //       .resize({ width: 1200, withoutEnlargement: true })
-    //       .jpeg({ quality: 75 })
-    //       .toBuffer();
-    //   } catch (err) {
-    //     console.error("Sharp optimization failed:", file.originalname, err);
-    //     fileBuffer = file.buffer;
-    //   }
-    // }
+    if (type === AssetType.IMAGE) {
+      try {
+        fileBuffer = await sharp(file.buffer)
+          .resize({ width: 1200, withoutEnlargement: true })
+          .jpeg({ quality: 75 })
+          .toBuffer();
+      } catch (err) {
+        console.error("Sharp optimization failed:", file.originalname, err);
+        fileBuffer = file.buffer;
+      }
+    }
+
+    const mimeType = file.mimetype || "application/octet-stream";
+    const base64 = fileBuffer.toString("base64");
+    const dataUri = `data:${mimeType};base64,${base64}`;
 
     try {
-      // prefer base64 upload for reliability
-      const base64 = file.buffer.toString("base64");
       const resp = await imagekit.upload({
-        file: base64,
+        file: dataUri,
         fileName,
         folder: "/sms",
         useUniqueFileName: true,
@@ -77,41 +69,10 @@ export const uploadFileService = async (
         imagekitResponse: resp,
       });
     } catch (err: any) {
-      // log everything useful for debugging
-      console.error("ImageKit upload failed:", fileName, {
-        message: err?.message,
-        name: err?.name,
-        statusCode: err?.httpStatus || err?.statusCode,
-        response: err?.response || err?.rawResponse || err?.errorResponse,
-        stack: err?.stack,
-      });
-
-      // optional: a single retry for transient / network issues
-      try {
-        const base64 = file.buffer.toString("base64");
-        const retryResp = await imagekit.upload({
-          file: base64,
-          fileName,
-          folder: "/sms",
-          useUniqueFileName: true,
-        });
-
-        uploadedFiles.push({
-          url: retryResp.url,
-          fileName: retryResp.name || fileName,
-          type,
-          provider: "imagekit",
-          imagekitResponse: retryResp,
-        });
-        continue; // next file
-      } catch (retryErr: any) {
-        console.error("ImageKit retry failed:", fileName, retryErr);
-        throw new Error(
-          `ImageKit upload failed for ${fileName}: ${
-            retryErr?.message || retryErr
-          }`
-        );
-      }
+      console.error("ImageKit upload failed:", fileName, err?.message || err);
+      throw new Error(
+        `ImageKit upload failed for ${fileName}: ${err?.message}`
+      );
     }
   }
 
