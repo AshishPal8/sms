@@ -60,8 +60,10 @@ export const uploadFileService = async (
     // }
 
     try {
+      // prefer base64 upload for reliability
+      const base64 = file.buffer.toString("base64");
       const resp = await imagekit.upload({
-        file: fileBuffer,
+        file: base64,
         fileName,
         folder: "/sms",
         useUniqueFileName: true,
@@ -75,10 +77,41 @@ export const uploadFileService = async (
         imagekitResponse: resp,
       });
     } catch (err: any) {
-      console.error("ImageKit upload failed:", fileName, err?.message || err);
-      throw new Error(
-        `ImageKit upload failed for ${fileName}: ${err?.message}`
-      );
+      // log everything useful for debugging
+      console.error("ImageKit upload failed:", fileName, {
+        message: err?.message,
+        name: err?.name,
+        statusCode: err?.httpStatus || err?.statusCode,
+        response: err?.response || err?.rawResponse || err?.errorResponse,
+        stack: err?.stack,
+      });
+
+      // optional: a single retry for transient / network issues
+      try {
+        const base64 = file.buffer.toString("base64");
+        const retryResp = await imagekit.upload({
+          file: base64,
+          fileName,
+          folder: "/sms",
+          useUniqueFileName: true,
+        });
+
+        uploadedFiles.push({
+          url: retryResp.url,
+          fileName: retryResp.name || fileName,
+          type,
+          provider: "imagekit",
+          imagekitResponse: retryResp,
+        });
+        continue; // next file
+      } catch (retryErr: any) {
+        console.error("ImageKit retry failed:", fileName, retryErr);
+        throw new Error(
+          `ImageKit upload failed for ${fileName}: ${
+            retryErr?.message || retryErr
+          }`
+        );
+      }
     }
   }
 
