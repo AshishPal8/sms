@@ -5,10 +5,11 @@ import {
   getAllEmployeesService,
   getEmployeeByIdService,
   getEmployeeStatsService,
-  getTechniciansWithDepartmentIdService,
+  getEmployeesWithDepartmentIdService,
   updateEmployeeService,
 } from "./employees.service";
 import { BadRequestError, UnauthorizedError } from "../../../middlewares/error";
+import type { AdminRole } from "../../../generated/prisma";
 
 export const getAllEmployees = async (
   req: Request,
@@ -88,19 +89,23 @@ export const getEmployeeById = async (
   }
 };
 
-export const getTechniciansWithDepartmentIdController = async (
+export const getEmployeesWithDepartmentIdController = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const deptId = req.params.id;
-    if (!deptId) {
-      throw new BadRequestError("Employee id is required");
+    const role = req.query.role;
+    if (!deptId || !role) {
+      throw new BadRequestError("Department or role is required");
     }
 
-    const technicians = await getTechniciansWithDepartmentIdService(deptId);
-    res.status(200).json(technicians);
+    const employees = await getEmployeesWithDepartmentIdService(
+      deptId,
+      role as AdminRole
+    );
+    res.status(200).json(employees);
   } catch (err) {
     next(err);
   }

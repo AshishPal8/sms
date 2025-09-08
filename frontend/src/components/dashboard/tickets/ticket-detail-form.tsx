@@ -30,7 +30,7 @@ import { ITicketById, ITicketItem } from "@/types/ticket.types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
@@ -64,11 +64,14 @@ const TicketDetailForm = ({
 }) => {
   const [departments, setDepartments] = useState([]);
   const [technicians, setTechnicians] = useState<IEmployee[]>([]);
+  const [managers, setManagers] = useState<IEmployee[]>([]);
   const [loading, setLoading] = useState(false);
   const [assignTo, setAssignTo] = useState<
     "CUSTOMER" | "DEPARTMENT" | "TECHNICIAN" | ""
   >("");
   const { user } = useAuthStore();
+
+  console.log("Managers", managers);
 
   const form = useForm<CreateTicketItemFormValues>({
     resolver: zodResolver(createTicketItemSchema),
@@ -81,6 +84,11 @@ const TicketDetailForm = ({
       assignedToCustomerId: "",
       assets: [],
     },
+  });
+
+  const deptId = useWatch({
+    control: form.control,
+    name: "assignedToDeptId",
   });
 
   useEffect(() => {
@@ -101,11 +109,48 @@ const TicketDetailForm = ({
   }, []);
 
   useEffect(() => {
+    if (!deptId) {
+      setManagers([]);
+      form.setValue("assignedToAdminId", "");
+      return;
+    }
+
+    let mounted = true;
+
+    const fetchManagers = async () => {
+      try {
+        const res = await axios.get(
+          `${baseUrl}/employees/dept/${deptId}?role=${roles.MANAGER}`,
+          {
+            withCredentials: true,
+          }
+        );
+
+        const payload = res?.data?.data ?? res?.data ?? [];
+
+        if (mounted) {
+          setManagers(payload);
+          form.setValue("assignedToAdminId", "");
+        }
+      } catch (error) {
+        console.error("Error fetching managers:", error);
+        if (mounted) setManagers([]);
+      }
+    };
+
+    fetchManagers();
+
+    return () => {
+      mounted = false;
+    };
+  }, [deptId]);
+
+  useEffect(() => {
     const fetchTechnicians = async () => {
       if (user?.role === roles.MANAGER) {
         try {
           const res = await axios.get(
-            `${baseUrl}/employees/dept/${user?.departmentId}`,
+            `${baseUrl}/employees/dept/${user?.departmentId}?role=${roles.TECHNICIAN}`,
             {
               withCredentials: true,
             }
@@ -252,34 +297,115 @@ const TicketDetailForm = ({
                   )}
 
                   {assignTo === "DEPARTMENT" && (
-                    <FormField
-                      control={form.control}
-                      name="assignedToDeptId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Department</FormLabel>
-                          <Select
-                            disabled={loading}
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select department" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {departments.map((dept) => (
-                                <SelectItem key={dept.id} value={dept.id}>
-                                  {dept.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
+                    <>
+                      <FormField
+                        control={form.control}
+                        name="assignedToDeptId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Department</FormLabel>
+                            <Select
+                              disabled={loading}
+                              onValueChange={(val) => {
+                                field.onChange(val);
+                                form.setValue("assignedToAdminId", "");
+                              }}
+                              value={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select department" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {departments.map((dept) => (
+                                  <SelectItem key={dept.id} value={dept.id}>
+                                    {dept.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {form.watch("assignedToDeptId") && (
+                        <FormField
+                          control={form.control}
+                          name="assignedToAdminId" // directly write to assignedToAdminId
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Manager</FormLabel>
+                              <Select
+                                disabled={loading || managers.length === 0}
+                                onValueChange={(val) => {
+                                  // write manager id directly to assignedToAdminId
+                                  field.onChange(val);
+                                }}
+                                value={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue
+                                      placeholder={
+                                        managers.length
+                                          ? "Select manager"
+                                          : "No managers available"
+                                      }
+                                    />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {managers.length > 0 ? (
+                                    managers.map((mgr) => (
+                                      <SelectItem key={mgr.id} value={mgr.id}>
+                                        <div className="flex items-center gap-2">
+                                          <Avatar className="w-8 h-8">
+                                            <AvatarImage
+                                              src={
+                                                `${mgr.profilePicture}` ||
+                                                "/default.webp"
+                                              }
+                                              alt={mgr.name}
+                                            />
+                                            <AvatarFallback className="text-xs">
+                                              {mgr.name[0] || "M"}
+                                            </AvatarFallback>
+                                          </Avatar>
+                                          <div>
+                                            <h2 className="text-black font-semibold text-sm">
+                                              {mgr.name}
+                                            </h2>
+                                            <p className="text-gray-600 capitalize text-xs">
+                                              {mgr.role
+                                                ? mgr.role
+                                                    .charAt(0)
+                                                    .toUpperCase() +
+                                                  mgr.role
+                                                    .slice(1)
+                                                    .toLowerCase()
+                                                : ""}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </SelectItem>
+                                    ))
+                                  ) : (
+                                    <SelectItem value="no-managers" disabled>
+                                      <span className="text-sm text-gray-500">
+                                        No managers found
+                                      </span>
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       )}
-                    />
+                    </>
                   )}
 
                   {assignTo === "TECHNICIAN" && user?.role === "MANAGER" && (
