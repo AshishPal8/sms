@@ -613,15 +613,11 @@ export const createticketItemService = async (
         },
       });
       if (!dept) throw new BadRequestError("Assigned department not found");
-      const firstManager = dept.managers?.[0]?.admin;
-      if (!firstManager) {
-        throw new BadRequestError("No manager assigned to this department");
-      }
 
       assignedToData = {
         assignedToRole: "MANAGER",
         assignedToDeptId: dept.id,
-        assignedToAdminId: firstManager.id,
+        assignedToAdminId: assignedToAdminId,
       };
     } else if (assignedToCustomerId) {
       const customer = await prisma.customer.findUnique({

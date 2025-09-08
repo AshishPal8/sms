@@ -4,6 +4,7 @@ import { BadRequestError, NotFoundError } from "../../../middlewares/error";
 import type { addEmployeeInput, updateEmployeeInput } from "./employees.schema";
 import { generateToken } from "../../../utils/auth";
 import type { GetAllEmployeesOptions } from "../../../types/employees.types";
+import type { AdminRole } from "../../../generated/prisma";
 
 export const getAllEmployeesService = async ({
   adminId,
@@ -98,18 +99,21 @@ export const getEmployeeStatsService = async () => {
   };
 };
 
-export const getTechniciansWithDepartmentIdService = async (deptId: string) => {
-  const technicians = await prisma.admin.findMany({
+export const getEmployeesWithDepartmentIdService = async (
+  deptId: string,
+  role: AdminRole
+) => {
+  const employees = await prisma.admin.findMany({
     where: {
-      role: "TECHNICIAN",
+      role,
       departmentId: deptId,
     },
   });
 
   return {
     success: true,
-    message: "Technicians fetched successfully",
-    data: technicians,
+    message: "Employees fetched successfully",
+    data: employees,
   };
 };
 

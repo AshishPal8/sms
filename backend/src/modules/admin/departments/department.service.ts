@@ -495,33 +495,36 @@ export const updateDepartmentService = async (
     });
 
     if (managerIds !== undefined) {
-      // delete existing ManagedDepartment rows for this department
       await tx.managedDepartment.deleteMany({ where: { departmentId: id } });
 
-      // create new ManagedDepartment rows for provided managerIds (if any)
+      const createData = managerIds.map((mgrId) => ({
+        adminId: mgrId,
+        departmentId: id,
+      }));
+
       if (managerIds.length > 0) {
-        await tx.managedDepartment
-          .createMany({
-            data: managerIds
-              .map((mgrId) => ({
-                id: undefined as any, // prisma will default auto id; createMany requires explicit fields - but we can instead use create in loop below for compatibility
-                adminId: mgrId,
-                departmentId: id,
-                // assignedAt will default to now() in DB; if prisma provider forbids createMany on ObjectId default, we can create via create
-              }))
-              .map(({ adminId, departmentId }) => ({ adminId, departmentId })),
-          })
-          .catch(async (err) => {
-            // fallback: if createMany fails (some adapters), create in loop
-            for (const mgrId of managerIds) {
+        try {
+          await tx.managedDepartment.createMany({
+            data: createData,
+          });
+        } catch (error) {
+          for (const mgrId of managerIds) {
+            try {
               await tx.managedDepartment.create({
                 data: {
                   admin: { connect: { id: mgrId } },
                   department: { connect: { id } },
                 },
               });
+            } catch (innerErr) {
+              console.error(
+                "create managedDepartment failed for",
+                mgrId,
+                innerErr
+              );
             }
-          });
+          }
+        }
       }
     }
 
@@ -535,11 +538,12 @@ export const updateDepartmentService = async (
       });
     }
 
-    // set departmentId for newly added admins (managersToAdd + techsToAdd)
-    const toSet = Array.from(new Set([...managersToAdd, ...techsToAdd]));
-    if (toSet.length > 0) {
+    const toSetAll = Array.from(
+      new Set([...(managerIds ?? []), ...(technicianIds ?? [])])
+    );
+    if (toSetAll.length > 0) {
       await tx.admin.updateMany({
-        where: { id: { in: toSet } },
+        where: { id: { in: toSetAll } },
         data: { departmentId: id },
       });
     }

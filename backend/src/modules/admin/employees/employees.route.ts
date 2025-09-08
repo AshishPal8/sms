@@ -8,7 +8,7 @@ import {
   getEmployeeById,
   getEmployeeProfile,
   getEmployeeStatsController,
-  getTechniciansWithDepartmentIdController,
+  getEmployeesWithDepartmentIdController,
   updateEmployee,
 } from "./employees.controller";
 import { authMiddleware } from "../../../middlewares/authMiddleware";
@@ -40,11 +40,7 @@ router.get(
   getEmployeeById
 );
 
-router.get(
-  "/dept/:id",
-  authMiddleware,
-  getTechniciansWithDepartmentIdController
-);
+router.get("/dept/:id", authMiddleware, getEmployeesWithDepartmentIdController);
 
 router.post(
   "/add",
