@@ -55,7 +55,7 @@ const NotificationsPage = () => {
   }, []);
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-2 md:p-6 space-y-2 md:space-y-4">
       {loading && <p>Loading notifications...</p>}
 
       {!loading && notifications.length === 0 && (
@@ -66,7 +66,7 @@ const NotificationsPage = () => {
         <Card
           key={notif.id}
           onClick={() => markAsRead(notif)}
-          className={`p-4 rounded-2xl shadow cursor-pointer transition hover:shadow-md border-l-4 ${
+          className={`p-2 md:p-4 rounded-2xl shadow cursor-pointer transition hover:shadow-md border-l-4 ${
             notif.isRead
               ? "bg-gray-100 border-gray-300"
               : "bg-white border-blue-500"
@@ -75,7 +75,7 @@ const NotificationsPage = () => {
           <div className="flex justify-between items-center">
             <div>
               <h2
-                className={`text-lg font-semibold ${
+                className={`text-base md:text-lg font-medium md:font-semibold ${
                   notif.isRead ? "text-gray-700" : "text-blue-700"
                 }`}
               >

@@ -11,10 +11,6 @@ export const createDepartmentSchema = z.object({
     .array(z.string().regex(objectIdRegex, "Invalid manager ID"))
     .optional()
     .default([]),
-  technicians: z
-    .array(z.string().regex(objectIdRegex, "Invalid technician ID"))
-    .optional()
-    .default([]),
   isActive: z.boolean().optional(),
 });
 
@@ -26,9 +22,6 @@ export const updateDepartmentSchema = z.object({
     .optional(),
   managers: z
     .array(z.string().regex(objectIdRegex, "Invalid manager ID"))
-    .optional(),
-  technicians: z
-    .array(z.string().regex(objectIdRegex, "Invalid technician ID"))
     .optional(),
   isActive: z.boolean().optional(),
 });

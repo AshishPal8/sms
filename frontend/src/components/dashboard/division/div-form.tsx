@@ -3,7 +3,7 @@
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -24,8 +24,6 @@ import axios from "axios";
 import { baseUrl } from "@/config";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { IEmployee } from "@/types/employee.types";
-import { MultiSelect } from "@/components/ui/multi-select";
 
 const formSchema = z.object({
   name: z.string(),
@@ -34,94 +32,55 @@ const formSchema = z.object({
   isActive: z.boolean(),
 });
 
-type DepartmentFormValues = z.infer<typeof formSchema>;
+type DivisionFormValues = z.infer<typeof formSchema>;
 
-interface DepartmentFormProps {
-  initialData?: DepartmentFormValues & {
+interface DivisionFormProps {
+  initialData?: DivisionFormValues & {
     id?: string;
   };
 }
 
-export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
+export const DivisionForm = ({ initialData }: DivisionFormProps) => {
   const router = useRouter();
-  const { divId } = useParams();
-
-  console.log("initial data", initialData);
 
   const [loading, setLoading] = useState(false);
-  const [managers, setManagers] = useState([]);
 
-  useEffect(() => {
-    const fetchEmployees = async () => {
-      try {
-        const managersRes = await axios.get(
-          `${baseUrl}/employees?role=MANAGER`,
-          {
-            withCredentials: true,
-          }
-        );
-
-        const mappedManagers = managersRes.data.data.map((tech: IEmployee) => ({
-          value: tech.id,
-          label: tech.name,
-        }));
-
-        setManagers(mappedManagers);
-      } catch (error) {
-        console.error("Error fetching employees:", error);
-      }
-    };
-
-    fetchEmployees();
-  }, [initialData]);
-
-  const form = useForm<DepartmentFormValues>({
+  const form = useForm<DivisionFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
       name: "",
-      managers: [],
       isActive: true,
     },
   });
 
   useEffect(() => {
     if (initialData) {
-      form.reset({
-        ...initialData,
-        managers: initialData.managers?.map((manager) => manager.id) || [],
-      });
+      form.reset(initialData);
     }
   }, [initialData, form]);
 
   const isEdit = !!initialData;
 
-  const onSubmit = async (values: DepartmentFormValues) => {
+  const onSubmit = async (values: DivisionFormValues) => {
     try {
       setLoading(true);
 
-      const payload = {
-        ...values,
-        managers: values.managers,
-      };
-
       if (isEdit) {
         await axios.put(
-          `${baseUrl}/departments/update/${initialData.id}`,
-          payload,
+          `${baseUrl}/divisions/update/${initialData.id}`,
+          values,
           {
             withCredentials: true,
           }
         );
       } else {
-        await axios.post(`${baseUrl}/departments/add/${divId}`, payload, {
+        await axios.post(`${baseUrl}/divisions/add`, values, {
           withCredentials: true,
         });
       }
 
-      toast.success(
-        `Department ${isEdit ? "updated" : "created"} successfully`
-      );
-      router.push(`/dashboard/divisions/${divId}/departments`);
+      toast.success(`Division ${isEdit ? "updated" : "created"} successfully`);
+      router.push("/dashboard/divisions");
     } catch (error) {
       toast.error("Something went wrong!");
       console.error("Error submitting form:", error);
@@ -135,17 +94,17 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center mb-2 gap-4">
           <Link
-            href={`/dashboard/divisions/${divId}/departments`}
+            href="/dashboard/divisions"
             className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center"
           >
             <ArrowLeft size={25} />
           </Link>
           <Heading
-            title={isEdit ? "Update Department" : "Add Department"}
+            title={isEdit ? "Update Division" : "Add Division"}
             description={
               isEdit
-                ? "Update department details"
-                : "Add a new department for your company"
+                ? "Update division details"
+                : "Add a new division for your company"
             }
           />
         </div>
@@ -173,29 +132,6 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-2 gap-5">
-                <FormField
-                  control={form.control}
-                  name="managers"
-                  render={({ field }) => (
-                    <FormItem className="col-span-3">
-                      <FormLabel>Managers</FormLabel>
-                      <FormControl>
-                        <MultiSelect
-                          options={managers}
-                          value={field.value || []}
-                          onValueChange={field.onChange}
-                          defaultValue={field.value || []}
-                          placeholder="Select managers"
-                          maxCount={50}
-                          className=""
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
               <FormField
                 control={form.control}
                 name="isActive"

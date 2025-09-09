@@ -1,16 +1,16 @@
 import type { NextFunction, Request, Response } from "express";
 import { BadRequestError } from "../../../middlewares/error";
 import {
-  addDepartmentService,
-  deleteDepartmentService,
-  getDepartmentsStatsService,
-  getActiveDepartmentsService,
-  getAllDepartmentsService,
-  getDepartmentByIdService,
-  updateDepartmentService,
-} from "./department.service";
+  createDivisionService,
+  deleteDivisionService,
+  getActiveDivisionsService,
+  getAllDivisionService,
+  getDivisionByIdService,
+  getDivisionStatsService,
+  updateDivisionService,
+} from "./divison.service";
 
-export const getAllDepartmentController = async (
+export const getAllDivisionController = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -30,7 +30,7 @@ export const getAllDepartmentController = async (
     const isActiveBoolean =
       isActive === "true" ? true : isActive === "false" ? false : undefined;
 
-    const departments = await getAllDepartmentsService({
+    const divisions = await getAllDivisionService({
       search: search as string,
       sortBy: sortBy as string,
       sortOrder: sortOrder as "asc" | "desc",
@@ -39,39 +39,39 @@ export const getAllDepartmentController = async (
       isActive: isActiveBoolean,
     });
 
-    res.status(200).json(departments);
+    res.status(200).json(divisions);
   } catch (err) {
     next(err);
   }
 };
 
-export const getActiveDepartmentsController = async (
+export const getActiveDivisionsController = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const departments = await getActiveDepartmentsService();
-    res.status(200).json(departments);
+    const divisions = await getActiveDivisionsService();
+    res.status(200).json(divisions);
   } catch (err) {
     next(err);
   }
 };
 
-export const getDepartmentsStatsController = async (
+export const getDivisionStatsController = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const departments = await getDepartmentsStatsService();
-    res.status(200).json(departments);
+    const divisions = await getDivisionStatsService();
+    res.status(200).json(divisions);
   } catch (err) {
     next(err);
   }
 };
 
-export const getDepartmentByIdController = async (
+export const getDivisionByIdController = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -79,36 +79,31 @@ export const getDepartmentByIdController = async (
   try {
     const { id } = req.params;
     if (!id) {
-      throw new BadRequestError("Department id is required");
+      throw new BadRequestError("Division id is required");
     }
 
-    const department = await getDepartmentByIdService(id);
-    res.status(200).json(department);
+    const division = await getDivisionByIdService(id);
+    res.status(200).json(division);
   } catch (err) {
     next(err);
   }
 };
 
-export const addDepartmentController = async (
+export const createDivisionController = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { divisionId } = req.params;
-    if (!divisionId) {
-      throw new BadRequestError("Division is required!");
-    }
+    const division = await createDivisionService(req.body);
 
-    const department = await addDepartmentService(divisionId, req.body);
-
-    res.status(201).json(department);
+    res.status(201).json(division);
   } catch (error) {
     next(error);
   }
 };
 
-export const updateDepartmentController = async (
+export const updateDivisionController = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -116,22 +111,22 @@ export const updateDepartmentController = async (
   try {
     const { id } = req.params;
     if (!id) {
-      throw new BadRequestError("Department id is required");
+      throw new BadRequestError("Division id is required");
     }
 
-    const department = await updateDepartmentService(id, req.body);
+    const division = await updateDivisionService(id, req.body);
 
     res.status(201).json({
       success: true,
-      message: "Department updated successfully",
-      data: department,
+      message: "Division updated successfully",
+      data: division,
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const deleteDepartmentController = async (
+export const deleteDivisionController = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -139,12 +134,12 @@ export const deleteDepartmentController = async (
   try {
     const { id } = req.params;
     if (!id) {
-      throw new BadRequestError("Department id is required");
+      throw new BadRequestError("Division id is required");
     }
 
-    const deletedDepartment = await deleteDepartmentService(id);
+    const deletedDivision = await deleteDivisionService(id);
 
-    res.status(201).json(deletedDepartment);
+    res.status(201).json(deletedDivision);
   } catch (error) {
     next(error);
   }

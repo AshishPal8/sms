@@ -122,10 +122,14 @@ model Admin {
   isDeleted      Boolean   @default(false)
   isActive       Boolean   @default(true)
 
+  managedDepartments ManagedDepartment[] @relation("ManagedDepartments")
+
+  managerId   String? @db.ObjectId
+  manager     Admin?  @relation("ManagerTechnicians", fields: [managerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  technicians Admin[] @relation("ManagerTechnicians")
+
   departmentId String?     @db.ObjectId
   department   Department? @relation("TechnicianDepartment", fields: [departmentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  managedDepartments ManagedDepartment[] @relation("ManagedDepartments")
 
   assignedByTicketItems TicketItem[] @relation("AssignedByAdmin")
   assignedToTicketItems TicketItem[] @relation("AssignedToAdmin")
@@ -137,10 +141,26 @@ model Admin {
   updatedAt DateTime @updatedAt
 }
 
+model Division {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  isActive  Boolean @default(true)
+  isDeleted Boolean @default(false)
+
+  // one division -> many departments
+  departments Department[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 //department
 model Department {
   id   String @id @default(auto()) @map("_id") @db.ObjectId
   name String
+
+  divisionId String   @db.ObjectId
+  division   Division @relation(fields: [divisionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   managers ManagedDepartment[] @relation("ManagedDepartments")
 

@@ -9,7 +9,7 @@ export const routeAccess = {
     [roles.SUPERADMIN]: [
       "/dashboard",
       "/dashboard/employees",
-      "/dashboard/departments",
+      "/dashboard/divisions",
       "/dashboard/tickets",
       "/dashboard/notification",
       "/dashboard/profile",

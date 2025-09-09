@@ -22,8 +22,8 @@ export const navItems = [
     roles: [roles.SUPERADMIN],
   },
   {
-    label: "Departments",
-    href: "/dashboard/departments",
+    label: "Divisions",
+    href: "/dashboard/divisions",
     icon: Building2,
     roles: [roles.SUPERADMIN],
   },
