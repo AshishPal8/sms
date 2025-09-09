@@ -12,15 +12,18 @@ function EditDepartment() {
     adminId: "",
     isActive: true,
   });
-  const { id } = useParams();
+  const { divId, depId } = useParams();
 
   useEffect(() => {
-    if (!id) return;
+    if (!depId) return;
 
     const fetchDepartment = async () => {
-      const res = await axios.get(`${baseUrl}/departments/${id}`, {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `${baseUrl}/divisions/${divId}/departments/${depId}`,
+        {
+          withCredentials: true,
+        }
+      );
 
       const { data } = res.data;
 
@@ -28,7 +31,7 @@ function EditDepartment() {
     };
 
     fetchDepartment();
-  }, [id]);
+  }, [depId]);
 
   return (
     <div className="flex-col">

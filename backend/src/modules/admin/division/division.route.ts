@@ -4,18 +4,15 @@ import { authMiddleware } from "../../../middlewares/authMiddleware";
 import { requireRole } from "../../../middlewares/requireRole";
 import { AdminRole } from "../../../generated/prisma";
 import {
-  addDepartmentController,
-  deleteDepartmentController,
-  getActiveDepartmentsController,
-  getAllDepartmentController,
-  getDepartmentByIdController,
-  getDepartmentsStatsController,
-  updateDepartmentController,
-} from "./department.controller";
-import {
-  createDepartmentSchema,
-  updateDepartmentSchema,
-} from "./department.schema";
+  createDivisionController,
+  deleteDivisionController,
+  getActiveDivisionsController,
+  getAllDivisionController,
+  getDivisionByIdController,
+  getDivisionStatsController,
+  updateDivisionController,
+} from "./division.controller";
+import { createDivisionSchema, updateDivisionSchema } from "./division.schema";
 
 const router = Router();
 
@@ -23,14 +20,14 @@ router.get(
   "/",
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN),
-  getAllDepartmentController
+  getAllDivisionController
 );
 
 router.get(
   "/stats",
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN),
-  getDepartmentsStatsController
+  getDivisionStatsController
 );
 
 router.get(
@@ -42,37 +39,37 @@ router.get(
     AdminRole.MANAGER,
     AdminRole.TECHNICIAN
   ),
-  getActiveDepartmentsController
+  getActiveDivisionsController
 );
 
 router.get(
   "/:id",
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN),
-  getDepartmentByIdController
+  getDivisionByIdController
 );
 
 router.post(
-  "/add/:divisionId",
-  validateRequest(createDepartmentSchema),
+  "/add",
+  validateRequest(createDivisionSchema),
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN),
-  addDepartmentController
+  createDivisionController
 );
 
 router.put(
   "/update/:id",
-  validateRequest(updateDepartmentSchema),
+  validateRequest(updateDivisionSchema),
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN),
-  updateDepartmentController
+  updateDivisionController
 );
 
 router.delete(
   "/delete/:id",
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN),
-  deleteDepartmentController
+  deleteDivisionController
 );
 
 export default router;
