@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Form,
   FormControl,
@@ -42,6 +42,9 @@ const formSchema = z.object({
   role: z.enum(["SUPERADMIN", "TECHNICIAN", "MANAGER", "ASSISTANT"]),
   profilePicture: z.string().optional(),
   isActive: z.boolean(),
+  divisionId: z.string().nullable().optional(),
+  departmentId: z.string().nullable().optional(),
+  managerId: z.string().nullable().optional(),
 });
 
 type EmployeeFormValues = z.infer<typeof formSchema>;
@@ -52,6 +55,16 @@ interface EmployeeFormProps {
 
 export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
   const router = useRouter();
+
+  const [divisions, setDivisions] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
+  const [fetchingDivisions, setFetchingDivisions] = useState(false);
+
+  const [departmentsResponse, setDepartmentsResponse] = useState<any | null>(
+    null
+  );
+  const [fetchingDepartments, setFetchingDepartments] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const { setError } = useForm<EmployeeFormValues>();
@@ -66,8 +79,15 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
       role: "TECHNICIAN",
       profilePicture: "",
       isActive: true,
+      divisionId: null,
+      departmentId: null,
+      managerId: null,
     },
   });
+
+  const selectedRole = form.watch("role");
+  const selectedDivisionId = form.watch("divisionId");
+  const selectedDepartmentId = form.watch("departmentId");
 
   useEffect(() => {
     if (initialData) {
@@ -76,24 +96,141 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
         password: "",
       });
     }
-  }, [form, initialData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData]);
 
   const isEdit = !!initialData;
+
+  useEffect(() => {
+    const fetchDivisions = async () => {
+      setFetchingDivisions(true);
+      try {
+        const res = await axios.get(`${baseUrl}/divisions/active`, {
+          withCredentials: true,
+        });
+        setDivisions(res.data?.data ?? []);
+      } catch (err) {
+        console.error("Failed to fetch divisions", err);
+        toast.error("Failed to load divisions");
+      } finally {
+        setFetchingDivisions(false);
+      }
+    };
+
+    fetchDivisions();
+  }, []);
+
+  useEffect(() => {
+    // if no division selected, clear departmentsResponse
+    if (!selectedDivisionId) {
+      setDepartmentsResponse(null);
+      form.setValue("departmentId", null);
+      form.setValue("managerId", null);
+      return;
+    }
+
+    const fetchDepartmentsForDivision = async (divisionId: string) => {
+      setFetchingDepartments(true);
+      try {
+        const res = await axios.get(
+          `${baseUrl}/divisions/${encodeURIComponent(divisionId)}`,
+          { withCredentials: true }
+        );
+        setDepartmentsResponse(res.data?.data ?? null);
+      } catch (err) {
+        console.error("Failed to fetch departments for division", err);
+        toast.error("Failed to load departments for selected division");
+        setDepartmentsResponse(null);
+      } finally {
+        setFetchingDepartments(false);
+      }
+    };
+
+    fetchDepartmentsForDivision(selectedDivisionId);
+
+    form.setValue("departmentId", null);
+    form.setValue("managerId", null);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDivisionId]);
+
+  // when department changes, reset manager
+  useEffect(() => {
+    form.setValue("managerId", null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDepartmentId]);
+
+  useEffect(() => {
+    const initDivisionId = initialData?.divisionId;
+    const initDepartmentId = initialData?.departmentId;
+    const initManagerId = initialData?.managerId;
+
+    if (!isEdit) return;
+    if (!initDivisionId) return;
+
+    if (
+      divisions.length > 0 &&
+      departmentsResponse?.division?.id !== initDivisionId
+    ) {
+      (async () => {
+        setFetchingDepartments(true);
+        try {
+          const res = await axios.get(
+            `${baseUrl}/divisions/${encodeURIComponent(initDivisionId)}`,
+            { withCredentials: true }
+          );
+          setDepartmentsResponse(res.data?.data ?? null);
+
+          // preselect department & manager if present in initialData (they will be used in default values but we set explicitly to ensure selects show correct value)
+          if (initDepartmentId) {
+            form.setValue("departmentId", initDepartmentId);
+          }
+          if (initManagerId) {
+            form.setValue("managerId", initManagerId);
+          }
+        } catch (err) {
+          console.error("Failed to fetch division departments on init", err);
+        } finally {
+          setFetchingDepartments(false);
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [divisions, isEdit]);
+
+  const departmentOptions = useMemo(() => {
+    return departmentsResponse?.departments ?? [];
+  }, [departmentsResponse]);
+
+  const managerOptions = useMemo(() => {
+    if (!selectedDepartmentId) return [];
+    const dept = departmentOptions.find(
+      (d: any) => d.id === selectedDepartmentId
+    );
+    return dept?.managers ?? [];
+  }, [departmentOptions, selectedDepartmentId]);
 
   const onSubmit = async (values: EmployeeFormValues) => {
     try {
       setLoading(true);
 
+      const payload = {
+        ...values,
+        departmentId: values.departmentId ?? null,
+        managerId: values.managerId ?? null,
+      };
+
       if (isEdit) {
         await axios.put(
           `${baseUrl}/employees/update/${initialData.id}`,
-          values,
+          payload,
+
           {
             withCredentials: true,
           }
         );
       } else {
-        await axios.post(`${baseUrl}/employees/add`, values, {
+        await axios.post(`${baseUrl}/employees/add`, payload, {
           withCredentials: true,
         });
       }
@@ -253,6 +390,138 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
                   </FormItem>
                 )}
               />
+              {(selectedRole === "MANAGER" ||
+                selectedRole === "TECHNICIAN") && (
+                <>
+                  {/* division select */}
+                  <FormField
+                    control={form.control}
+                    name="divisionId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Division</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value ?? ""}
+                            onValueChange={(val) => field.onChange(val || null)}
+                            disabled={loading || fetchingDivisions}
+                          >
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={
+                                  fetchingDivisions
+                                    ? "Loading divisions..."
+                                    : "Select division"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {divisions.map((d) => (
+                                <SelectItem key={d.id} value={d.id}>
+                                  {d.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* department select */}
+                  <FormField
+                    control={form.control}
+                    name="departmentId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Department</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value ?? ""}
+                            onValueChange={(val) => field.onChange(val || null)}
+                            disabled={
+                              loading ||
+                              !selectedDivisionId ||
+                              fetchingDepartments
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={
+                                  !selectedDivisionId
+                                    ? "Choose division first"
+                                    : fetchingDepartments
+                                    ? "Loading departments..."
+                                    : "Select department"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {departmentOptions.length === 0 ? (
+                                <SelectItem value="no">
+                                  No departments
+                                </SelectItem>
+                              ) : (
+                                departmentOptions.map((dep: any) => (
+                                  <SelectItem key={dep.id} value={dep.id}>
+                                    {dep.name}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              {selectedRole === "TECHNICIAN" && (
+                <>
+                  {/* manager select - managers of selected department */}
+                  <FormField
+                    control={form.control}
+                    name="managerId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Manager</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={field.value ?? ""}
+                            onValueChange={(val) => field.onChange(val || null)}
+                            disabled={loading || !selectedDepartmentId}
+                          >
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={
+                                  !selectedDepartmentId
+                                    ? "Choose department first"
+                                    : "Select manager"
+                                }
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {managerOptions.length === 0 ? (
+                                <SelectItem value="no">No managers</SelectItem>
+                              ) : (
+                                managerOptions.map((mgr: any) => (
+                                  <SelectItem key={mgr.id} value={mgr.id}>
+                                    {mgr.name}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
               <FormField
                 control={form.control}
                 name="isActive"

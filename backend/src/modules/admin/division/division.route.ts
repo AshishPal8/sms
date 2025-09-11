@@ -8,6 +8,7 @@ import {
   deleteDivisionController,
   getActiveDivisionsController,
   getAllDivisionController,
+  getDepartmentsByDivisionController,
   getDivisionByIdController,
   getDivisionStatsController,
   updateDivisionController,
@@ -47,6 +48,13 @@ router.get(
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN),
   getDivisionByIdController
+);
+
+router.get(
+  "/dept/:divisionId",
+  authMiddleware,
+  requireRole(AdminRole.SUPERADMIN),
+  getDepartmentsByDivisionController
 );
 
 router.post(

@@ -69,6 +69,23 @@ enum ActionType {
   NOTIFY
 }
 
+model Address {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  houseNumber String?
+  locality    String?
+  city        String?
+  state       String?
+  country     String?
+  postalCode  String?
+
+  isDeleted Boolean @default(false)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Customer  Customer[]
+}
+
 //customer
 model Customer {
   id             String  @id @default(auto()) @map("_id") @db.ObjectId
@@ -76,7 +93,9 @@ model Customer {
   email          String  @unique
   phone          String?
   profilePicture String?
-  address        String?
+
+  addressId String?  @db.ObjectId
+  address   Address? @relation(fields: [addressId], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   insuranceCompany    String?
   insuranceDeductable Int     @default(0)

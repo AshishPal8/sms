@@ -2,9 +2,8 @@ import bcrypt from "bcryptjs";
 import prisma from "../../../db";
 import { BadRequestError, NotFoundError } from "../../../middlewares/error";
 import type { addEmployeeInput, updateEmployeeInput } from "./employees.schema";
-import { generateToken } from "../../../utils/auth";
 import type { GetAllEmployeesOptions } from "../../../types/employees.types";
-import type { AdminRole } from "../../../generated/prisma";
+import { AdminRole } from "../../../generated/prisma";
 
 export const getAllEmployeesService = async ({
   adminId,
@@ -130,18 +129,83 @@ export const getEmployeeByIdService = async (id: string) => {
       profilePicture: true,
       createdAt: true,
       updatedAt: true,
+      departmentId: true,
+      department: {
+        select: {
+          id: true,
+          divisionId: true,
+        },
+      },
+      managerId: true,
+      manager: {
+        select: {
+          id: true,
+        },
+      },
+      managedDepartments: {
+        select: {
+          department: {
+            select: {
+              id: true,
+              divisionId: true,
+            },
+          },
+        },
+        orderBy: { department: { name: "asc" } },
+      },
     },
   });
 
   if (!employee) throw new NotFoundError("Employee not found");
 
-  return employee;
+  let departmentId: string | null = null;
+  let divisionId: string | null = null;
+
+  if (employee.departmentId) {
+    departmentId = employee.departmentId;
+    divisionId = employee.department?.divisionId ?? null;
+  } else if (
+    employee.managedDepartments &&
+    employee.managedDepartments.length > 0
+  ) {
+    const firstManaged = employee.managedDepartments[0]?.department;
+    departmentId = firstManaged?.id ?? null;
+    divisionId = firstManaged?.divisionId ?? null;
+  }
+
+  const result = {
+    id: employee.id,
+    name: employee.name,
+    email: employee.email,
+    role: employee.role,
+    phone: employee.phone,
+    isActive: employee.isActive,
+    profilePicture: employee.profilePicture,
+    createdAt: employee.createdAt,
+    updatedAt: employee.updatedAt,
+
+    // form-specific initial values
+    divisionId,
+    departmentId,
+    managerId: employee.managerId ?? null,
+  };
+
+  return result;
 };
 
 export const addEmployeeService = async (data: addEmployeeInput) => {
-  const { name, email, password, phone, profilePicture, role } = data;
+  const {
+    name,
+    email,
+    password,
+    phone,
+    profilePicture,
+    role,
+    departmentId,
+    managerId,
+  } = data;
 
-  const existingEmployee = await prisma.admin.findUnique({
+  const existingByEmail = await prisma.admin.findUnique({
     where: { email },
   });
 
@@ -158,53 +222,131 @@ export const addEmployeeService = async (data: addEmployeeInput) => {
     throw new BadRequestError("Employee already exists with this phone number");
   }
 
-  if (existingEmployee) {
-    if (!existingEmployee.isDeleted) {
-      throw new BadRequestError("Employee already exists with this email");
+  const admin = await prisma.$transaction(async (tx) => {
+    let createdAdmin;
+
+    if (existingByEmail) {
+      if (!existingByEmail.isDeleted) {
+        throw new BadRequestError("Employee already exists with this email");
+      }
+
+      createdAdmin = await tx.admin.update({
+        where: { email },
+        data: {
+          name: name.trim(),
+          phone: phone ?? null,
+          password: hashedPassword,
+          role,
+          profilePicture: profilePicture ?? null,
+          isDeleted: false,
+        },
+      });
+    } else {
+      createdAdmin = await tx.admin.create({
+        data: {
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone ?? null,
+          password: hashedPassword,
+          role,
+          profilePicture: profilePicture ?? null,
+        },
+      });
     }
 
-    const updatedEmployee = await prisma.admin.update({
-      where: { email },
-      data: {
-        name,
-        phone: phone || null,
-        password: hashedPassword,
-        role,
-        profilePicture,
-        isDeleted: false,
-      },
-    });
+    if (role === AdminRole.MANAGER) {
+      if (typeof departmentId !== "undefined" && departmentId !== null) {
+        const dept = await tx.department.findUnique({
+          where: { id: departmentId },
+          select: { id: true, isDeleted: true },
+        });
+        if (!dept || dept.isDeleted) {
+          throw new BadRequestError(
+            "Provided department not found or is deleted"
+          );
+        }
 
-    return {
-      id: updatedEmployee.id,
-      name: updatedEmployee.name,
-      email: updatedEmployee.email,
-      role: updatedEmployee.role,
-      phone: updatedEmployee.phone,
-      profilePicture: updatedEmployee.profilePicture,
-      isActive: updatedEmployee.isActive,
-    };
-  }
+        try {
+          await tx.managedDepartment.create({
+            data: {
+              adminId: createdAdmin.id,
+              departmentId: departmentId,
+            },
+          });
+        } catch (error) {
+          console.log("Cannot create managed department");
+        }
+      }
+    }
 
-  const employee = await prisma.admin.create({
-    data: {
-      name,
-      email: email,
-      phone: phone || null,
-      password: hashedPassword,
-      role,
-      profilePicture,
-    },
+    if (role === AdminRole.TECHNICIAN) {
+      const updateData: Record<string, any> = {};
+
+      if (typeof departmentId !== "undefined") {
+        if (departmentId === null) {
+          updateData.departmentId = null;
+        } else {
+          const dept = await tx.department.findUnique({
+            where: { id: departmentId },
+            select: { id: true, isDeleted: true },
+          });
+          if (!dept || dept.isDeleted) {
+            throw new BadRequestError(
+              "Provided department not found or is deleted"
+            );
+          }
+          updateData.departmentId = departmentId;
+        }
+      }
+
+      if (typeof managerId !== "undefined") {
+        if (managerId === null) {
+          updateData.managerId = null;
+        } else {
+          const mgr = await tx.admin.findUnique({
+            where: { id: managerId },
+            select: { id: true, role: true, isDeleted: true },
+          });
+          if (!mgr || mgr.isDeleted || mgr.role !== "MANAGER") {
+            throw new BadRequestError(
+              "Provided manager not found or not a MANAGER"
+            );
+          }
+
+          const deptToCheck = updateData.departmentId ?? null;
+          if (deptToCheck) {
+            const manages = await tx.managedDepartment.findFirst({
+              where: { adminId: managerId, departmentId: deptToCheck },
+            });
+            if (!manages) {
+              throw new BadRequestError(
+                "Provided manager does not manage the provided department"
+              );
+            }
+          }
+
+          updateData.managerId = managerId;
+        }
+      }
+      if (Object.keys(updateData).length > 0) {
+        createdAdmin = await tx.admin.update({
+          where: { id: createdAdmin.id },
+          data: updateData,
+        });
+      }
+    }
+
+    return createdAdmin;
   });
 
   return {
-    id: employee.id,
-    name: employee.name,
-    email: employee.email,
-    role: employee.role,
-    phone: employee.phone,
-    profilePicture: employee.profilePicture,
-    isActive: employee.isActive,
+    id: admin.id,
+    name: admin.name,
+    email: admin.email,
+    role: admin.role,
+    phone: admin.phone,
+    profilePicture: admin.profilePicture,
+    isActive: admin.isActive,
   };
 };
 
@@ -212,27 +354,150 @@ export const updateEmployeeService = async (
   id: string,
   data: updateEmployeeInput
 ) => {
-  const existingEmployee = await prisma.admin.findUnique({
-    where: { id },
-  });
+  const {
+    name,
+    email,
+    password,
+    phone,
+    profilePicture,
+    role,
+    departmentId: managerDepartmentId,
+    managerId: techManagerId,
+  } = data;
 
-  if (!existingEmployee) {
-    throw new NotFoundError("Employee not found");
+  const existing = await prisma.admin.findUnique({ where: { id } });
+  if (!existing) throw new NotFoundError("Employee not found");
+
+  if (email && email !== existing.email) {
+    const other = await prisma.admin.findUnique({ where: { email } });
+    if (other && !other.isDeleted)
+      throw new BadRequestError(
+        "Another active employee already uses this email"
+      );
   }
 
-  const updatedEmployee = await prisma.admin.update({
-    where: { id },
-    data,
+  if (phone !== undefined && phone !== null && phone !== existing.phone) {
+    const otherPhone = await prisma.admin.findUnique({ where: { phone } });
+    if (otherPhone && otherPhone.id !== id && !otherPhone.isDeleted) {
+      throw new BadRequestError(
+        "Another active employee already uses this phone"
+      );
+    }
+  }
+
+  const updatePayload: Record<string, any> = {};
+  if (typeof name !== "undefined") updatePayload.name = name?.trim();
+  if (typeof email !== "undefined") updatePayload.email = email?.trim();
+  if (typeof profilePicture !== "undefined")
+    updatePayload.profilePicture = profilePicture ?? null;
+  if (typeof phone !== "undefined") updatePayload.phone = phone ?? null;
+  if (typeof role !== "undefined") updatePayload.role = role;
+
+  if (typeof password !== "undefined" && password !== null) {
+    updatePayload.password = await bcrypt.hash(password, 10);
+  }
+
+  const updatedAdmin = await prisma.$transaction(async (tx) => {
+    const admin = await tx.admin.update({ where: { id }, data: updatePayload });
+
+    const effectiveRole = role ?? existing.role;
+
+    if (
+      effectiveRole === AdminRole.MANAGER &&
+      data.hasOwnProperty("departmentId")
+    ) {
+      const depId = managerDepartmentId as string | null | undefined;
+
+      if (depId === null) {
+        await tx.managedDepartment.deleteMany({ where: { adminId: id } });
+      } else if (typeof depId === "string") {
+        const dept = await tx.department.findUnique({
+          where: { id: depId },
+          select: { id: true, isDeleted: true },
+        });
+        if (!dept || dept.isDeleted)
+          throw new BadRequestError(
+            "Provided department not found or is deleted"
+          );
+
+        await tx.managedDepartment.deleteMany({
+          where: { adminId: id, departmentId: { not: depId } },
+        });
+
+        try {
+          await tx.managedDepartment.create({
+            data: { adminId: id, departmentId: depId },
+          });
+        } catch (err) {
+          // ignore duplicate errors
+        }
+      }
+    }
+
+    if (effectiveRole === AdminRole.TECHNICIAN) {
+      const techUpdate: Record<string, any> = {};
+
+      if (data.hasOwnProperty("departmentId")) {
+        const deptVal = (data as any).departmentId;
+
+        if (deptVal === null) {
+          techUpdate.departmentId = null;
+        } else if (typeof deptVal === "string") {
+          const dept = await tx.department.findUnique({
+            where: { id: deptVal },
+            select: { id: true, isDeleted: true },
+          });
+          if (!dept || dept.isDeleted)
+            throw new BadRequestError("Department not found or is deleted");
+          techUpdate.departmentId = deptVal;
+        }
+      }
+
+      if (data.hasOwnProperty("managerId")) {
+        const mgrVal = techManagerId as string | null | undefined;
+        if (mgrVal === null) {
+          techUpdate.managerId = null;
+        } else if (typeof mgrVal === "string") {
+          const mgr = await tx.admin.findUnique({
+            where: { id: mgrVal },
+            select: { id: true, role: true, isDeleted: true },
+          });
+          if (!mgr || mgr.isDeleted || mgr.role !== AdminRole.MANAGER)
+            throw new BadRequestError(
+              "Provided manager not found or not a MANAGER"
+            );
+
+          const deptToCheck = techUpdate.departmentId ?? admin.departmentId;
+          if (deptToCheck) {
+            const manages = await tx.managedDepartment.findFirst({
+              where: { adminId: mgrVal, departmentId: deptToCheck },
+            });
+            if (!manages)
+              throw new BadRequestError(
+                "Provided manager does not manage the provided department"
+              );
+          }
+          techUpdate.managerId = mgrVal;
+        }
+      }
+
+      if (Object.keys(techUpdate).length > 0) {
+        await tx.admin.update({ where: { id }, data: techUpdate });
+      }
+    }
+
+    const fresh = await tx.admin.findUnique({ where: { id } });
+    return fresh!;
   });
 
   return {
-    id: updatedEmployee.id,
-    name: updatedEmployee.name,
-    email: updatedEmployee.email,
-    role: updatedEmployee.role,
-    phone: updatedEmployee.phone,
-    profilePicture: updatedEmployee.profilePicture,
-    isActive: updatedEmployee.isActive,
+    id: updatedAdmin.id,
+    name: updatedAdmin.name,
+    email: updatedAdmin.email,
+    role: updatedAdmin.role,
+    phone: updatedAdmin.phone,
+    profilePicture: updatedAdmin.profilePicture,
+    isActive: updatedAdmin.isActive,
   };
 };
 
