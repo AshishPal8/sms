@@ -66,12 +66,14 @@ const DashHeader = () => {
                     alt=""
                   />
                   <AvatarFallback className="text-xs">
-                    {user.name[0] || "B"}
+                    {`${user.firstname[0]} ${
+                      user.lastname ? user.lastname[0] : ""
+                    }` || "A"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block">
                   <h2 className="text-black font-bold text-[14px]">
-                    {user.name}
+                    {`${user.firstname} ${user.lastname ? user.lastname : ""}`}
                   </h2>
                   <p className="text-gray-600 capitalize text-xs font-semibold">
                     {user.role
@@ -86,7 +88,9 @@ const DashHeader = () => {
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>{user.name}</DropdownMenuItem>
+              <DropdownMenuItem>{`${user.firstname} ${
+                user.lastname ? user.lastname : ""
+              }`}</DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link
                   href="/dashboard/profile"

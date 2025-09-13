@@ -1,4 +1,5 @@
 import prisma from "../../../db";
+import { AdminRole } from "../../../generated/prisma";
 import { BadRequestError, NotFoundError } from "../../../middlewares/error";
 import type { GetAllDepartmentOptions } from "../../../types/department.types";
 import { roles } from "../../../utils/roles";
@@ -289,14 +290,6 @@ export const addDepartmentService = async (
       },
     });
 
-    const toUpdateAdminIds = Array.from(new Set([...managerIds]));
-    if (toUpdateAdminIds.length > 0) {
-      await tx.admin.updateMany({
-        where: { id: { in: toUpdateAdminIds } },
-        data: { departmentId: dept.id },
-      });
-    }
-
     return dept;
   });
 
@@ -311,7 +304,6 @@ export const addDepartmentService = async (
           admin: { select: { id: true, name: true, email: true } },
         },
       },
-      technicians: { select: { id: true, name: true, email: true } },
     },
   });
 
@@ -329,11 +321,6 @@ export const addDepartmentService = async (
       id: md.admin.id,
       name: md.admin.name,
       email: md.admin.email,
-    })),
-    technicians: (deptWithRelations!.technicians || []).map((t) => ({
-      id: t.id,
-      name: t.name,
-      email: t.email,
     })),
   };
 };
@@ -387,7 +374,9 @@ export const updateDepartmentService = async (
       );
     }
 
-    const notManagers = managerAdmins.filter((m) => m.role !== "MANAGER");
+    const notManagers = managerAdmins.filter(
+      (m) => m.role !== AdminRole.MANAGER
+    );
     if (notManagers.length > 0) {
       throw new BadRequestError(
         `Some admins are not MANAGER role: ${notManagers
@@ -395,32 +384,7 @@ export const updateDepartmentService = async (
           .join(", ")}`
       );
     }
-
-    const alreadyAssigned = managerAdmins.filter(
-      (m) => m.departmentId !== null && m.departmentId !== id
-    );
-    if (alreadyAssigned.length > 0) {
-      throw new BadRequestError(
-        `Managers already assigned to other departments: ${alreadyAssigned
-          .map((m) => m.name)
-          .join(", ")}`
-      );
-    }
   }
-
-  // compute previous manager and technician ids (arrays of strings)
-  const prevManagerIds = currentDepartment.managers.map((m) => m.adminId);
-
-  // compute which admins need departmentId cleared or set
-  // For clearing: previous managers/techs that are no longer present
-  const managersToRemove = managerIds
-    ? prevManagerIds.filter((pid) => !managerIds.includes(pid))
-    : [];
-
-  // For setting: new managers/techs not previously present
-  const managersToAdd = managerIds
-    ? managerIds.filter((id_) => !prevManagerIds.includes(id_))
-    : [];
 
   const updatedDept = await prisma.$transaction(async (tx) => {
     const dept = await tx.department.update({
@@ -463,22 +427,6 @@ export const updateDepartmentService = async (
           }
         }
       }
-    }
-
-    const toClear = Array.from(new Set([...managersToRemove]));
-    if (toClear.length > 0) {
-      await tx.admin.updateMany({
-        where: { id: { in: toClear } },
-        data: { departmentId: null },
-      });
-    }
-
-    const toSetAll = Array.from(new Set([...(managerIds ?? [])]));
-    if (toSetAll.length > 0) {
-      await tx.admin.updateMany({
-        where: { id: { in: toSetAll } },
-        data: { departmentId: id },
-      });
     }
 
     return dept;

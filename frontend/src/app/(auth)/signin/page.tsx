@@ -109,7 +109,9 @@ export default function SigninForm() {
       useAuthStore.getState().setCredentials(
         {
           id: data.id,
-          name: data.name,
+          firstname: data.firstname,
+          lastname: data.lastname,
+          profilePicture: data.profilePicture,
           email: data.email,
           role: data.role || "CUSTOMER",
         },
@@ -144,7 +146,9 @@ export default function SigninForm() {
       useAuthStore.getState().setCredentials(
         {
           id: data.id,
-          name: data.name,
+          firstname: data.firstname,
+          lastname: data.lastname,
+          profilePicture: data.profilePicture,
           email: data.email,
           role: data.role,
           departmentId: data.departmentId || null,

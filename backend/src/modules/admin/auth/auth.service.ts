@@ -5,7 +5,8 @@ import type { AdminSigninInput, AdminSignupInput } from "./auth.schema";
 import { generateToken } from "../../../utils/auth";
 
 export const adminSignupService = async (data: AdminSignupInput) => {
-  const { name, email, password, phone, profilePicture, role } = data;
+  const { firstname, lastname, email, password, phone, profilePicture, role } =
+    data;
 
   const existingAdmin = await prisma.admin.findUnique({
     where: { email },
@@ -18,7 +19,8 @@ export const adminSignupService = async (data: AdminSignupInput) => {
 
   const admin = await prisma.admin.create({
     data: {
-      name,
+      firstname,
+      lastname,
       email: email,
       phone: phone || null,
       password: hashedPassword,
@@ -39,7 +41,8 @@ export const adminSignupService = async (data: AdminSignupInput) => {
     action: "login_complete",
     data: {
       id: admin.id,
-      name: admin.name,
+      firstname: admin.firstname,
+      lastname: admin.lastname,
       email: admin.email,
       role: admin.role,
       departmentId: admin.departmentId,
@@ -73,7 +76,9 @@ export const adminSigninService = async (data: AdminSigninInput) => {
     action: "login_complete",
     data: {
       id: admin.id,
-      name: admin.name,
+      firstname: admin.firstname,
+      lastname: admin.lastname,
+      profilePicture: admin.profilePicture,
       email: admin.email,
       role: admin.role,
       departmentId: admin.departmentId,

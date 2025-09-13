@@ -37,7 +37,8 @@ import { useRouter } from "next/navigation";
 import Logo from "@/components/layout/logo";
 
 const formSchema = z.object({
-  name: z.string().min(1, { error: "Name is required" }),
+  firstname: z.string().min(1, { error: "First name is required" }),
+  lastname: z.string().optional(),
   email: z.email({ error: "Valid email is required" }),
 });
 
@@ -53,7 +54,8 @@ export default function SignupForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      firstname: "",
+      lastname: "",
       email: "",
     },
   });
@@ -101,7 +103,9 @@ export default function SignupForm() {
       useAuthStore.getState().setCredentials(
         {
           id: data.id,
-          name: data.name,
+          firstname: data.firstname,
+          lastname: data.lastname,
+          profilePicture: data.profilePicture,
           email: data.email,
           role: data.role || "CUSTOMER",
         },
@@ -175,12 +179,31 @@ export default function SignupForm() {
                   >
                     <FormField
                       control={form.control}
-                      name="name"
+                      name="firstname"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Name</FormLabel>
+                          <FormLabel>First Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter your name" {...field} />
+                            <Input
+                              placeholder="Enter your first name"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lastname"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Enter your lastname"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

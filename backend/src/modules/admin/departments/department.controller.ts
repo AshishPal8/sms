@@ -8,6 +8,7 @@ import {
   getAllDepartmentsService,
   getDepartmentByIdService,
   updateDepartmentService,
+  getDepartmentsByDivisionService,
 } from "./department.service";
 
 export const getAllDepartmentController = async (

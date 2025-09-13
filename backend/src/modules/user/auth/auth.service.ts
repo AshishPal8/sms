@@ -11,7 +11,7 @@ import type {
 } from "./auth.schema";
 
 export const customerSignupService = async (data: customerSignupInput) => {
-  const { name, email } = data;
+  const { firstname, lastname, email } = data;
 
   const normalizedEmail = email.toLowerCase().trim();
 
@@ -29,13 +29,14 @@ export const customerSignupService = async (data: customerSignupInput) => {
     customer = await prisma.customer.update({
       where: { email: normalizedEmail },
       data: {
-        name,
+        firstname,
+        lastname,
         updatedAt: new Date(),
       },
     });
   } else {
     customer = await prisma.customer.create({
-      data: { name, email: normalizedEmail, isVerified: false },
+      data: { firstname, lastname, email: normalizedEmail, isVerified: false },
     });
   }
 
@@ -164,7 +165,9 @@ export const verifyOTPService = async (data: verifyOtpInput) => {
       action: "signup_complete",
       data: {
         id: verifiedCustomer.id,
-        name: verifiedCustomer.name,
+        firstname: verifiedCustomer.firstname,
+        lastname: verifiedCustomer.lastname,
+        profilePicture: verifiedCustomer.profilePicture,
         email: verifiedCustomer.email,
         role: "CUSTOMER",
       },
@@ -188,7 +191,9 @@ export const verifyOTPService = async (data: verifyOtpInput) => {
       action: "login_complete",
       data: {
         id: customer.id,
-        name: customer.name,
+        firstname: customer.firstname,
+        lastname: customer.lastname,
+        profilePicture: customer.profilePicture,
         email: customer.email,
         role: "CUSTOMER",
       },
@@ -265,12 +270,16 @@ export const getCustomerService = async (id: string) => {
     where: { id },
     select: {
       id: true,
-      name: true,
+      firstname: true,
+      lastname: true,
       email: true,
       phone: true,
       address: true,
       profilePicture: true,
       insuranceCompany: true,
+      policyNumber: true,
+      policyExpiryDate: true,
+      insuranceContactNo: true,
       insuranceDeductable: true,
       isRoofCovered: true,
       createdAt: true,
@@ -288,32 +297,79 @@ export const updateCustomerService = async (
   data: updateCustomerInput
 ) => {
   const {
-    name,
+    firstname,
+    lastname,
     phone,
     profilePicture,
     address,
     insuranceCompany,
     insuranceDeductable,
+    policyNumber,
+    policyExpiryDate,
+    insuranceContactNo,
     isRoofCovered,
   } = data;
 
   const customer = await prisma.customer.findUnique({
     where: { id: customerId },
+    select: {
+      id: true,
+      addressId: true,
+    },
   });
 
   if (!customer) throw new NotFoundError("Customer not found");
 
+  const updateData: any = {};
+
+  if (firstname !== undefined) updateData.firstname = firstname;
+  if (lastname !== undefined) updateData.lastname = lastname;
+  if (phone !== undefined) updateData.phone = phone;
+  if (profilePicture !== undefined) updateData.profilePicture = profilePicture;
+  if (insuranceCompany !== undefined)
+    updateData.insuranceCompany = insuranceCompany;
+  if (insuranceDeductable !== undefined)
+    updateData.insuranceDeductable = insuranceDeductable;
+  if (policyNumber !== undefined) updateData.policyNumber = policyNumber;
+  if (policyExpiryDate !== undefined)
+    updateData.policyExpiryDate = policyExpiryDate; // assume Date
+  if (insuranceContactNo !== undefined)
+    updateData.insuranceContactNo = insuranceContactNo;
+  if (isRoofCovered !== undefined) updateData.isRoofCovered = isRoofCovered;
+
+  if (address !== undefined && address !== null) {
+    const addrPayload: any = {
+      houseNumber: address.houseNumber ?? undefined,
+      locality: address.locality ?? undefined,
+      city: address.city ?? undefined,
+      state: address.state ?? undefined,
+      country: address.country ?? undefined,
+      postalCode: address.postalCode ?? undefined,
+    };
+
+    if (customer.addressId) {
+      updateData.address = { update: addrPayload };
+    } else {
+      updateData.address = { create: addrPayload };
+    }
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    const current = await prisma.customer.findUnique({
+      where: { id: customerId },
+      include: { address: true },
+    });
+    return {
+      success: true,
+      message: "No fields changed",
+      data: current,
+    };
+  }
+
   const updatedCustomer = await prisma.customer.update({
     where: { id: customerId },
-    data: {
-      name,
-      phone,
-      profilePicture,
-      address,
-      insuranceCompany,
-      insuranceDeductable,
-      isRoofCovered,
-    },
+    data: updateData,
+    include: { address: true },
   });
 
   return {

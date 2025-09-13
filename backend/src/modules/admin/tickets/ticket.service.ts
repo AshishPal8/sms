@@ -3,6 +3,7 @@ import { ActionType } from "../../../generated/prisma";
 import { Prisma } from "../../../generated/prisma";
 import { BadRequestError, NotFoundError } from "../../../middlewares/error";
 import type { TicketFilters } from "../../../types/ticket.types";
+import { formatAddressString } from "../../../utils/formatAddressString";
 import { getAssetTypeFromUrl } from "../../../utils/getAssetType";
 import { roles } from "../../../utils/roles";
 import { subDays } from "../../../utils/subDays";
@@ -20,7 +21,8 @@ export const createTicketService = async (data: CreateTicketInput) => {
   const {
     title,
     description,
-    name,
+    firstname,
+    lastname,
     email,
     phone,
     address,
@@ -33,47 +35,112 @@ export const createTicketService = async (data: CreateTicketInput) => {
     isRoofCovered,
   } = data;
 
+  const formattedAddress = formatAddressString(address);
+
   return prisma.$transaction(async (tx) => {
     let customer = null;
-
     if (email) {
-      customer = await tx.customer.findUnique({ where: { email } });
+      customer = await tx.customer.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          addressId: true,
+          phone: true,
+          insuranceCompany: true,
+          insuranceDeductable: true,
+          isRoofCovered: true,
+        },
+      });
+    }
+    if (!customer && phone) {
+      customer = await tx.customer.findFirst({
+        where: { phone },
+        select: {
+          id: true,
+          addressId: true,
+          phone: true,
+          insuranceCompany: true,
+          insuranceDeductable: true,
+          isRoofCovered: true,
+        },
+      });
     }
 
-    if (!customer && phone) {
-      customer = await tx.customer.findFirst({ where: { phone } });
-    }
+    // prepare address payload for nested create/update if address object provided
+    const addressPayload =
+      address && typeof address === "object"
+        ? {
+            houseNumber: address.houseNumber ?? undefined,
+            locality: address.locality ?? undefined,
+            city: address.city ?? undefined,
+            state: address.state ?? undefined,
+            country: address.country ?? undefined,
+            postalCode: address.postalCode ?? undefined,
+          }
+        : null;
 
     if (!customer) {
+      // create new customer with nested address if provided
       customer = await tx.customer.create({
         data: {
-          name: name || "Unregistered Customer",
-          email: email || `${Date.now()}@temp.local`,
+          firstname: firstname || "Unregistered user",
+          lastname: lastname || null,
+          email: email ?? `${Date.now()}@temp.local`,
           phone,
-          address,
+          profilePicture: undefined,
           insuranceCompany,
           insuranceDeductable,
-          isRoofCovered,
+          isRoofCovered: isRoofCovered ?? false,
           isRegistered: false,
           isVerified: false,
+          ...(addressPayload
+            ? {
+                address: {
+                  create: addressPayload,
+                },
+              }
+            : {}),
         },
+        select: { id: true },
       });
     } else {
       const updateData: any = {};
 
       if (!customer.phone && phone) updateData.phone = phone;
-      if (!customer.address && address) updateData.address = address;
       if (!customer.insuranceCompany && insuranceCompany)
         updateData.insuranceCompany = insuranceCompany;
-      if (!customer.insuranceDeductable && insuranceDeductable)
+      if (
+        (customer.insuranceDeductable === undefined ||
+          customer.insuranceDeductable === null) &&
+        insuranceDeductable !== undefined
+      )
         updateData.insuranceDeductable = insuranceDeductable;
-      if (customer.isRoofCovered === null && isRoofCovered !== undefined)
+      if (
+        (customer.isRoofCovered === undefined ||
+          customer.isRoofCovered === null) &&
+        isRoofCovered !== undefined
+      )
         updateData.isRoofCovered = isRoofCovered;
+
+      if (addressPayload) {
+        if (customer.addressId) {
+          // update existing Address
+          updateData.address = {
+            update: addressPayload,
+          };
+        } else {
+          // create Address and connect
+          updateData.address = {
+            create: addressPayload,
+          };
+        }
+      }
 
       if (Object.keys(updateData).length > 0) {
         customer = await tx.customer.update({
           where: { id: customer.id },
           data: updateData,
+          select: { id: true },
         });
       }
     }
@@ -82,10 +149,10 @@ export const createTicketService = async (data: CreateTicketInput) => {
       data: {
         title,
         description,
-        name,
+        name: `${firstname}${lastname ? " " + lastname : ""}`,
         email,
         phone,
-        address,
+        address: formattedAddress,
         priority,
         status,
         urgencyLevel,
@@ -138,13 +205,16 @@ export const updateTicketService = async (
     urgencyLevel,
     assets,
   } = data;
+
+  const formattedAddress = formatAddressString(address);
+
   return prisma.$transaction(async (tx) => {
     const updatedTicket = await tx.ticket.update({
       where: { id: ticketId, isDeleted: false },
       data: {
         title,
         description,
-        address,
+        address: formattedAddress,
         priority,
         status,
         urgencyLevel,
@@ -265,7 +335,9 @@ export const getTicketsService = async (
         urgencyLevel: true,
         name: true,
         email: true,
-        customer: { select: { id: true, name: true, email: true } },
+        customer: {
+          select: { id: true, firstname: true, lastname: true, email: true },
+        },
         createdAt: true,
         updatedAt: true,
         items: {
@@ -294,11 +366,6 @@ export const getTicketsService = async (
     const manager = await prisma.admin.findUnique({
       where: { id: user.id },
       include: { department: true },
-    });
-
-    console.log({
-      userrole: user.role,
-      manager: manager,
     });
 
     if (manager?.department?.id) {
@@ -521,7 +588,8 @@ export const getTicketByIdService = async (id: string) => {
       customer: {
         select: {
           id: true,
-          name: true,
+          firstname: true,
+          lastname: true,
           email: true,
           phone: true,
           insuranceCompany: true,
@@ -914,7 +982,8 @@ export const getTicketWithItemsService = async (
       customer: {
         select: {
           id: true,
-          name: true,
+          firstname: true,
+          lastname: true,
           email: true,
           phone: true,
           insuranceCompany: true,
@@ -969,7 +1038,8 @@ export const getTicketWithItemsService = async (
           assignedToCustomer: {
             select: {
               id: true,
-              name: true,
+              firstname: true,
+              lastname: true,
             },
           },
           assignedToDeptId: true,

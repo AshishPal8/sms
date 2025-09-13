@@ -25,14 +25,24 @@ import { Heading } from "@/components/ui/heading";
 import ImageUpload from "@/components/ui/image-upload";
 import { baseUrl } from "@/config";
 import { Checkbox } from "../ui/checkbox";
+import DatePicker from "../ui/date-picker";
+import AddressInput from "../ui/AddressInput";
+import { Address as AddressType } from "@/types/address.types";
+import { addressSchema } from "@/schemas/addressSchema";
+import useAuthStore from "@/store/user";
+import { format } from "date-fns";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  firstname: z.string().min(2, "Enter your name."),
+  lastname: z.string().optional(),
   email: z.email("Enter a valid email"),
   phone: z.string().optional(),
   profilePicture: z.string().optional(),
-  address: z.string().optional(),
+  address: addressSchema.optional(),
   insuranceCompany: z.string().optional(),
+  policyNumber: z.string().optional(),
+  policyExpiryDate: z.string().optional(),
+  insuranceContactNo: z.string().optional(),
   insuranceDeductable: z
     .number()
     .min(0, "Deductable cannot be negative")
@@ -46,24 +56,26 @@ export const ProfileHeader = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const currentToken = useAuthStore.getState().token;
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      firstname: "",
+      lastname: "",
       email: "",
       phone: "",
-      address: "",
+      address: undefined,
       profilePicture: "",
       insuranceCompany: "",
+      policyNumber: "",
+      policyExpiryDate: undefined,
+      insuranceContactNo: "",
       insuranceDeductable: 0,
       isRoofCovered: false,
     },
   });
 
-  console.log("Form");
-
-  // Fetch profile details
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -73,12 +85,16 @@ export const ProfileHeader = () => {
         const { data } = res.data;
 
         form.reset({
-          name: data.name || "",
+          firstname: data.firstname || "",
+          lastname: data.lastname || "",
           email: data.email || "",
           phone: data.phone || "",
           address: data.address || "",
           profilePicture: data.profilePicture || "",
           insuranceCompany: data.insuranceCompany || "",
+          policyNumber: data.policyNumber || "",
+          policyExpiryDate: data.policyExpiryDate || "",
+          insuranceContactNo: data.insuranceContactNo || "",
           insuranceDeductable: data.insuranceDeductable || "",
           isRoofCovered: data.isRoofCovered || "",
         });
@@ -97,11 +113,24 @@ export const ProfileHeader = () => {
   const onSubmit = async (values: ProfileFormValues) => {
     try {
       setLoading(true);
-      await axios.patch(`${baseUrl}/user/update`, values, {
+      const res = await axios.patch(`${baseUrl}/user/auth/update`, values, {
         withCredentials: true,
       });
 
+      const { data } = res.data;
+
       toast.success("Profile updated successfully");
+
+      useAuthStore.getState().setCredentials(
+        {
+          id: data.id,
+          firstname: data.firstname,
+          lastname: data.lastname,
+          email: data.email,
+          role: data.role || "CUSTOMER",
+        },
+        currentToken || ""
+      );
       router.refresh();
     } catch (error) {
       toast.error("Failed to update profile");
@@ -143,7 +172,7 @@ export const ProfileHeader = () => {
         >
           <div className=" bg-white rounded-xl border-2 border-gray-200 shadow p-5">
             {/* Profile Picture */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-4">
               <FormField
                 control={form.control}
                 name="profilePicture"
@@ -170,7 +199,24 @@ export const ProfileHeader = () => {
               {/* Name */}
               <FormField
                 control={form.control}
-                name="name"
+                name="firstname"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={loading}
+                        placeholder="Enter name"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastname"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Name</FormLabel>
@@ -220,24 +266,6 @@ export const ProfileHeader = () => {
                 )}
               />
 
-              {/* Address */}
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={loading}
-                        placeholder="Enter address"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="insuranceCompany"
@@ -248,6 +276,62 @@ export const ProfileHeader = () => {
                       <Input
                         disabled={loading}
                         placeholder="Enter insurance company"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="policyNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Insurance Policy No.</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={loading}
+                        placeholder="Enter insurance policy no."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="policyExpiryDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Policy Expiry Date</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date) =>
+                          field.onChange(
+                            date ? format(date, "yyyy-MM-dd") : undefined
+                          )
+                        }
+                        disabled={loading}
+                        placeholder="Select policy expiry date"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="insuranceContactNo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Insurance Contact No</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={loading}
+                        placeholder="Enter insurance contact no."
                         {...field}
                       />
                     </FormControl>
@@ -296,6 +380,24 @@ export const ProfileHeader = () => {
                 )}
               />
             </div>
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    {/* AddressInput is a controlled component: pass field.value and field.onChange */}
+                    <AddressInput
+                      value={field.value as AddressType | undefined}
+                      onChange={(val) => field.onChange(val)}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <Button disabled={loading} className="ml-auto" type="submit">
               {loading ? "Updating..." : "Update Profile"}
             </Button>

@@ -222,6 +222,65 @@ export const getDivisionByIdService = async (id: string) => {
   };
 };
 
+export const getDepartmentsByDivisionService = async (divisionId: string) => {
+  const division = await prisma.division.findUnique({
+    where: { id: divisionId, isActive: true, isDeleted: false },
+    select: {
+      id: true,
+      name: true,
+      departments: {
+        where: { isActive: true, isDeleted: false },
+        orderBy: { name: "asc" },
+        select: {
+          id: true,
+          name: true,
+          managers: {
+            include: {
+              admin: {
+                select: {
+                  id: true,
+                  name: true,
+                  profilePicture: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!division) {
+    return {
+      success: false,
+      message: "Division not found",
+      data: null,
+    };
+  }
+
+  const normalizedDepartments = division.departments.map((dept) => ({
+    id: dept.id,
+    name: dept.name,
+    managers: (dept.managers || []).map((m) => ({
+      id: m.admin.id,
+      name: m.admin.name,
+      profilePicture: m.admin.profilePicture,
+    })),
+  }));
+
+  return {
+    success: true,
+    message: "Division and departments fetched successfully",
+    data: {
+      division: {
+        id: division.id,
+        name: division.name,
+      },
+      departments: normalizedDepartments,
+    },
+  };
+};
+
 export const deleteDivisionService = async (id: string) => {
   const existingDivision = await prisma.division.findUnique({
     where: { id },

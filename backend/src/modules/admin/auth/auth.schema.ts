@@ -2,7 +2,8 @@ import { z } from "zod";
 import { AdminRole } from "../../../generated/prisma";
 
 export const adminSignupSchema = z.object({
-  name: z.string().min(1, { error: "Name is required" }),
+  firstname: z.string().min(1, { error: "First name is required" }),
+  lastname: z.string().optional(),
   email: z.email({ error: "Invalid email" }),
   password: z
     .string()

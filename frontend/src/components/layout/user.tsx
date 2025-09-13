@@ -46,14 +46,16 @@ function UserDropdown({ isMenuOpen, setIsMenuOpen }: UserDropdownProps) {
                   alt=""
                 />
                 <AvatarFallback className="text-xs">
-                  {user.name[0] || "B"}
+                  {`${user.firstname[0]}${
+                    user.lastname ? " " + user.lastname[0] : ""
+                  }` || "B"}
                 </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <Link href="/profile" className="cursor-pointer">
-              <DropdownMenuItem>{user.name}</DropdownMenuItem>
+              <DropdownMenuItem>{`${user.firstname} ${user.lastname}`}</DropdownMenuItem>
             </Link>
             <DropdownMenuItem asChild>
               <Link

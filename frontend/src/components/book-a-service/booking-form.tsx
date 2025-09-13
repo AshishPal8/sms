@@ -7,6 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import AddressInput from "../ui/AddressInput";
+import { Address as AddressType } from "@/types/address.types";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
@@ -23,6 +25,10 @@ import {
 } from "../ui/form";
 import { Checkbox } from "../ui/checkbox";
 import { toast } from "sonner";
+import { addressSchema } from "@/schemas/addressSchema";
+import DatePicker from "../ui/date-picker";
+import { handleApiError } from "@/lib/handleApiErrors";
+import { format } from "date-fns";
 
 const formSchema = z.object({
   title: z
@@ -36,13 +42,17 @@ const formSchema = z.object({
   assets: z
     .array(z.object({ url: z.string().url("Invalid asset URL") }))
     .optional(),
-  name: z.string().min(2, "Enter your name."),
+  firstname: z.string().min(2, "Enter your name."),
+  lastname: z.string().optional(),
   phone: z
     .string()
     .min(7, "Enter a valid phone.")
     .regex(/^[0-9+()\-\s]+$/, "Only digits and + ( ) - allowed."),
-  address: z.string().min(6, "Enter a valid address."),
+  address: addressSchema.optional(),
   insuranceCompany: z.string().optional(),
+  policyNumber: z.string().optional(),
+  policyExpiryDate: z.string().optional(),
+  insuranceContactNo: z.string().optional(),
   insuranceDeductable: z
     .number()
     .min(0, "Deductable cannot be negative")
@@ -62,10 +72,14 @@ export default function BookingForm() {
     defaultValues: {
       title: "",
       description: "",
-      name: "",
+      firstname: "",
+      lastname: "",
       phone: "",
-      address: "",
+      address: undefined,
       insuranceCompany: "",
+      policyNumber: "",
+      policyExpiryDate: undefined,
+      insuranceContactNo: "",
       insuranceDeductable: 0,
       isRoofCovered: false,
     },
@@ -82,11 +96,28 @@ export default function BookingForm() {
 
         if (res.status === 200) {
           const profile = await res.data.data;
-          if (profile.name) setValue("name", profile.name);
+          if (profile.firstname) setValue("firstname", profile.firstname);
+          if (profile.lastname) setValue("lastname", profile.lastname);
           if (profile.phone) setValue("phone", profile.phone);
-          if (profile.address) setValue("address", profile.address);
+
+          if (profile.address) {
+            if (typeof profile.address === "string") {
+              // convert string to object -> put in locality
+              setValue("address", profile.address);
+            } else {
+              // assume object matches addressSchema
+              setValue("address", profile.address);
+            }
+          }
+
           if (profile.insuranceCompany)
             setValue("insuranceCompany", profile.insuranceCompany);
+          if (profile.policyNumber)
+            setValue("policyNumber", profile.policyNumber);
+          if (profile.policyExpiryDate)
+            setValue("policyExpiryDate", profile.policyExpiryDate);
+          if (profile.insuranceContactNo)
+            setValue("insuranceContactNo", profile.insuranceContactNo);
           if (profile.insuranceDeductable)
             setValue("insuranceDeductable", profile.insuranceDeductable);
           if (profile.isRoofCovered)
@@ -102,10 +133,12 @@ export default function BookingForm() {
     fetchCustomerProfile();
   }, [setValue]);
 
-  async function onSubmit(data: TicketFormValues) {
+  async function onSubmit(values: TicketFormValues) {
+    console.log("Payload", values);
     try {
       setLoading(true);
-      const res = await axios.post(`${baseUrl}/user/ticket/create`, data, {
+
+      const res = await axios.post(`${baseUrl}/user/ticket/create`, values, {
         withCredentials: true,
       });
 
@@ -119,6 +152,7 @@ export default function BookingForm() {
       toast.success("Thanks! Our team will reach out soon.");
       reset();
     } catch (err) {
+      handleApiError(err);
       console.error("Error creating ticket", err);
     } finally {
       setLoading(false);
@@ -251,10 +285,27 @@ export default function BookingForm() {
                   How can we reach you to confirm the appointment?
                 </p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="firstname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={loading}
+                          placeholder="John Smith"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastname"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Full Name</FormLabel>
@@ -289,14 +340,14 @@ export default function BookingForm() {
 
                 <FormField
                   control={form.control}
-                  name="address"
+                  name="insuranceCompany"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Address</FormLabel>
+                      <FormLabel>Insurance Company</FormLabel>
                       <FormControl>
                         <Input
                           disabled={loading}
-                          placeholder="xyz, New York"
+                          placeholder="Enter insurance company"
                           {...field}
                         />
                       </FormControl>
@@ -306,14 +357,56 @@ export default function BookingForm() {
                 />
                 <FormField
                   control={form.control}
-                  name="insuranceCompany"
+                  name="policyNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Insurance Company</FormLabel>
+                      <FormLabel>Insurance Policy No.</FormLabel>
                       <FormControl>
                         <Input
                           disabled={loading}
-                          placeholder="Enter insurance company"
+                          placeholder="Enter insurance policy no."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="policyExpiryDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Policy Expiry Date</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          value={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onChange={
+                            (date) =>
+                              field.onChange(
+                                date ? format(date, "yyyy-MM-dd") : undefined
+                              ) // Convert Date to string for form
+                          }
+                          disabled={loading}
+                          placeholder="Select policy expiry date"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="insuranceContactNo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Insurance Contact No</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={loading}
+                          placeholder="Enter insurance contact no."
                           {...field}
                         />
                       </FormControl>
@@ -362,6 +455,24 @@ export default function BookingForm() {
                   )}
                 />
               </div>
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      {/* AddressInput is a controlled component: pass field.value and field.onChange */}
+                      <AddressInput
+                        value={field.value as AddressType | undefined}
+                        onChange={(val) => field.onChange(val)}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             <div className="flex justify-center pt-8">
               <Button type="submit">submit</Button>
