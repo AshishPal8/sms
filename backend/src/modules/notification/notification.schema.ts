@@ -18,7 +18,6 @@ export const createNotificationSchema = z.object({
     role: z.enum(roles),
     adminId: z.string().optional(),
     customerId: z.string().optional(),
-    deptId: z.string().optional(),
   }),
 
   receivers: z
@@ -27,7 +26,6 @@ export const createNotificationSchema = z.object({
         role: z.enum(AssignmentRole),
         adminId: z.string().optional(),
         customerId: z.string().optional(),
-        deptId: z.string().optional(),
       })
     )
     .optional()

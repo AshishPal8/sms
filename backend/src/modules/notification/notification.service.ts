@@ -21,7 +21,6 @@ export const createNotificationService = async (
         ...(data.sender.customerId && {
           senderCustomerId: data.sender.customerId,
         }),
-        ...(data.sender.deptId && { senderDeptId: data.sender.deptId }),
       },
       select: { id: true, title: true },
     });
@@ -32,14 +31,12 @@ export const createNotificationService = async (
         receiverRole: AssignmentRole;
         receiverAdminId?: string;
         receiverCustomerId?: string;
-        receiverDeptId?: string;
       } = {
         notificationId: notification.id,
         receiverRole: receiver.role,
       };
       if (receiver.adminId) base.receiverAdminId = receiver.adminId;
       if (receiver.customerId) base.receiverCustomerId = receiver.customerId;
-      if (receiver.deptId) base.receiverDeptId = receiver.deptId;
       return base;
     });
 
@@ -57,14 +54,11 @@ export const getNotificationsService = async (
   userId: string,
   role: AssignmentRole
 ) => {
-  let deptId: string | undefined;
-
   if ([roles.MANAGER, roles.TECHNICIAN].includes(role)) {
     const admin = await prisma.admin.findUnique({
       where: { id: userId },
       select: { department: { select: { id: true } } },
     });
-    deptId = admin?.department?.id;
   }
 
   if ([roles.SUPERADMIN, roles.ASSISTANT].includes(role)) {
@@ -80,14 +74,12 @@ export const getNotificationsService = async (
         senderRole: true,
         senderAdminId: true,
         senderCustomerId: true,
-        senderDeptId: true,
         isRead: true,
         receivers: {
           select: {
             receiverRole: true,
             receiverAdminId: true,
             receiverCustomerId: true,
-            receiverDeptId: true,
           },
         },
       },
@@ -111,11 +103,11 @@ export const getNotificationsService = async (
         role === roles.TECHNICIAN
           ? { items: { some: { assignedByAdminId: userId } } }
           : undefined,
-        role === roles.MANAGER && deptId
-          ? { items: { some: { assignedToDeptId: deptId } } }
+        role === roles.MANAGER
+          ? { items: { some: { assignedByAdminId: userId } } }
           : undefined,
-        role === roles.MANAGER && deptId
-          ? { items: { some: { assignedByDeptId: deptId } } }
+        role === roles.MANAGER
+          ? { items: { some: { assignedByAdminId: userId } } }
           : undefined,
         role === roles.CUSTOMER
           ? { items: { some: { assignedToCustomerId: userId } } }
@@ -143,8 +135,8 @@ export const getNotificationsService = async (
     receiverConditions.push({ receiverAdminId: userId });
   }
 
-  if (role === roles.MANAGER && deptId) {
-    receiverConditions.push({ receiverDeptId: deptId });
+  if (role === roles.MANAGER) {
+    receiverConditions.push({ receiverAdminId: userId });
   }
 
   if (receiverConditions.length > 0) {
@@ -173,14 +165,12 @@ export const getNotificationsService = async (
       senderRole: true,
       senderAdminId: true,
       senderCustomerId: true,
-      senderDeptId: true,
       isRead: true,
       receivers: {
         select: {
           receiverRole: true,
           receiverAdminId: true,
           receiverCustomerId: true,
-          receiverDeptId: true,
         },
       },
     },
