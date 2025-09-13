@@ -398,7 +398,7 @@ export const ProfileHeader = () => {
                 </FormItem>
               )}
             />
-            <Button disabled={loading} className="ml-auto" type="submit">
+            <Button disabled={loading} className="ml-auto mt-5" type="submit">
               {loading ? "Updating..." : "Update Profile"}
             </Button>
           </div>

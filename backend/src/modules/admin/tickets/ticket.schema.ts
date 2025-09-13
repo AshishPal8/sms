@@ -5,6 +5,7 @@ import {
   TicketStatus,
   TicketUrgency,
 } from "../../../generated/prisma";
+import { isoDateOrDate } from "../../../utils/isoDateOrDate";
 
 export const ticketAssetSchema = z.object({
   url: z.url("Invalid asset URL"),
@@ -37,6 +38,9 @@ export const createTicketSchema = z
     address: addressSchema.optional(),
 
     insuranceCompany: z.string().optional(),
+    policyNumber: z.string().optional(),
+    policyExpiryDate: isoDateOrDate,
+    insuranceContactNo: z.string().optional(),
     insuranceDeductable: z
       .number()
       .min(0, "Deductable cannot be negative")

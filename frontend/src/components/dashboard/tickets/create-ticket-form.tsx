@@ -35,16 +35,31 @@ import {
 import ImageUpload from "@/components/ui/image-upload";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { addressSchema } from "@/schemas/addressSchema";
+import DatePicker from "@/components/ui/date-picker";
+import { format } from "date-fns";
+import AddressInput from "@/components/ui/AddressInput";
+import { Address as AddressType } from "@/types/address.types";
 
 export const createTicketSchema = z
   .object({
     title: z.string().min(3, "Title must be at least 3 characters"),
     description: z.string().optional(),
 
-    name: z.string().optional(),
+    firstname: z.string().min(2, "Enter your name."),
+    lastname: z.string().optional(),
     phone: z.string().trim().optional(),
     email: z.email("Enter a valid email").optional(),
-    address: z.string().optional(),
+    address: addressSchema.optional(),
+    insuranceCompany: z.string().optional(),
+    policyNumber: z.string().optional(),
+    policyExpiryDate: z.string().optional(),
+    insuranceContactNo: z.string().optional(),
+    insuranceDeductable: z
+      .number()
+      .min(0, "Deductable cannot be negative")
+      .optional(),
+    isRoofCovered: z.boolean().default(false).optional(),
 
     priority: z.enum(TicketPriorityOptions).optional(),
     status: z.enum(TicketStatusOptions).optional(),
@@ -56,12 +71,6 @@ export const createTicketSchema = z
         })
       )
       .optional(),
-    insuranceCompany: z.string().optional(),
-    insuranceDeductable: z
-      .number()
-      .min(0, "Deductable cannot be negative")
-      .optional(),
-    isRoofCovered: z.boolean().default(false).optional(),
   })
   .refine((v) => Boolean(v.email) || Boolean(v.phone), {
     path: ["email"],
@@ -79,16 +88,20 @@ export const CreateTicketForm = () => {
     defaultValues: {
       title: "",
       description: "",
-      name: "",
+      firstname: "",
+      lastname: "",
       phone: "",
       email: "",
-      address: "",
+      address: undefined,
+      insuranceCompany: "",
+      insuranceDeductable: 0,
+      policyNumber: "",
+      policyExpiryDate: undefined,
+      insuranceContactNo: "",
       priority: "LOW",
       status: "OPEN",
       urgencyLevel: "COLD",
       assets: [],
-      insuranceCompany: "",
-      insuranceDeductable: 0,
       isRoofCovered: false,
     },
   });
@@ -135,14 +148,31 @@ export const CreateTicketForm = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <FormField
                 control={form.control}
-                name="name"
+                name="firstname"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Customer Name</FormLabel>
+                    <FormLabel>Customer First Name</FormLabel>
                     <FormControl>
                       <Input
                         disabled={loading}
-                        placeholder="Enter name"
+                        placeholder="Enter first name"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastname"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Customer Last Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={loading}
+                        placeholder="Enter last name"
                         {...field}
                       />
                     </FormControl>
@@ -229,6 +259,62 @@ export const CreateTicketForm = () => {
               />
               <FormField
                 control={form.control}
+                name="policyNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Insurance Policy No.</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={loading}
+                        placeholder="Enter insurance policy no."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="policyExpiryDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Policy Expiry Date</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        value={field.value ? new Date(field.value) : undefined}
+                        onChange={(date) =>
+                          field.onChange(
+                            date ? format(date, "yyyy-MM-dd") : undefined
+                          )
+                        }
+                        disabled={loading}
+                        placeholder="Select policy expiry date"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="insuranceContactNo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Insurance Contact No</FormLabel>
+                    <FormControl>
+                      <Input
+                        disabled={loading}
+                        placeholder="Enter insurance contact no."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="isRoofCovered"
                 render={({ field }) => (
                   <FormItem>
@@ -244,24 +330,26 @@ export const CreateTicketForm = () => {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={loading}
-                        placeholder="Enter address"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    {/* AddressInput is a controlled component: pass field.value and field.onChange */}
+                    <AddressInput
+                      value={field.value as AddressType | undefined}
+                      onChange={(val) => field.onChange(val)}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <Separator />
             <FormField
               control={form.control}
