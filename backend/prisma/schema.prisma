@@ -89,7 +89,8 @@ model Address {
 //customer
 model Customer {
   id             String  @id @default(auto()) @map("_id") @db.ObjectId
-  name           String
+  firstname      String
+  lastname       String?
   email          String  @unique
   phone          String?
   profilePicture String?
@@ -98,8 +99,11 @@ model Customer {
   address   Address? @relation(fields: [addressId], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   insuranceCompany    String?
-  insuranceDeductable Int     @default(0)
-  isRoofCovered       Boolean @default(false)
+  insuranceDeductable Int       @default(0)
+  policyNumber        String?
+  policyExpiryDate    DateTime?
+  insuranceContactNo  String?
+  isRoofCovered       Boolean   @default(false)
 
   loginType    LoginType @default(EMAIL)
   isVerified   Boolean   @default(false)
@@ -132,7 +136,8 @@ model OTP {
 //admin
 model Admin {
   id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  name           String
+  firstname      String
+  lastname       String?
   email          String    @unique
   phone          String?   @unique
   password       String

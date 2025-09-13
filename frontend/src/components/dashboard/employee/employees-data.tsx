@@ -47,7 +47,7 @@ const EmployeesData = () => {
   const formatEmployees = employees.map((employee: IEmployee) => ({
     id: employee.id,
     profile: employee.profilePicture,
-    name: employee.name,
+    name: `${employee.firstname} ${employee.lastname}`,
     email: employee.email,
     role: employee.role.toLowerCase(),
     createdAt: employee.createdAt

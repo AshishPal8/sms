@@ -10,19 +10,31 @@ export const ticketAssetSchema = z.object({
   url: z.url("Invalid asset URL"),
 });
 
+export const addressSchema = z
+  .object({
+    houseNumber: z.string().optional(),
+    locality: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    country: z.string().optional(),
+    postalCode: z.string().optional(),
+  })
+  .partial();
+
 export const createTicketSchema = z
   .object({
     title: z.string().min(3, "Title must be at least 3 characters"),
     description: z.string().optional(),
 
-    name: z.string().optional(),
+    firstname: z.string().optional(),
+    lastname: z.string().optional(),
     phone: z
       .string()
       .trim()
       .regex(phoneRegex, "Enter a valid phone")
       .optional(),
     email: z.email("Enter a valid email").trim().optional(),
-    address: z.string().optional(),
+    address: addressSchema.optional(),
 
     insuranceCompany: z.string().optional(),
     insuranceDeductable: z
@@ -49,7 +61,7 @@ export const createTicketSchema = z
 export const updateTicketSchema = z.object({
   title: z.string().min(1, "Title is required").optional(),
   description: z.string().optional(),
-  address: z.string().optional(),
+  address: addressSchema.optional(),
   priority: z.enum(TicketPriority).optional(),
   status: z.enum(TicketStatus).optional(),
   urgencyLevel: z.enum(TicketUrgency).optional(),

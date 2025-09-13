@@ -22,7 +22,7 @@ router.post("/verify-otp", verifyOtpController);
 router.post("/resend-otp", resendOtpController);
 router.post("/logout", customerLogoutController);
 
-router.post(
+router.patch(
   "/update",
   authMiddleware,
   validateRequest(updateCustomerSchema),

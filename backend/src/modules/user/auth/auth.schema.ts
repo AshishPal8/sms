@@ -1,7 +1,10 @@
 import { z } from "zod";
+import { addressSchema } from "../../../schemas/addressSchema";
+import { isoDateOrDate } from "../../../utils/isoDateOrDate";
 
 export const customerSignupSchema = z.object({
-  name: z.string().min(1, { error: "Name is required" }),
+  firstname: z.string().min(1, { error: "First name is required" }),
+  lastname: z.string().optional(),
   email: z.email({ error: "Invalid email" }),
 });
 
@@ -21,11 +24,15 @@ export const resendOtpSchema = z.object({
 });
 
 export const updateCustomerSchema = z.object({
-  name: z.string().min(1, "Name cannot be empty").optional(),
+  firstname: z.string().min(1, "First name cannot be empty").optional(),
+  lastname: z.string().optional(),
   phone: z.string().optional(),
   profilePicture: z.url("Invalid URL").optional(),
-  address: z.string().optional(),
+  address: addressSchema.optional(),
   insuranceCompany: z.string().optional(),
+  policyNumber: z.string().optional(),
+  policyExpiryDate: isoDateOrDate,
+  insuranceContactNo: z.string().optional(),
   insuranceDeductable: z
     .number()
     .min(0, "Deductable cannot be negative")

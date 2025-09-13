@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Form,
   FormControl,
@@ -35,7 +35,8 @@ import { ArrowLeft } from "lucide-react";
 import { handleApiError } from "@/lib/handleApiErrors";
 
 const formSchema = z.object({
-  name: z.string(),
+  firstname: z.string().min(2, { error: "Firstname is required" }),
+  lastname: z.string().optional(),
   email: z.string(),
   phone: z.string().optional(),
   password: z.string(),
@@ -55,6 +56,7 @@ interface EmployeeFormProps {
 
 export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
   const router = useRouter();
+  const initialManagerRef = useRef<string | null>(null);
 
   const [divisions, setDivisions] = useState<
     Array<{ id: string; name: string }>
@@ -67,12 +69,15 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
   const [fetchingDepartments, setFetchingDepartments] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  const [initialDataApplied, setInitialDataApplied] = useState(false);
+
   const { setError } = useForm<EmployeeFormValues>();
 
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
-      name: "",
+      firstname: "",
+      lastname: "",
       email: "",
       phone: "",
       password: "",
@@ -93,14 +98,14 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
     if (initialData) {
       form.reset({
         ...initialData,
-        password: "",
       });
+      setInitialDataApplied(false); // Reset the flag when new initial data comes
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData]);
+  }, [initialData, form]);
 
   const isEdit = !!initialData;
 
+  // Fetch divisions on component mount
   useEffect(() => {
     const fetchDivisions = async () => {
       setFetchingDivisions(true);
@@ -120,8 +125,25 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
     fetchDivisions();
   }, []);
 
+  // Set initial division when divisions are loaded (for edit mode)
   useEffect(() => {
-    // if no division selected, clear departmentsResponse
+    if (
+      !isEdit ||
+      !initialData?.divisionId ||
+      !divisions.length ||
+      initialDataApplied
+    ) {
+      return;
+    }
+
+    const exists = divisions.some((d) => d.id === initialData.divisionId);
+    if (exists && form.getValues("divisionId") !== initialData.divisionId) {
+      form.setValue("divisionId", initialData.divisionId);
+    }
+  }, [divisions, isEdit, initialData?.divisionId, initialDataApplied, form]);
+
+  // Fetch departments when division changes
+  useEffect(() => {
     if (!selectedDivisionId) {
       setDepartmentsResponse(null);
       form.setValue("departmentId", null);
@@ -129,14 +151,15 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
       return;
     }
 
-    const fetchDepartmentsForDivision = async (divisionId: string) => {
+    const fetchDepartments = async () => {
       setFetchingDepartments(true);
       try {
         const res = await axios.get(
-          `${baseUrl}/divisions/${encodeURIComponent(divisionId)}`,
+          `${baseUrl}/divisions/dept/${encodeURIComponent(selectedDivisionId)}`,
           { withCredentials: true }
         );
-        setDepartmentsResponse(res.data?.data ?? null);
+        const data = res.data?.data ?? null;
+        setDepartmentsResponse(data);
       } catch (err) {
         console.error("Failed to fetch departments for division", err);
         toast.error("Failed to load departments for selected division");
@@ -146,57 +169,89 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
       }
     };
 
-    fetchDepartmentsForDivision(selectedDivisionId);
+    fetchDepartments();
+  }, [selectedDivisionId, form]);
 
-    form.setValue("departmentId", null);
-    form.setValue("managerId", null);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDivisionId]);
-
-  // when department changes, reset manager
+  // Apply initial department and manager after departments are loaded
   useEffect(() => {
-    form.setValue("managerId", null);
+    if (
+      !isEdit ||
+      !initialData ||
+      initialDataApplied ||
+      !departmentsResponse?.departments
+    ) {
+      return;
+    }
+
+    const initialDepartmentExists = departmentsResponse.departments.some(
+      (d: any) => d.id === initialData.departmentId
+    );
+
+    if (initialData.departmentId && initialDepartmentExists) {
+      // set the department first
+      form.setValue("departmentId", initialData.departmentId);
+
+      // only remember manager to apply later if role is TECHNICIAN
+      if (
+        initialData.managerId &&
+        (initialData.role === "TECHNICIAN" ||
+          form.getValues("role") === "TECHNICIAN")
+      ) {
+        // store in ref — we'll apply when selectedDepartmentId updates
+        initialManagerRef.current = initialData.managerId;
+      } else {
+        // nothing to apply, mark applied now
+        setInitialDataApplied(true);
+      }
+    } else {
+      // no initial department to apply -> mark applied to avoid re-run
+      setInitialDataApplied(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [departmentsResponse, isEdit, initialData]);
+
+  // --- watch selectedDepartmentId and apply manager if we have one waiting
+  useEffect(() => {
+    if (!initialManagerRef.current) return;
+
+    // ensure selectedDepartmentId matches the initialData's department (safety)
+    if (selectedDepartmentId === initialData?.departmentId) {
+      // optionally check manager exists in the department's managers
+      const dept = (departmentsResponse?.departments ?? []).find(
+        (d: any) => d.id === selectedDepartmentId
+      );
+      const managerExists = dept?.managers?.some(
+        (m: any) => m.id === initialManagerRef.current
+      );
+
+      if (managerExists) {
+        form.setValue("managerId", initialManagerRef.current);
+      } else {
+        // if manager not found, we don't set it
+        console.warn("initial manager id not found in department managers");
+      }
+
+      // clear the ref and mark applied
+      initialManagerRef.current = null;
+      setInitialDataApplied(true);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDepartmentId]);
 
+  // Handle department changes (clear manager when department changes, except for initial load)
   useEffect(() => {
-    const initDivisionId = initialData?.divisionId;
-    const initDepartmentId = initialData?.departmentId;
-    const initManagerId = initialData?.managerId;
-
-    if (!isEdit) return;
-    if (!initDivisionId) return;
-
-    if (
-      divisions.length > 0 &&
-      departmentsResponse?.division?.id !== initDivisionId
-    ) {
-      (async () => {
-        setFetchingDepartments(true);
-        try {
-          const res = await axios.get(
-            `${baseUrl}/divisions/${encodeURIComponent(initDivisionId)}`,
-            { withCredentials: true }
-          );
-          setDepartmentsResponse(res.data?.data ?? null);
-
-          // preselect department & manager if present in initialData (they will be used in default values but we set explicitly to ensure selects show correct value)
-          if (initDepartmentId) {
-            form.setValue("departmentId", initDepartmentId);
-          }
-          if (initManagerId) {
-            form.setValue("managerId", initManagerId);
-          }
-        } catch (err) {
-          console.error("Failed to fetch division departments on init", err);
-        } finally {
-          setFetchingDepartments(false);
-        }
-      })();
+    if (!initialDataApplied) {
+      return; // Don't clear during initial data application
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [divisions, isEdit]);
+
+    if (!selectedDepartmentId) {
+      form.setValue("managerId", null);
+      return;
+    }
+
+    // Clear manager when department changes (user-driven change)
+    form.setValue("managerId", null);
+  }, [selectedDepartmentId, initialDataApplied, form]);
 
   const departmentOptions = useMemo(() => {
     return departmentsResponse?.departments ?? [];
@@ -292,236 +347,267 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={loading}
-                        placeholder="Enter name"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        disabled={loading}
-                        placeholder="Enter email"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={loading}
-                        placeholder="Enter phone no."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        disabled={loading}
-                        placeholder="Enter password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <Select
-                      disabled={loading}
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      defaultValue={field.value}
-                    >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
+                        <Input
+                          disabled={loading}
+                          placeholder="Enter name"
+                          {...field}
+                        />
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="SUPERADMIN">Super admin</SelectItem>
-                        <SelectItem value="MANAGER">Manager</SelectItem>
-                        <SelectItem value="TECHNICIAN">Technician</SelectItem>
-                        <SelectItem value="ASSISTANT">Assistant</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={loading}
+                          placeholder="Enter name"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          disabled={loading}
+                          placeholder="Enter email"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={loading}
+                          placeholder="Enter phone no."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          disabled={loading}
+                          placeholder="Enter password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role</FormLabel>
+                      <Select
+                        disabled={loading}
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="SUPERADMIN">
+                            Super admin
+                          </SelectItem>
+                          <SelectItem value="MANAGER">Manager</SelectItem>
+                          <SelectItem value="TECHNICIAN">Technician</SelectItem>
+                          <SelectItem value="ASSISTANT">Assistant</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-2">
+                {(selectedRole === "MANAGER" ||
+                  selectedRole === "TECHNICIAN") && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* division select */}
+                    <FormField
+                      control={form.control}
+                      name="divisionId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Division</FormLabel>
+                          <FormControl>
+                            <Select
+                              value={field.value ?? ""}
+                              onValueChange={(val) =>
+                                field.onChange(val || null)
+                              }
+                              disabled={loading || fetchingDivisions}
+                            >
+                              <SelectTrigger>
+                                <SelectValue
+                                  placeholder={
+                                    fetchingDivisions
+                                      ? "Loading divisions..."
+                                      : "Select division"
+                                  }
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {divisions.map((d) => (
+                                  <SelectItem key={d.id} value={d.id}>
+                                    {d.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* department select */}
+                    <FormField
+                      control={form.control}
+                      name="departmentId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Department</FormLabel>
+                          <FormControl>
+                            <Select
+                              value={field.value ?? ""}
+                              onValueChange={(val) =>
+                                field.onChange(val || null)
+                              }
+                              disabled={
+                                loading ||
+                                !selectedDivisionId ||
+                                fetchingDepartments
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue
+                                  placeholder={
+                                    !selectedDivisionId
+                                      ? "Choose division first"
+                                      : fetchingDepartments
+                                      ? "Loading departments..."
+                                      : "Select department"
+                                  }
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {departmentOptions.length === 0 ? (
+                                  <SelectItem value="no">
+                                    No departments
+                                  </SelectItem>
+                                ) : (
+                                  departmentOptions.map((dep: any) => (
+                                    <SelectItem key={dep.id} value={dep.id}>
+                                      {dep.name}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 )}
-              />
-              {(selectedRole === "MANAGER" ||
-                selectedRole === "TECHNICIAN") && (
-                <>
-                  {/* division select */}
-                  <FormField
-                    control={form.control}
-                    name="divisionId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Division</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={field.value ?? ""}
-                            onValueChange={(val) => field.onChange(val || null)}
-                            disabled={loading || fetchingDivisions}
-                          >
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={
-                                  fetchingDivisions
-                                    ? "Loading divisions..."
-                                    : "Select division"
-                                }
-                              />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {divisions.map((d) => (
-                                <SelectItem key={d.id} value={d.id}>
-                                  {d.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
 
-                  {/* department select */}
-                  <FormField
-                    control={form.control}
-                    name="departmentId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Department</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={field.value ?? ""}
-                            onValueChange={(val) => field.onChange(val || null)}
-                            disabled={
-                              loading ||
-                              !selectedDivisionId ||
-                              fetchingDepartments
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={
-                                  !selectedDivisionId
-                                    ? "Choose division first"
-                                    : fetchingDepartments
-                                    ? "Loading departments..."
-                                    : "Select department"
-                                }
-                              />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {departmentOptions.length === 0 ? (
-                                <SelectItem value="no">
-                                  No departments
-                                </SelectItem>
-                              ) : (
-                                departmentOptions.map((dep: any) => (
-                                  <SelectItem key={dep.id} value={dep.id}>
-                                    {dep.name}
+                {selectedRole === "TECHNICIAN" && (
+                  <>
+                    {/* manager select - managers of selected department */}
+                    <FormField
+                      control={form.control}
+                      name="managerId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Manager</FormLabel>
+                          <FormControl>
+                            <Select
+                              value={field.value ?? ""}
+                              onValueChange={(val) =>
+                                field.onChange(val || null)
+                              }
+                              disabled={loading || !selectedDepartmentId}
+                            >
+                              <SelectTrigger>
+                                <SelectValue
+                                  placeholder={
+                                    !selectedDepartmentId
+                                      ? "Choose department first"
+                                      : "Select manager"
+                                  }
+                                />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {managerOptions.length === 0 ? (
+                                  <SelectItem value="no">
+                                    No managers
                                   </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
-
-              {selectedRole === "TECHNICIAN" && (
-                <>
-                  {/* manager select - managers of selected department */}
-                  <FormField
-                    control={form.control}
-                    name="managerId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Manager</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={field.value ?? ""}
-                            onValueChange={(val) => field.onChange(val || null)}
-                            disabled={loading || !selectedDepartmentId}
-                          >
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={
-                                  !selectedDepartmentId
-                                    ? "Choose department first"
-                                    : "Select manager"
-                                }
-                              />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {managerOptions.length === 0 ? (
-                                <SelectItem value="no">No managers</SelectItem>
-                              ) : (
-                                managerOptions.map((mgr: any) => (
-                                  <SelectItem key={mgr.id} value={mgr.id}>
-                                    {mgr.name}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
+                                ) : (
+                                  managerOptions.map((mgr: any) => (
+                                    <SelectItem key={mgr.id} value={mgr.id}>
+                                      {mgr.name}
+                                    </SelectItem>
+                                  ))
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+              </div>
               <FormField
                 control={form.control}
                 name="isActive"

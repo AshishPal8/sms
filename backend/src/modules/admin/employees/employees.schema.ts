@@ -3,7 +3,8 @@ import { AdminRole } from "../../../generated/prisma";
 import { objectIdRegex } from "../../../utils/regex";
 
 export const addEmployeeSchema = z.object({
-  name: z.string().min(1, { error: "Name is required" }),
+  firstname: z.string().min(1, { error: "Firstname is required" }),
+  lastname: z.string().optional(),
   email: z.email({ error: "Invalid email" }),
   password: z
     .string()
@@ -31,7 +32,8 @@ export const addEmployeeSchema = z.object({
 });
 
 export const updateEmployeeSchema = z.object({
-  name: z.string().min(1, { error: "Name is required" }).optional(),
+  firstname: z.string().min(1, { error: "First name is required" }).optional(),
+  lastname: z.string().optional(),
   email: z.email({ error: "Invalid email" }).optional(),
   role: z.enum(AdminRole).optional(),
   password: z

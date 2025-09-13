@@ -1,11 +1,14 @@
 import z from "zod";
+import { addressSchema } from "../../../schemas/addressSchema";
+import { isoDateOrDate } from "../../../utils/isoDateOrDate";
 
 export const createTicketSchema = z.object({
   title: z.string().min(3, { error: "Title must be at least 3 characters" }),
   description: z.string().optional(),
-  name: z.string().optional(),
+  firstname: z.string().optional(),
+  lastname: z.string().optional(),
   phone: z.string().optional(),
-  address: z.string().optional(),
+  address: addressSchema.optional(),
   assets: z
     .array(
       z.object({
@@ -14,6 +17,9 @@ export const createTicketSchema = z.object({
     )
     .optional(),
   insuranceCompany: z.string().optional(),
+  policyNumber: z.string().optional(),
+  policyExpiryDate: isoDateOrDate,
+  insuranceContactNo: z.string().optional(),
   insuranceDeductable: z
     .number()
     .min(0, "Deductable cannot be negative")
@@ -24,7 +30,7 @@ export const createTicketSchema = z.object({
 export const updateTicketSchema = z.object({
   title: z.string().min(3).optional(),
   description: z.string().optional(),
-  address: z.string().optional(),
+  address: addressSchema.optional(),
   assets: z
     .array(
       z.object({

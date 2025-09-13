@@ -44,7 +44,8 @@ export const getAllEmployeesService = async ({
     take: limit,
     select: {
       id: true,
-      name: true,
+      firstname: true,
+      lastname: true,
       email: true,
       role: true,
       phone: true,
@@ -121,7 +122,8 @@ export const getEmployeeByIdService = async (id: string) => {
     where: { id },
     select: {
       id: true,
-      name: true,
+      firstname: true,
+      lastname: true,
       email: true,
       role: true,
       phone: true,
@@ -175,7 +177,8 @@ export const getEmployeeByIdService = async (id: string) => {
 
   const result = {
     id: employee.id,
-    name: employee.name,
+    firstname: employee.firstname,
+    lastname: employee.lastname,
     email: employee.email,
     role: employee.role,
     phone: employee.phone,
@@ -195,7 +198,8 @@ export const getEmployeeByIdService = async (id: string) => {
 
 export const addEmployeeService = async (data: addEmployeeInput) => {
   const {
-    name,
+    firstname,
+    lastname,
     email,
     password,
     phone,
@@ -233,7 +237,8 @@ export const addEmployeeService = async (data: addEmployeeInput) => {
       createdAdmin = await tx.admin.update({
         where: { email },
         data: {
-          name: name.trim(),
+          firstname: firstname.trim(),
+          lastname: lastname?.trim(),
           phone: phone ?? null,
           password: hashedPassword,
           role,
@@ -244,7 +249,8 @@ export const addEmployeeService = async (data: addEmployeeInput) => {
     } else {
       createdAdmin = await tx.admin.create({
         data: {
-          name: name.trim(),
+          firstname: firstname.trim(),
+          lastname: lastname?.trim(),
           email: email.trim(),
           phone: phone ?? null,
           password: hashedPassword,
@@ -341,7 +347,8 @@ export const addEmployeeService = async (data: addEmployeeInput) => {
 
   return {
     id: admin.id,
-    name: admin.name,
+    firstname: admin.firstname,
+    lastname: admin.lastname,
     email: admin.email,
     role: admin.role,
     phone: admin.phone,
@@ -355,7 +362,8 @@ export const updateEmployeeService = async (
   data: updateEmployeeInput
 ) => {
   const {
-    name,
+    firstname,
+    lastname,
     email,
     password,
     phone,
@@ -386,7 +394,10 @@ export const updateEmployeeService = async (
   }
 
   const updatePayload: Record<string, any> = {};
-  if (typeof name !== "undefined") updatePayload.name = name?.trim();
+  if (typeof firstname !== "undefined")
+    updatePayload.firstname = firstname?.trim();
+  if (typeof lastname !== "undefined")
+    updatePayload.lastname = lastname?.trim();
   if (typeof email !== "undefined") updatePayload.email = email?.trim();
   if (typeof profilePicture !== "undefined")
     updatePayload.profilePicture = profilePicture ?? null;
@@ -492,7 +503,8 @@ export const updateEmployeeService = async (
 
   return {
     id: updatedAdmin.id,
-    name: updatedAdmin.name,
+    firstname: updatedAdmin.firstname,
+    lastname: updatedAdmin.lastname,
     email: updatedAdmin.email,
     role: updatedAdmin.role,
     phone: updatedAdmin.phone,

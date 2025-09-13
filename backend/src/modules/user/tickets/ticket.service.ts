@@ -3,6 +3,7 @@ import { NotificationType } from "../../../generated/prisma";
 import { ActionType } from "../../../generated/prisma";
 import { AssignmentRole } from "../../../generated/prisma";
 import { NotFoundError } from "../../../middlewares/error";
+import { formatAddressString } from "../../../utils/formatAddressString";
 import { getAssetTypeFromUrl } from "../../../utils/getAssetType";
 import { emailService } from "../../email/email.service";
 import { createNotificationService } from "../../notification/notification.service";
@@ -20,38 +21,58 @@ export const createTicketService = async (
   const {
     title,
     description,
-    name,
+    firstname,
+    lastname,
     phone,
     address,
     assets,
     insuranceCompany,
     insuranceDeductable,
+    policyNumber,
+    policyExpiryDate,
+    insuranceContactNo,
     isRoofCovered,
   } = data;
 
+  console.log("Data", data);
+
+  const formattedAddress = formatAddressString(address);
+
   const customer = await prisma.customer.findUnique({
     where: { id: customerId },
+    select: {
+      id: true,
+      firstname: true,
+      lastname: true,
+      phone: true,
+      addressId: true,
+      insuranceCompany: true,
+      insuranceDeductable: true,
+      policyNumber: true,
+      policyExpiryDate: true,
+      insuranceContactNo: true,
+      isRoofCovered: true,
+    },
   });
 
   if (!customer) {
     throw new NotFoundError("Customer not found");
   }
 
-  const updateData: {
-    phone?: string;
-    address?: string;
-    insuranceCompany?: string;
-    insuranceDeductable?: number;
-    isRoofCovered?: boolean;
-  } = {};
+  const updateData: any = {};
+
+  if ((!customer.firstname || customer.firstname === "") && firstname) {
+    updateData.firstName = firstname;
+  }
+
+  if ((!customer.lastname || customer.lastname === "") && lastname) {
+    updateData.lastName = lastname;
+  }
 
   if (!customer.phone && phone) {
     updateData.phone = phone;
   }
 
-  if (!customer.address && address) {
-    updateData.address = address;
-  }
   if (!customer.insuranceCompany && insuranceCompany) {
     updateData.insuranceCompany = insuranceCompany;
   }
@@ -60,9 +81,41 @@ export const createTicketService = async (
     updateData.insuranceDeductable = insuranceDeductable;
   }
 
+  if (!customer.policyNumber && policyNumber) {
+    updateData.policyNumber = policyNumber;
+  }
+  if (!customer.policyExpiryDate && policyExpiryDate) {
+    updateData.policyExpiryDate = policyExpiryDate;
+  }
+  if (!customer.insuranceContactNo && insuranceContactNo) {
+    updateData.insuranceContactNo = insuranceContactNo;
+  }
+
   if (!customer.isRoofCovered && isRoofCovered) {
     updateData.isRoofCovered = isRoofCovered;
   }
+
+  if (address && typeof address === "object") {
+    const addressPayload =
+      address && typeof address === "object"
+        ? {
+            houseNumber: address.houseNumber ?? undefined,
+            locality: address.locality ?? undefined,
+            city: address.city ?? undefined,
+            state: address.state ?? undefined,
+            country: address.country ?? undefined,
+            postalCode: address.postalCode ?? undefined,
+          }
+        : null;
+
+    if (customer.addressId) {
+      updateData.address = { update: addressPayload };
+    } else {
+      updateData.address = { create: addressPayload };
+    }
+  }
+
+  console.log("Updated data", updateData);
 
   if (Object.keys(updateData).length > 0) {
     await prisma.customer.update({
@@ -75,9 +128,9 @@ export const createTicketService = async (
     data: {
       title,
       description,
-      name,
+      name: `${firstname}${lastname ? " " + lastname : ""}`,
       phone,
-      address,
+      address: formattedAddress,
       customerId,
       assets: {
         create: assets?.map((asset) => ({
@@ -91,7 +144,9 @@ export const createTicketService = async (
 
   await createNotificationService({
     title: `New Ticket Created - ${title}`,
-    description: `${customer.name || "A customer"} has created a new ticket.`,
+    description: `${firstname}${
+      lastname ? " " + lastname : ""
+    } has created a new ticket.`,
     notificationType: NotificationType.TICKET_ITEM,
     actionType: ActionType.NOTIFY,
     isPublic: true,
