@@ -27,7 +27,10 @@ export const updateCustomerSchema = z.object({
   firstname: z.string().min(1, "First name cannot be empty").optional(),
   lastname: z.string().optional(),
   phone: z.string().optional(),
-  profilePicture: z.url("Invalid URL").optional(),
+  profilePicture: z.preprocess((val) => {
+    if (typeof val === "string" && val.trim() === "") return undefined;
+    return val;
+  }, z.url("Invalid URL").optional()),
   address: addressSchema.optional(),
   insuranceCompany: z.string().optional(),
   policyNumber: z.string().optional(),

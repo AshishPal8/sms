@@ -134,7 +134,6 @@ export default function BookingForm() {
   }, [setValue]);
 
   async function onSubmit(values: TicketFormValues) {
-    console.log("Payload", values);
     try {
       setLoading(true);
 

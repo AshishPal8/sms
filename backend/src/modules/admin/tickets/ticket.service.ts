@@ -31,6 +31,9 @@ export const createTicketService = async (data: CreateTicketInput) => {
     urgencyLevel,
     assets,
     insuranceCompany,
+    policyNumber,
+    policyExpiryDate,
+    insuranceContactNo,
     insuranceDeductable,
     isRoofCovered,
   } = data;
@@ -47,6 +50,9 @@ export const createTicketService = async (data: CreateTicketInput) => {
           addressId: true,
           phone: true,
           insuranceCompany: true,
+          policyNumber: true,
+          policyExpiryDate: true,
+          insuranceContactNo: true,
           insuranceDeductable: true,
           isRoofCovered: true,
         },
@@ -60,6 +66,9 @@ export const createTicketService = async (data: CreateTicketInput) => {
           addressId: true,
           phone: true,
           insuranceCompany: true,
+          policyNumber: true,
+          policyExpiryDate: true,
+          insuranceContactNo: true,
           insuranceDeductable: true,
           isRoofCovered: true,
         },
@@ -89,6 +98,9 @@ export const createTicketService = async (data: CreateTicketInput) => {
           phone,
           profilePicture: undefined,
           insuranceCompany,
+          policyNumber,
+          policyExpiryDate,
+          insuranceContactNo,
           insuranceDeductable,
           isRoofCovered: isRoofCovered ?? false,
           isRegistered: false,
@@ -1009,14 +1021,16 @@ export const getTicketWithItemsService = async (
           assignedByAdmin: {
             select: {
               id: true,
-              name: true,
+              firstname: true,
+              lastname: true,
             },
           },
           assignedByCustomerId: true,
           assignedByCustomer: {
             select: {
               id: true,
-              name: true,
+              firstname: true,
+              lastname: true,
             },
           },
           assignedByDeptId: true,
@@ -1031,7 +1045,8 @@ export const getTicketWithItemsService = async (
           assignedToAdmin: {
             select: {
               id: true,
-              name: true,
+              firstname: true,
+              lastname: true,
             },
           },
           assignedToCustomerId: true,
