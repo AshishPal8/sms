@@ -33,9 +33,9 @@ interface EmployeeStatsResponse {
   }[];
 }
 
-interface DepartmentStatsResponse {
-  totalDepartments: number;
-  newDepartmentssLast30Days: number;
+interface DivisionStatsResponse {
+  totalDivisons: number;
+  newDivisionsLast30Days: number;
 }
 
 interface TicketStatsResponse {
@@ -65,11 +65,11 @@ const COLORS = ["#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa"];
 
 const StatsHeader = ({
   employeeStats,
-  departmentStats,
+  divisionsStats,
   ticketStats,
 }: {
   employeeStats: EmployeeStatsResponse | null;
-  departmentStats: DepartmentStatsResponse | null;
+  divisionsStats: DivisionStatsResponse | null;
   ticketStats: TicketStatsResponse | null;
 }) => {
   const { user } = useAuthStore();
@@ -92,15 +92,17 @@ const StatsHeader = ({
               diff={employeeStats?.newEmployeesLast30Days || 0}
               iconBg="bg-blue-100"
               iconColor="text-blue-600"
+              link="/dashboard/employees"
             />
 
             <StatCard
-              title="Total Departments"
+              title="Total Divisions"
               icon={<Building className="h-6 w-6" />}
-              value={departmentStats?.totalDepartments || 0}
-              diff={departmentStats?.newDepartmentssLast30Days || 0}
+              value={divisionsStats?.totalDivisons || 0}
+              diff={divisionsStats?.newDivisionsLast30Days || 0}
               iconBg="bg-purple-100"
               iconColor="text-purple-600"
+              link="/dashboard/divisions"
             />
           </div>
           <div className="w-full p-4 rounded-lg bg-white shadow">

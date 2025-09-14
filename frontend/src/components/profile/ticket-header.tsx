@@ -55,38 +55,38 @@ const TicketHeader = ({ ticket }: { ticket: ITicketById }) => {
                   <p className="text-gray-600 mt-2">{item.description}</p>
 
                   {/* Assigned By */}
-                  {(item.assignedByAdmin ||
-                    item.assignedByCustomer ||
-                    item.assignedByDept) && (
+                  {(item.assignedByAdmin || item.assignedByCustomer) && (
                     <div className="mt-4 text-sm text-gray-700">
                       <p className="flex items-center gap-2">
                         <User className="w-4 h-4 text-blue-500" />
                         <span className="font-semibold">Assigned By:</span>{" "}
                         {item.assignedByAdmin
-                          ? `${item.assignedByAdmin.name} (${item.assignedByRole})`
+                          ? `${item.assignedByAdmin.firstname} ${
+                              item.assignedByAdmin.lastname ?? ""
+                            } (${item.assignedByRole})`
                           : item.assignedByCustomer
-                          ? `${item.assignedByCustomer.name} (Customer)`
-                          : item.assignedByDept
-                          ? `${item.assignedByDept.name} (Department)`
+                          ? `${item.assignedByCustomer.firstname} ${
+                              item.assignedByCustomer.lastname ?? ""
+                            } (Customer)`
                           : "System"}
                       </p>
                     </div>
                   )}
 
                   {/* Assigned To */}
-                  {(item.assignedToAdmin ||
-                    item.assignedToCustomer ||
-                    item.assignedToDept) && (
+                  {(item.assignedToAdmin || item.assignedToCustomer) && (
                     <div className="text-sm text-gray-700">
                       <p className="flex items-center gap-2">
                         <User className="w-4 h-4 text-green-500" />
                         <span className="font-semibold">Assigned To:</span>{" "}
                         {item.assignedToAdmin
-                          ? `${item.assignedToAdmin.name} (${item.assignedToRole})`
+                          ? `${item.assignedToAdmin.firstname} ${
+                              item.assignedToAdmin.lastname ?? ""
+                            } (${item.assignedToRole})`
                           : item.assignedToCustomer
-                          ? `${item.assignedToCustomer.name} (Customer)`
-                          : item.assignedToDept
-                          ? `${item.assignedToDept.name} (Department)`
+                          ? `${item.assignedToCustomer.firstname} ${
+                              item.assignedToCustomer.lastname ?? ""
+                            } (Customer)`
                           : "Unassigned"}
                       </p>
                     </div>

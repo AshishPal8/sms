@@ -197,19 +197,20 @@ const TicketDetailForm = ({
 
     let mounted = true;
     const fetchTechs = async () => {
-      try {
-        // endpoint pattern: try a query-based endpoint. Adjust if your API uses a different route.
-        const res = await axios.get(
-          `${baseUrl}/employees?managerId=${encodeURIComponent(
-            user?.id ?? ""
-          )}&role=TECHNICIAN`,
-          { withCredentials: true }
-        );
-        const payload = res?.data?.data ?? res?.data ?? [];
-        if (mounted) setTechniciansUnderManager(payload);
-      } catch (err) {
-        console.error("Failed to fetch technicians for manager", err);
-        if (mounted) setTechniciansUnderManager([]);
+      if (user?.role === roles.MANAGER) {
+        try {
+          const res = await axios.get(
+            `${baseUrl}/employees?managerId=${encodeURIComponent(
+              user?.id ?? ""
+            )}&role=TECHNICIAN`,
+            { withCredentials: true }
+          );
+          const payload = res?.data?.data ?? res?.data ?? [];
+          if (mounted) setTechniciansUnderManager(payload);
+        } catch (err) {
+          console.error("Failed to fetch technicians for manager", err);
+          if (mounted) setTechniciansUnderManager([]);
+        }
       }
     };
 
