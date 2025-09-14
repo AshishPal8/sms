@@ -6,5 +6,6 @@ export type GetAllEmployeesOptions = {
   page?: number;
   limit?: number;
   role?: string;
+  managerId?: string;
   isActive?: boolean;
 };

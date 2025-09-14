@@ -4,13 +4,14 @@ import { format } from "date-fns";
 import { DataTable } from "@/components/ui/data-table";
 import React, { useEffect, useState } from "react";
 import { baseUrl } from "../../../config";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { DepartmentActions } from "./cell-action";
 import Pagination from "../pagination";
 
 interface IManager {
   id: string;
-  name: string;
+  firstname: string;
+  lastname?: string;
 }
 
 interface IDepartment {
@@ -22,6 +23,8 @@ interface IDepartment {
 }
 
 const DepartmentData = () => {
+  const { divId } = useParams();
+
   const searchParams = useSearchParams();
   const [departments, setDepartments] = useState([]);
   const [totalPage, setTotalPage] = useState(0);
@@ -33,7 +36,7 @@ const DepartmentData = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/departments`, {
+        const res = await axios.get(`${baseUrl}/departments/${divId}`, {
           params: {
             search,
             sortOrder,
@@ -51,14 +54,16 @@ const DepartmentData = () => {
     };
 
     fetchDepartments();
-  }, [search, sortOrder, page]);
+  }, [search, sortOrder, page, divId]);
 
   const formatDepartments = departments.map((department: IDepartment) => ({
     id: department.id,
     name: department.name,
     assignedTo:
       department.managers && department.managers.length > 0
-        ? department.managers.map((manager) => manager.name).join(", ")
+        ? department.managers
+            .map((manager) => `${manager.firstname} ${manager.lastname}`)
+            .join(", ")
         : "Not Assigned",
     isActive: department.isActive,
     createdAt: format(new Date(department.createdAt), "dd-MM-yyyy"),

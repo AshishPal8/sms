@@ -8,7 +8,6 @@ import {
   getAllDepartmentsService,
   getDepartmentByIdService,
   updateDepartmentService,
-  getDepartmentsByDivisionService,
 } from "./department.service";
 
 export const getAllDepartmentController = async (
@@ -17,6 +16,11 @@ export const getAllDepartmentController = async (
   next: NextFunction
 ) => {
   try {
+    const { divisionId } = req.params;
+
+    if (!divisionId)
+      throw new BadRequestError("Division is required to fetch departments");
+
     const {
       search,
       sortBy,
@@ -31,7 +35,7 @@ export const getAllDepartmentController = async (
     const isActiveBoolean =
       isActive === "true" ? true : isActive === "false" ? false : undefined;
 
-    const departments = await getAllDepartmentsService({
+    const departments = await getAllDepartmentsService(divisionId, {
       search: search as string,
       sortBy: sortBy as string,
       sortOrder: sortOrder as "asc" | "desc",

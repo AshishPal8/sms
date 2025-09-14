@@ -193,12 +193,6 @@ model Department {
   isActive  Boolean @default(true)
   isDeleted Boolean @default(false)
 
-  assignedByTicketItems TicketItem[] @relation("AssignedByDept")
-  assignedToTicketItems TicketItem[] @relation("AssignedToDept")
-
-  NotificationSenderDept   Notification[]         @relation("NotificationSenderDept")
-  NotificationReceiverDept NotificationReceiver[] @relation("NotificationReceiverDept")
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -269,8 +263,6 @@ model TicketItem {
   assignedByRole       AssignmentRole?
   assignedByAdminId    String?         @db.ObjectId
   assignedByAdmin      Admin?          @relation("AssignedByAdmin", fields: [assignedByAdminId], references: [id])
-  assignedByDeptId     String?         @db.ObjectId
-  assignedByDept       Department?     @relation("AssignedByDept", fields: [assignedByDeptId], references: [id])
   assignedByCustomerId String?         @db.ObjectId
   assignedByCustomer   Customer?       @relation("AssignedByCustomer", fields: [assignedByCustomerId], references: [id])
 
@@ -278,8 +270,6 @@ model TicketItem {
   assignedToRole       AssignmentRole?
   assignedToAdminId    String?         @db.ObjectId
   assignedToAdmin      Admin?          @relation("AssignedToAdmin", fields: [assignedToAdminId], references: [id])
-  assignedToDeptId     String?         @db.ObjectId
-  assignedToDept       Department?     @relation("AssignedToDept", fields: [assignedToDeptId], references: [id])
   assignedToCustomerId String?         @db.ObjectId
   assignedToCustomer   Customer?       @relation("AssignedToCustomer", fields: [assignedToCustomerId], references: [id])
 
@@ -311,8 +301,6 @@ model Notification {
   senderAdmin      Admin?         @relation("NotificationSenderAdmin", fields: [senderAdminId], references: [id])
   senderCustomerId String?        @db.ObjectId
   senderCustomer   Customer?      @relation("NotificationSenderCustomer", fields: [senderCustomerId], references: [id])
-  senderDeptId     String?        @db.ObjectId
-  senderDept       Department?    @relation("NotificationSenderDept", fields: [senderDeptId], references: [id])
 
   receivers NotificationReceiver[]
 
@@ -330,8 +318,6 @@ model NotificationReceiver {
   receiverAdmin      Admin?         @relation("NotificationReceiverAdmin", fields: [receiverAdminId], references: [id])
   receiverCustomerId String?        @db.ObjectId
   receiverCustomer   Customer?      @relation("NotificationReceiverCustomer", fields: [receiverCustomerId], references: [id])
-  receiverDeptId     String?        @db.ObjectId
-  receiverDept       Department?    @relation("NotificationReceiverDept", fields: [receiverDeptId], references: [id])
 
   isRead    Boolean   @default(false)
   readAt    DateTime?

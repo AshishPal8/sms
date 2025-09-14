@@ -41,8 +41,9 @@ const createTicketItemSchema = z.object({
   description: z.string().optional(),
 
   assignedToAdminId: z.string().optional(),
-  assignedToDeptId: z.string().optional(),
   assignedToCustomerId: z.string().optional(),
+
+  divisionId: z.string().nullable().optional(),
 
   assets: z
     .array(
@@ -62,16 +63,25 @@ const TicketDetailForm = ({
   ticket: ITicketById;
   onItemCreated: () => void;
 }) => {
-  const [departments, setDepartments] = useState([]);
-  const [technicians, setTechnicians] = useState<IEmployee[]>([]);
-  const [managers, setManagers] = useState<IEmployee[]>([]);
+  const [divisions, setDivisions] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
+  const [departmentsByDivision, setDepartmentsByDivision] = useState<any[]>([]);
+  const [selectedDepartmentManagers, setSelectedDepartmentManagers] = useState<
+    IEmployee[]
+  >([]);
+  const [techniciansUnderManager, setTechniciansUnderManager] = useState<
+    IEmployee[]
+  >([]);
+  const [selectedDeptId, setSelectedDeptId] = useState<string | "">("");
+  const [fetchingDivisions, setFetchingDivisions] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [assignTo, setAssignTo] = useState<
-    "CUSTOMER" | "DEPARTMENT" | "TECHNICIAN" | ""
+    "CUSTOMER" | "DIVISION" | "TECHNICIAN" | ""
   >("");
-  const { user } = useAuthStore();
 
-  console.log("Managers", managers);
+  const { user } = useAuthStore();
 
   const form = useForm<CreateTicketItemFormValues>({
     resolver: zodResolver(createTicketItemSchema),
@@ -80,107 +90,163 @@ const TicketDetailForm = ({
       title: "",
       description: "",
       assignedToAdminId: "",
-      assignedToDeptId: "",
       assignedToCustomerId: "",
+      divisionId: null,
       assets: [],
     },
   });
 
-  const deptId = useWatch({
+  const divisionSelected = useWatch({
     control: form.control,
-    name: "assignedToDeptId",
+    name: "divisionId",
+  });
+  const managerSelected = useWatch({
+    control: form.control,
+    name: "assignedToAdminId",
   });
 
   useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        const res = await axios.get(`${baseUrl}/departments/active`, {
-          withCredentials: true,
-        });
-
-        const { data } = res.data;
-        setDepartments(data);
-      } catch (error) {
-        console.error("Error fetching departments:", error);
+    const fetchDivisions = async () => {
+      setFetchingDivisions(true);
+      if (user?.role === roles.SUPERADMIN || user?.role === roles.ASSISTANT) {
+        try {
+          const res = await axios.get(`${baseUrl}/divisions/active`, {
+            withCredentials: true,
+          });
+          setDivisions(res.data?.data ?? []);
+        } catch (err) {
+          console.error("Failed to fetch divisions", err);
+          toast.error("Failed to load divisions");
+        } finally {
+          setFetchingDivisions(false);
+        }
       }
     };
-
-    fetchDepartments();
-  }, []);
+    fetchDivisions();
+  }, [user?.role]);
 
   useEffect(() => {
-    if (!deptId) {
-      setManagers([]);
-      form.setValue("assignedToAdminId", "");
+    if (!divisionSelected) {
+      setDepartmentsByDivision([]);
+      setSelectedDeptId("");
+      setSelectedDepartmentManagers([]);
+      form.setValue("assignedToAdminId", ""); // clear manager selection
       return;
     }
 
     let mounted = true;
-
-    const fetchManagers = async () => {
+    const fetchDepartmentsForDivision = async () => {
+      setFetchingDivisions(true); // reuse your existing flag or create a new one
       try {
         const res = await axios.get(
-          `${baseUrl}/employees/dept/${deptId}?role=${roles.MANAGER}`,
-          {
-            withCredentials: true,
-          }
+          `${baseUrl}/divisions/dept/${encodeURIComponent(divisionSelected)}`,
+          { withCredentials: true }
         );
-
-        const payload = res?.data?.data ?? res?.data ?? [];
-
+        const payload = res?.data?.data ?? null;
+        if (!payload) {
+          setDepartmentsByDivision([]);
+          return;
+        }
         if (mounted) {
-          setManagers(payload);
+          // payload.departments is expected to contain managers[]
+          setDepartmentsByDivision(payload.departments ?? []);
+          // clear lower-level selections
+          setSelectedDeptId("");
+          setSelectedDepartmentManagers([]);
           form.setValue("assignedToAdminId", "");
         }
-      } catch (error) {
-        console.error("Error fetching managers:", error);
-        if (mounted) setManagers([]);
+      } catch (err) {
+        console.error("Failed to fetch departments for division", err);
+        toast.error("Failed to load departments");
+        if (mounted) {
+          setDepartmentsByDivision([]);
+        }
+      } finally {
+        setFetchingDivisions(false);
       }
     };
 
-    fetchManagers();
+    fetchDepartmentsForDivision();
 
     return () => {
       mounted = false;
     };
-  }, [deptId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [divisionSelected]);
 
   useEffect(() => {
-    const fetchTechnicians = async () => {
-      if (user?.role === roles.MANAGER) {
-        try {
-          const res = await axios.get(
-            `${baseUrl}/employees/dept/${user?.departmentId}?role=${roles.TECHNICIAN}`,
-            {
-              withCredentials: true,
-            }
-          );
-          setTechnicians(res.data.data);
-        } catch (error) {
-          console.error("Error fetching technicians:", error);
-        }
+    if (!selectedDeptId) {
+      setSelectedDepartmentManagers([]);
+      form.setValue("assignedToAdminId", "");
+      return;
+    }
+
+    const dept = departmentsByDivision.find(
+      (d: any) => d.id === selectedDeptId
+    );
+    const mgrs = dept?.managers ?? [];
+    setSelectedDepartmentManagers(mgrs);
+    form.setValue("assignedToAdminId", ""); // reset manager pick
+  }, [selectedDeptId, departmentsByDivision, form]);
+
+  useEffect(() => {
+    // if (!managerSelected) {
+    //   setTechniciansUnderManager([]);
+    //   return;
+    // }
+
+    let mounted = true;
+    const fetchTechs = async () => {
+      try {
+        // endpoint pattern: try a query-based endpoint. Adjust if your API uses a different route.
+        const res = await axios.get(
+          `${baseUrl}/employees?managerId=${encodeURIComponent(
+            user?.id ?? ""
+          )}&role=TECHNICIAN`,
+          { withCredentials: true }
+        );
+        const payload = res?.data?.data ?? res?.data ?? [];
+        if (mounted) setTechniciansUnderManager(payload);
+      } catch (err) {
+        console.error("Failed to fetch technicians for manager", err);
+        if (mounted) setTechniciansUnderManager([]);
       }
     };
-    fetchTechnicians();
-  }, [user?.role, user?.departmentId]);
+
+    fetchTechs();
+
+    return () => {
+      mounted = false;
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     if (assignTo === "CUSTOMER") {
       form.setValue("assignedToCustomerId", ticket.customer.id);
-      form.setValue("assignedToDeptId", "");
       form.setValue("assignedToAdminId", "");
-    } else if (assignTo === "DEPARTMENT") {
+      form.setValue("divisionId", null);
+      setSelectedDeptId("");
+    } else if (assignTo === "DIVISION") {
+      // reset customer/admin picks and keep division flow
       form.setValue("assignedToCustomerId", "");
       form.setValue("assignedToAdminId", "");
+      form.setValue("divisionId", null);
+      setSelectedDeptId("");
     } else if (assignTo === "TECHNICIAN") {
-      form.setValue("assignedToDeptId", "");
+      // manager -> choose tech, reset other picks
       form.setValue("assignedToCustomerId", "");
-    } else {
-      form.setValue("assignedToCustomerId", "");
-      form.setValue("assignedToDeptId", "");
       form.setValue("assignedToAdminId", "");
+      form.setValue("divisionId", null);
+      setSelectedDeptId("");
+    } else {
+      // none selected
+      form.setValue("assignedToCustomerId", "");
+      form.setValue("assignedToAdminId", "");
+      form.setValue("divisionId", null);
+      setSelectedDeptId("");
     }
-  }, [assignTo, form, ticket.customer.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assignTo]);
 
   const onSubmit = async (values: CreateTicketItemFormValues) => {
     try {
@@ -248,6 +314,7 @@ const TicketDetailForm = ({
                   </FormItem>
                 )}
               />
+
               {user?.role !== roles.TECHNICIAN && (
                 <div className="grid grid-cols-2 gap-5">
                   <div className=" space-y-2">
@@ -257,7 +324,7 @@ const TicketDetailForm = ({
                       value={assignTo}
                       onValueChange={(value) =>
                         setAssignTo(
-                          value as "CUSTOMER" | "DEPARTMENT" | "TECHNICIAN"
+                          value as "CUSTOMER" | "DIVISION" | "TECHNICIAN"
                         )
                       }
                     >
@@ -269,7 +336,7 @@ const TicketDetailForm = ({
                       <SelectContent>
                         <SelectItem value="CUSTOMER">Customer</SelectItem>
                         {user?.role !== "MANAGER" && (
-                          <SelectItem value="DEPARTMENT">Department</SelectItem>
+                          <SelectItem value="DIVISION">Division</SelectItem>
                         )}
                         {user?.role === "MANAGER" && (
                           <SelectItem value="TECHNICIAN">Technician</SelectItem>
@@ -277,7 +344,6 @@ const TicketDetailForm = ({
                       </SelectContent>
                     </Select>
                   </div>
-
                   {assignTo === "CUSTOMER" && (
                     <div className="flex items-center gap-2 mt-6">
                       <Checkbox
@@ -291,116 +357,150 @@ const TicketDetailForm = ({
                         }
                       />
                       <Label htmlFor="customer-checkbox">
-                        Assign to <strong>{ticket.customer.name}</strong>
+                        Assign to{" "}
+                        <strong>{`${ticket.customer.firstname} ${ticket.customer.lastname}`}</strong>
                       </Label>
                     </div>
                   )}
 
-                  {assignTo === "DEPARTMENT" && (
+                  {/* show division -> department -> manager chain only when Division flow is selected */}
+                  {assignTo === "DIVISION" && (
                     <>
                       <FormField
                         control={form.control}
-                        name="assignedToDeptId"
+                        name="divisionId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Department</FormLabel>
+                            <FormLabel>Division</FormLabel>
+                            <FormControl>
+                              <Select
+                                value={field.value ?? ""}
+                                onValueChange={(v) => {
+                                  field.onChange(v || null);
+                                  // clear dept & manager when division changes
+                                  setSelectedDeptId("");
+                                  form.setValue("assignedToAdminId", "");
+                                }}
+                                disabled={fetchingDivisions}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue
+                                    placeholder={
+                                      fetchingDivisions
+                                        ? "Loading..."
+                                        : "Select division"
+                                    }
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {divisions.map((d) => (
+                                    <SelectItem key={d.id} value={d.id}>
+                                      {d.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* show departments only after a division selected */}
+                      {divisionSelected && (
+                        <FormItem>
+                          <FormLabel>Department</FormLabel>
+                          <FormControl>
                             <Select
-                              disabled={loading}
-                              onValueChange={(val) => {
-                                field.onChange(val);
+                              value={selectedDeptId ?? ""}
+                              onValueChange={(v) => {
+                                setSelectedDeptId(v || "");
                                 form.setValue("assignedToAdminId", "");
                               }}
-                              value={field.value}
+                              disabled={!departmentsByDivision.length}
                             >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select department" />
-                                </SelectTrigger>
-                              </FormControl>
+                              <SelectTrigger>
+                                <SelectValue
+                                  placeholder={
+                                    departmentsByDivision.length
+                                      ? "Select department"
+                                      : "No departments"
+                                  }
+                                />
+                              </SelectTrigger>
                               <SelectContent>
-                                {departments.map((dept) => (
+                                {departmentsByDivision.map((dept: any) => (
                                   <SelectItem key={dept.id} value={dept.id}>
                                     {dept.name}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                          </FormControl>
+                        </FormItem>
+                      )}
 
-                      {form.watch("assignedToDeptId") && (
+                      {/* manager list for selected department */}
+                      {selectedDeptId && (
                         <FormField
                           control={form.control}
-                          name="assignedToAdminId" // directly write to assignedToAdminId
+                          name="assignedToAdminId"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Manager</FormLabel>
-                              <Select
-                                disabled={loading || managers.length === 0}
-                                onValueChange={(val) => {
-                                  // write manager id directly to assignedToAdminId
-                                  field.onChange(val);
-                                }}
-                                value={field.value}
-                              >
-                                <FormControl>
+                              <FormControl>
+                                <Select
+                                  value={field.value ?? ""}
+                                  onValueChange={(v) => field.onChange(v || "")}
+                                  disabled={!selectedDepartmentManagers.length}
+                                >
                                   <SelectTrigger>
                                     <SelectValue
                                       placeholder={
-                                        managers.length
+                                        selectedDepartmentManagers.length
                                           ? "Select manager"
-                                          : "No managers available"
+                                          : "No managers"
                                       }
                                     />
                                   </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {managers.length > 0 ? (
-                                    managers.map((mgr) => (
-                                      <SelectItem key={mgr.id} value={mgr.id}>
-                                        <div className="flex items-center gap-2">
-                                          <Avatar className="w-8 h-8">
-                                            <AvatarImage
-                                              src={
-                                                `${mgr.profilePicture}` ||
-                                                "/default.webp"
-                                              }
-                                              alt={mgr.name}
-                                            />
-                                            <AvatarFallback className="text-xs">
-                                              {mgr.name[0] || "M"}
-                                            </AvatarFallback>
-                                          </Avatar>
-                                          <div>
-                                            <h2 className="text-black font-semibold text-sm">
-                                              {mgr.name}
-                                            </h2>
-                                            <p className="text-gray-600 capitalize text-xs">
-                                              {mgr.role
-                                                ? mgr.role
-                                                    .charAt(0)
-                                                    .toUpperCase() +
-                                                  mgr.role
-                                                    .slice(1)
-                                                    .toLowerCase()
-                                                : ""}
-                                            </p>
+                                  <SelectContent>
+                                    {selectedDepartmentManagers.map(
+                                      (mgr: any) => (
+                                        <SelectItem key={mgr.id} value={mgr.id}>
+                                          <div className="flex items-center gap-2">
+                                            <Avatar className="w-8 h-8">
+                                              <AvatarImage
+                                                src={
+                                                  `${mgr.profilePicture}` ||
+                                                  "/default.webp"
+                                                }
+                                                alt={`${mgr.firstname} ${mgr.lastname}`}
+                                              />
+                                              <AvatarFallback className="text-xs">
+                                                {mgr.firstname?.[0] ?? "M"}
+                                              </AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                              <h2 className="text-sm">
+                                                {`${mgr.firstname} ${mgr.lastname}`}
+                                              </h2>
+                                              <p className="text-gray-600 capitalize text-xs">
+                                                {mgr.role
+                                                  ? mgr.role
+                                                      .charAt(0)
+                                                      .toUpperCase() +
+                                                    mgr.role
+                                                      .slice(1)
+                                                      .toLowerCase()
+                                                  : ""}
+                                              </p>
+                                            </div>
                                           </div>
-                                        </div>
-                                      </SelectItem>
-                                    ))
-                                  ) : (
-                                    <SelectItem value="no-managers" disabled>
-                                      <span className="text-sm text-gray-500">
-                                        No managers found
-                                      </span>
-                                    </SelectItem>
-                                  )}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
+                                        </SelectItem>
+                                      )
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
                             </FormItem>
                           )}
                         />
@@ -408,57 +508,38 @@ const TicketDetailForm = ({
                     </>
                   )}
 
-                  {assignTo === "TECHNICIAN" && user?.role === "MANAGER" && (
+                  {/* manager -> technician path (for managers assigning to their techs) */}
+                  {assignTo === "TECHNICIAN" && (
                     <FormField
                       control={form.control}
                       name="assignedToAdminId"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Technician</FormLabel>
-                          <Select
-                            disabled={loading}
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
+                          <FormControl>
+                            <Select
+                              value={field.value ?? ""}
+                              onValueChange={(v) => field.onChange(v || "")}
+                              disabled={!techniciansUnderManager.length}
+                            >
                               <SelectTrigger>
-                                <SelectValue placeholder="Select technician" />
+                                <SelectValue
+                                  placeholder={
+                                    techniciansUnderManager.length
+                                      ? "Select technician"
+                                      : "No technicians"
+                                  }
+                                />
                               </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {technicians.map((tech) => (
-                                <SelectItem key={tech.id} value={tech.id}>
-                                  <div className="flex items-center gap-2">
-                                    <Avatar className="w-8 h-8">
-                                      <AvatarImage
-                                        src={
-                                          `${tech.profilePicture}` ||
-                                          "/default.webp"
-                                        }
-                                        alt={tech.name}
-                                        className="object-cover"
-                                      />
-                                      <AvatarFallback className="text-xs">
-                                        {tech.name[0] || "T"}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                      <h2 className="text-black font-semibold text-sm">
-                                        {tech.name}
-                                      </h2>
-                                      <p className="text-gray-600 capitalize text-xs">
-                                        {tech.role
-                                          ? tech.role.charAt(0).toUpperCase() +
-                                            tech.role.slice(1).toLowerCase()
-                                          : ""}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
+                              <SelectContent>
+                                {techniciansUnderManager.map((t: any) => (
+                                  <SelectItem key={t.id} value={t.id}>
+                                    {t.firstname} {t.lastname}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
                         </FormItem>
                       )}
                     />

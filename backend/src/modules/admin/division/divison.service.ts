@@ -239,7 +239,8 @@ export const getDepartmentsByDivisionService = async (divisionId: string) => {
               admin: {
                 select: {
                   id: true,
-                  name: true,
+                  firstname: true,
+                  lastname: true,
                   profilePicture: true,
                 },
               },
@@ -263,7 +264,8 @@ export const getDepartmentsByDivisionService = async (divisionId: string) => {
     name: dept.name,
     managers: (dept.managers || []).map((m) => ({
       id: m.admin.id,
-      name: m.admin.name,
+      firstname: m.admin.firstname,
+      lastname: m.admin.lastname,
       profilePicture: m.admin.profilePicture,
     })),
   }));

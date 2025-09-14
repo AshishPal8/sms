@@ -79,7 +79,6 @@ export const createTicketItemSchema = z.object({
   description: z.string().optional(),
 
   assignedToAdminId: z.string().optional(),
-  assignedToDeptId: z.string().optional(),
   assignedToCustomerId: z.string().optional(),
 
   assets: z.array(ticketAssetSchema).optional(),
@@ -97,7 +96,6 @@ export const updateTicketItemSchema = z.object({
     .max(1000)
     .optional(),
   assignedToAdminId: z.string().optional(),
-  assignedToDeptId: z.string().optional(),
   assignedToCustomerId: z.string().optional(),
   assets: z.array(ticketAssetSchema).optional(),
 });

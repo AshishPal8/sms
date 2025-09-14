@@ -20,7 +20,7 @@ import {
 const router = Router();
 
 router.get(
-  "/",
+  "/:divisionId",
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN),
   getAllDepartmentController
@@ -46,7 +46,7 @@ router.get(
 );
 
 router.get(
-  "/:id",
+  "/by-id/:id",
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN),
   getDepartmentByIdController
