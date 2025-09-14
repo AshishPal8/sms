@@ -691,7 +691,7 @@ export const createticketItemService = async (
 
       assignedToData = {
         assignedToRole: AdminRole.TECHNICIAN,
-        assignedToAdminId: assignedToAdminId,
+        assignedToAdminId: technician.managerId,
       };
     } else {
       throw new Error("No valid assignment target provided");

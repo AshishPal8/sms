@@ -10,7 +10,7 @@ import StatsChart from "@/components/dashboard/stats-chart";
 const Dashboard = () => {
   const { user } = useAuthStore();
   const [employeeStats, setEmployeeStats] = useState(null);
-  const [departmentStats, setDepartmentStats] = useState(null);
+  const [divisionsStats, setDivisionsStats] = useState(null);
   const [ticketStats, setTicketStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,11 +37,11 @@ const Dashboard = () => {
     if (user?.role === roles.SUPERADMIN) {
       const fetchDepartmentsStats = async () => {
         try {
-          const res = await axios.get(`${baseUrl}/departments/stats`, {
+          const res = await axios.get(`${baseUrl}/divisions/stats`, {
             withCredentials: true,
           });
           const { data } = await res.data;
-          setDepartmentStats(data);
+          setDivisionsStats(data);
         } catch (err) {
           console.error("Failed to fetch department stats:", err);
         } finally {
@@ -73,10 +73,10 @@ const Dashboard = () => {
     <div>
       <StatsHeader
         employeeStats={employeeStats}
-        departmentStats={departmentStats}
+        divisionsStats={divisionsStats}
         ticketStats={ticketStats}
       />
-      <StatsChart ticketStats={ticketStats} employeeStats={employeeStats} />
+      <StatsChart ticketStats={ticketStats} />
     </div>
   );
 };
