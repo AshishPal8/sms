@@ -61,9 +61,9 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
           }
         );
 
-        const mappedManagers = managersRes.data.data.map((tech: IEmployee) => ({
-          value: tech.id,
-          label: tech.name,
+        const mappedManagers = managersRes.data.data.map((m: IEmployee) => ({
+          value: m.id,
+          label: `${m.firstname} ${m.lastname}`,
         }));
 
         setManagers(mappedManagers);

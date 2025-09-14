@@ -31,9 +31,8 @@ export interface ITicketItem {
     | "TECHNICIAN"
     | "ASSISTANT"
     | "CUSTOMER";
-  assignedByAdmin?: { id: string; name: string };
-  assignedByDept?: { id: string; name: string };
-  assignedByCustomer?: { id: string; name: string };
+  assignedByAdmin?: { id: string; firstname: string; lastname: string };
+  assignedByCustomer?: { id: string; firstname: string; lastname: string };
 
   // Who it’s assigned to
   assignedToRole?:
@@ -42,9 +41,8 @@ export interface ITicketItem {
     | "TECHNICIAN"
     | "ASSISTANT"
     | "CUSTOMER";
-  assignedToAdmin?: { id: string; name: string };
-  assignedToDept?: { id: string; name: string };
-  assignedToCustomer?: { id: string; name: string };
+  assignedToAdmin?: { id: string; firstname: string; lastname: string };
+  assignedToCustomer?: { id: string; firstname: string; lastname: string };
 
   createdAt: string;
 }
@@ -64,7 +62,8 @@ export interface ITicketById {
   createdAt: string;
   customer: {
     id: string;
-    name: string;
+    firstname: string;
+    lastname: string;
     email: string;
     phone: string;
     insuranceCompany: string;

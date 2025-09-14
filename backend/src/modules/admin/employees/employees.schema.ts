@@ -36,10 +36,10 @@ export const updateEmployeeSchema = z.object({
   lastname: z.string().optional(),
   email: z.email({ error: "Invalid email" }).optional(),
   role: z.enum(AdminRole).optional(),
-  password: z
-    .string()
-    .min(6, { error: "Password must be at least 6 characters" })
-    .optional(),
+  password: z.preprocess((val) => {
+    if (typeof val === "string" && val.trim() === "") return undefined;
+    return val;
+  }, z.string().min(8).optional()),
   phone: z
     .string()
     .min(10, { error: "Phone must be of 10 charactors" })

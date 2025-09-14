@@ -29,6 +29,7 @@ export const getAllEmployees = async (
       page = "1",
       limit = "10",
       role,
+      managerId,
       isActive,
     } = req.query;
 
@@ -45,6 +46,7 @@ export const getAllEmployees = async (
       page: numericPage,
       limit: numericLimit,
       role: role as string,
+      managerId: managerId as string,
       isActive: isActiveBoolean,
     });
 

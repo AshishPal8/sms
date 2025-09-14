@@ -39,7 +39,7 @@ const formSchema = z.object({
   lastname: z.string().optional(),
   email: z.string(),
   phone: z.string().optional(),
-  password: z.string(),
+  password: z.string().min(6).optional(),
   role: z.enum(["SUPERADMIN", "TECHNICIAN", "MANAGER", "ASSISTANT"]),
   profilePicture: z.string().optional(),
   isActive: z.boolean(),
@@ -98,6 +98,7 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
     if (initialData) {
       form.reset({
         ...initialData,
+        password: "",
       });
       setInitialDataApplied(false); // Reset the flag when new initial data comes
     }
@@ -353,11 +354,11 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
                   name="firstname"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name</FormLabel>
+                      <FormLabel>First Name</FormLabel>
                       <FormControl>
                         <Input
                           disabled={loading}
-                          placeholder="Enter name"
+                          placeholder="Enter first name"
                           {...field}
                         />
                       </FormControl>
@@ -370,11 +371,11 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
                   name="lastname"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name</FormLabel>
+                      <FormLabel>Last Name</FormLabel>
                       <FormControl>
                         <Input
                           disabled={loading}
-                          placeholder="Enter name"
+                          placeholder="Enter last name"
                           {...field}
                         />
                       </FormControl>
@@ -425,9 +426,15 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
                       <FormLabel>Password</FormLabel>
                       <FormControl>
                         <Input
-                          type="text"
-                          disabled={loading}
-                          placeholder="Enter password"
+                          type="password"
+                          placeholder={
+                            isEdit
+                              ? "Leave blank to keep current password"
+                              : "Enter a password"
+                          }
+                          autoComplete={
+                            isEdit ? "new-password" : "new-password"
+                          }
                           {...field}
                         />
                       </FormControl>

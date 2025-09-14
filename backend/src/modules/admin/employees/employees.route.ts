@@ -22,7 +22,7 @@ router.get("/me", authMiddleware, getEmployeeProfile);
 router.get(
   "/",
   authMiddleware,
-  requireRole(AdminRole.SUPERADMIN),
+  requireRole(AdminRole.SUPERADMIN, AdminRole.MANAGER),
   getAllEmployees
 );
 

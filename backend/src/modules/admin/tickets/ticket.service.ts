@@ -446,17 +446,8 @@ export const getTicketStatsService = async (user: {
     if (manager?.department?.id) {
       where.items = {
         some: {
-          OR: [
-            { assignedByDeptId: manager.department.id },
-            { assignedToDeptId: manager.department.id },
-          ],
+          OR: [{ assignedByAdminId: userId }, { assignedToAdminId: userId }],
         },
-      };
-    } else {
-      return {
-        success: true,
-        message: "No department assigned.",
-        data: {},
       };
     }
   } else if (role === roles.TECHNICIAN) {

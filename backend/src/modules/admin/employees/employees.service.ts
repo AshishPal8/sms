@@ -13,16 +13,24 @@ export const getAllEmployeesService = async ({
   page = 1,
   limit = 10,
   role,
+  managerId,
   isActive,
 }: GetAllEmployeesOptions) => {
+  const allowedSorts = ["createdAt", "firstname", "email", "role"];
+  const orderField = allowedSorts.includes(sortBy) ? sortBy : "createdAt";
+
   const whereClause: any = {
-    id: { not: adminId },
     isDeleted: false,
   };
 
+  if (adminId) {
+    whereClause.id = { not: adminId };
+  }
+
   if (search) {
     whereClause.OR = [
-      { name: { contains: search, mode: "insensitive" } },
+      { firstname: { contains: search, mode: "insensitive" } },
+      { lastname: { contains: search, mode: "insensitive" } },
       { email: { contains: search, mode: "insensitive" } },
     ];
   }
@@ -35,11 +43,15 @@ export const getAllEmployeesService = async ({
     whereClause.isActive = isActive;
   }
 
+  if (managerId) {
+    whereClause.managerId = managerId;
+  }
+
   const total = await prisma.admin.count({ where: whereClause });
 
   const employees = await prisma.admin.findMany({
     where: whereClause,
-    orderBy: { [sortBy]: sortOrder },
+    orderBy: { [orderField]: sortOrder },
     skip: (page - 1) * limit,
     take: limit,
     select: {
@@ -404,7 +416,7 @@ export const updateEmployeeService = async (
   if (typeof phone !== "undefined") updatePayload.phone = phone ?? null;
   if (typeof role !== "undefined") updatePayload.role = role;
 
-  if (typeof password !== "undefined" && password !== null) {
+  if (typeof password !== "undefined" && password !== null && password !== "") {
     updatePayload.password = await bcrypt.hash(password, 10);
   }
 

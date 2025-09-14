@@ -12,18 +12,15 @@ function EditDepartment() {
     adminId: "",
     isActive: true,
   });
-  const { divId, depId } = useParams();
+  const { depId } = useParams();
 
   useEffect(() => {
     if (!depId) return;
 
     const fetchDepartment = async () => {
-      const res = await axios.get(
-        `${baseUrl}/divisions/${divId}/departments/${depId}`,
-        {
-          withCredentials: true,
-        }
-      );
+      const res = await axios.get(`${baseUrl}/departments/by-id/${depId}`, {
+        withCredentials: true,
+      });
 
       const { data } = res.data;
 

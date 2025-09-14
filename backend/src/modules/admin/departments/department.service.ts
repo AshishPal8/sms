@@ -8,16 +8,20 @@ import type {
   updateDepartmentInput,
 } from "./department.schema";
 
-export const getAllDepartmentsService = async ({
-  search,
-  sortBy = "createdAt",
-  sortOrder = "desc",
-  page = 1,
-  limit = 10,
-  isActive,
-}: GetAllDepartmentOptions) => {
+export const getAllDepartmentsService = async (
+  divisionId: string,
+  {
+    search,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    page = 1,
+    limit = 10,
+    isActive,
+  }: GetAllDepartmentOptions
+) => {
   const whereClause: any = {
     isDeleted: false,
+    divisionId,
   };
 
   if (search) {
@@ -41,14 +45,15 @@ export const getAllDepartmentsService = async ({
       managers: {
         include: {
           admin: {
-            select: { id: true, name: true },
+            select: { id: true, firstname: true, lastname: true },
           },
         },
       },
       technicians: {
         select: {
           id: true,
-          name: true,
+          firstname: true,
+          lastname: true,
         },
       },
       isActive: true,
@@ -66,7 +71,8 @@ export const getAllDepartmentsService = async ({
       createdAt: dept.createdAt,
       managers: (dept.managers || []).map((m) => ({
         id: m.admin.id,
-        name: m.admin.name,
+        firstname: m.admin.firstname,
+        lastname: m.admin.lastname,
       })),
       technicians: (dept.technicians || []).filter(
         (t) => !managerAdminIds.includes(t.id)
@@ -120,14 +126,21 @@ export const getActiveDepartmentsService = async () => {
       managers: {
         include: {
           admin: {
-            select: { id: true, name: true, email: true, profilePicture: true },
+            select: {
+              id: true,
+              firstname: true,
+              lastname: true,
+              email: true,
+              profilePicture: true,
+            },
           },
         },
       },
       technicians: {
         select: {
           id: true,
-          name: true,
+          firstname: true,
+          lastname: true,
           email: true,
           profilePicture: true,
         },
@@ -144,7 +157,8 @@ export const getActiveDepartmentsService = async () => {
       name: dept.name,
       managers: (dept.managers || []).map((m) => ({
         id: m.admin.id,
-        name: m.admin.name,
+        firstname: m.admin.firstname,
+        lastname: m.admin.lastname,
         email: m.admin.email,
         profilePicture: m.admin.profilePicture,
       })),
@@ -172,7 +186,8 @@ export const getDepartmentByIdService = async (id: string) => {
           admin: {
             select: {
               id: true,
-              name: true,
+              firstname: true,
+              lastname: true,
               email: true,
               profilePicture: true,
               role: true,
@@ -183,7 +198,8 @@ export const getDepartmentByIdService = async (id: string) => {
       technicians: {
         select: {
           id: true,
-          name: true,
+          firstname: true,
+          lastname: true,
           profilePicture: true,
           role: true,
           email: true,
@@ -214,7 +230,8 @@ export const getDepartmentByIdService = async (id: string) => {
       updatedAt: department.updatedAt,
       managers: (department.managers || []).map((m) => ({
         id: m.admin.id,
-        name: m.admin.name,
+        firstname: m.admin.firstname,
+        lastname: m.admin.lastname,
         email: m.admin.email,
         profilePicture: m.admin.profilePicture,
         role: m.admin.role,
@@ -251,7 +268,7 @@ export const addDepartmentService = async (
   if (managerIds.length > 0) {
     const managerAdmins = await prisma.admin.findMany({
       where: { id: { in: managerIds }, isDeleted: false },
-      select: { id: true, role: true, name: true },
+      select: { id: true, role: true, firstname: true, lastname: true },
     });
 
     if (managerAdmins.length !== managerIds.length) {
@@ -266,7 +283,7 @@ export const addDepartmentService = async (
     if (notManagers.length > 0) {
       throw new BadRequestError(
         `Some admins are not MANAGER role: ${notManagers
-          .map((m) => m.name)
+          .map((m) => m.firstname)
           .join(", ")}`
       );
     }
@@ -301,7 +318,9 @@ export const addDepartmentService = async (
       },
       managers: {
         include: {
-          admin: { select: { id: true, name: true, email: true } },
+          admin: {
+            select: { id: true, firstname: true, lastname: true, email: true },
+          },
         },
       },
     },
@@ -319,7 +338,8 @@ export const addDepartmentService = async (
       : null,
     managers: (deptWithRelations!.managers || []).map((md) => ({
       id: md.admin.id,
-      name: md.admin.name,
+      firstname: md.admin.firstname,
+      lastname: md.admin.lastname,
       email: md.admin.email,
     })),
   };
@@ -363,7 +383,13 @@ export const updateDepartmentService = async (
   if (managerIds && managerIds.length > 0) {
     const managerAdmins = await prisma.admin.findMany({
       where: { id: { in: managerIds }, isDeleted: false },
-      select: { id: true, role: true, name: true, departmentId: true },
+      select: {
+        id: true,
+        role: true,
+        firstname: true,
+        lastname: true,
+        departmentId: true,
+      },
     });
 
     if (managerAdmins.length !== managerIds.length) {
@@ -380,7 +406,7 @@ export const updateDepartmentService = async (
     if (notManagers.length > 0) {
       throw new BadRequestError(
         `Some admins are not MANAGER role: ${notManagers
-          .map((m) => m.name)
+          .map((m) => m.firstname)
           .join(", ")}`
       );
     }
@@ -436,7 +462,11 @@ export const updateDepartmentService = async (
     where: { id: updatedDept.id },
     include: {
       managers: {
-        include: { admin: { select: { id: true, name: true, email: true } } },
+        include: {
+          admin: {
+            select: { id: true, firstname: true, lastname: true, email: true },
+          },
+        },
       },
     },
   });
@@ -450,7 +480,8 @@ export const updateDepartmentService = async (
       isActive: deptWithRelations!.isActive,
       managers: (deptWithRelations!.managers || []).map((md) => ({
         id: md.admin.id,
-        name: md.admin.name,
+        firstname: md.admin.firstname,
+        lastname: md.admin.lastname,
         email: md.admin.email,
       })),
     },
