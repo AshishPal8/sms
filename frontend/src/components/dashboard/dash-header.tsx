@@ -1,40 +1,17 @@
 "use client";
 import React, { useState } from "react";
-import useAuthStore from "@/store/user";
 import { navItems } from "@/data/dashboard/navlinks";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import Link from "next/link";
-import { ChevronDown, LayoutDashboard, Menu } from "lucide-react";
-import axios from "axios";
-import { baseUrl } from "../../config";
-import { usePathname, useRouter } from "next/navigation";
+
+import { Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
 import DashMobileSidebar from "./dash-mobile-sidebar";
+import UserDropdown from "../layout/user";
 
 const DashHeader = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout } = useAuthStore();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const router = useRouter();
   const pathname = usePathname();
-
-  const handleSignout = async () => {
-    await axios.post(
-      `${baseUrl}/auth/signout`,
-      {},
-      {
-        withCredentials: true,
-      }
-    );
-
-    router.push("/admin/signin");
-    logout();
-  };
 
   return (
     <div className="fixed top-0 right-0 w-full md:w-4/5 bg-white px-3 md:px-10 py-2 border-b z-30">
@@ -56,60 +33,7 @@ const DashHeader = () => {
             ) : null
           )}
         </div>
-        {user && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="rounded-xl flex items-center justify-center gap-2 cursor-pointer">
-                <Avatar className="w-10 h-10">
-                  <AvatarImage
-                    src={user.profilePicture || "/default.webp"}
-                    alt=""
-                  />
-                  <AvatarFallback className="text-xs">
-                    {`${user.firstname[0]} ${
-                      user.lastname ? user.lastname[0] : ""
-                    }` || "A"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden md:block">
-                  <h2 className="text-black font-bold text-[14px]">
-                    {`${user.firstname} ${user.lastname ? user.lastname : ""}`}
-                  </h2>
-                  <p className="text-gray-600 capitalize text-xs font-semibold">
-                    {user.role
-                      ? user.role.charAt(0).toUpperCase() +
-                        user.role.slice(1).toLowerCase()
-                      : ""}
-                  </p>
-                </div>
-                <div>
-                  <ChevronDown size={22} />
-                </div>
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>{`${user.firstname} ${
-                user.lastname ? user.lastname : ""
-              }`}</DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link
-                  href="/dashboard/profile"
-                  className="flex items-center cursor-pointer"
-                >
-                  <LayoutDashboard className="h-4 w-4 mr-2" />
-                  Profile
-                </Link>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                onClick={handleSignout}
-                className="cursor-pointer"
-              >
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        <UserDropdown isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
       </div>
 
       {sidebarOpen && (

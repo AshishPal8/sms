@@ -5,7 +5,7 @@ import React, { Suspense } from "react";
 
 const Employees = () => {
   return (
-    <div className="p-2 md:p-4">
+    <div className="p-2 md:p-4 min-h-[100vh]">
       <Suspense fallback={<div>Loading...</div>}>
         <EmployeeFilters />
         <EmployeesData />

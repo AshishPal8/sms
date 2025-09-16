@@ -30,13 +30,13 @@ export const getAllEmployees = async (
       limit = "10",
       role,
       managerId,
-      isActive,
+      active,
     } = req.query;
 
     const numericPage = parseInt(page as string, 10);
     const numericLimit = parseInt(limit as string, 10);
     const isActiveBoolean =
-      isActive === "true" ? true : isActive === "false" ? false : undefined;
+      active === "true" ? true : active === "false" ? false : undefined;
 
     const employees = await getAllEmployeesService({
       adminId,

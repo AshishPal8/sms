@@ -26,9 +26,16 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { IEmployee } from "@/types/employee.types";
 import { MultiSelect } from "@/components/ui/multi-select";
+import { alphaNumbericRegex } from "@/lib/regex";
 
 const formSchema = z.object({
-  name: z.string(),
+  name: z
+    .string()
+    .min(2, { error: "Name must be at least 2 characters" })
+    .max(30, { error: "Name cannot exceed 30 characters" })
+    .regex(alphaNumbericRegex, {
+      error: "Only letters, numbers, and spaces are allowed",
+    }),
   managers: z.array(z.string()).optional(),
   technicians: z.array(z.string()).optional(),
   isActive: z.boolean(),
@@ -167,6 +174,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
                         disabled={loading}
                         placeholder="Enter name"
                         {...field}
+                        maxLength={30}
                       />
                     </FormControl>
                     <FormMessage />

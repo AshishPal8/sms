@@ -6,7 +6,7 @@ import React, { Suspense } from "react";
 
 const Divisions = () => {
   return (
-    <div className="p-2 md:p-4">
+    <div className="p-2 md:p-4 min-h-[95vh]">
       <Suspense fallback={<div>Loading...</div>}>
         <DivisionsFilters />
         <DivisionsData />
