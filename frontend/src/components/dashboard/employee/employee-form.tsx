@@ -33,10 +33,26 @@ import { baseUrl } from "../../../config";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { handleApiError } from "@/lib/handleApiErrors";
+import { alphaNumbericRegex } from "@/lib/regex";
 
 const formSchema = z.object({
-  firstname: z.string().min(2, { error: "Firstname is required" }),
-  lastname: z.string().optional(),
+  firstname: z
+    .string()
+    .min(2, { error: "Firstname must be at least 2 characters" })
+    .max(30, { error: "Firstname cannot exceed 30 characters" })
+    .regex(alphaNumbericRegex, {
+      error: "Only letters, numbers, and spaces are allowed",
+    }),
+  lastname: z
+    .string()
+    .max(30, { error: "Lastname cannot exceed 30 characters" })
+    .regex(alphaNumbericRegex, {
+      error: "Only letters, numbers, and spaces are allowed",
+    })
+    .optional()
+    .refine((val) => !val || val.length >= 2, {
+      error: "Lastname must be at least 2 characters if provided",
+    }),
   email: z.string(),
   phone: z.string().optional(),
   password: z
@@ -247,6 +263,7 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
                           disabled={loading}
                           placeholder="Enter first name"
                           {...field}
+                          maxLength={30}
                         />
                       </FormControl>
                       <FormMessage />
@@ -264,6 +281,7 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
                           disabled={loading}
                           placeholder="Enter last name"
                           {...field}
+                          maxLength={30}
                         />
                       </FormControl>
                       <FormMessage />
@@ -299,6 +317,13 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
                           disabled={loading}
                           placeholder="Enter phone no."
                           {...field}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "");
+                            field.onChange(value);
+                          }}
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={10}
                         />
                       </FormControl>
                       <FormMessage />

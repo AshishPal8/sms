@@ -31,6 +31,7 @@ const DepartmentData = () => {
 
   const search = searchParams.get("search") || "";
   const sortOrder = searchParams.get("sortOrder") || "desc";
+  const active = searchParams.get("active") || true;
   const page = searchParams.get("page") || 1;
 
   useEffect(() => {
@@ -40,6 +41,7 @@ const DepartmentData = () => {
           params: {
             search,
             sortOrder,
+            active,
             page,
           },
           withCredentials: true,
@@ -54,7 +56,7 @@ const DepartmentData = () => {
     };
 
     fetchDepartments();
-  }, [search, sortOrder, page, divId]);
+  }, [search, sortOrder, page, active, divId]);
 
   const formatDepartments = departments.map((department: IDepartment) => ({
     id: department.id,
@@ -66,7 +68,7 @@ const DepartmentData = () => {
             .join(", ")
         : "Not Assigned",
     isActive: department.isActive,
-    createdAt: format(new Date(department.createdAt), "dd-MM-yyyy"),
+    createdAt: format(new Date(department.createdAt), "MM-dd-yyyy"),
   }));
 
   const columns = [

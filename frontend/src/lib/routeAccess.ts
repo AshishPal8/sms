@@ -3,7 +3,7 @@ import { roles } from "./utils";
 export const routeAccess = {
   authPublic: ["/signup", "/signin"],
 
-  generalPublic: ["/"],
+  generalPublic: ["/", "/about", "/contact"],
 
   protected: {
     [roles.SUPERADMIN]: [

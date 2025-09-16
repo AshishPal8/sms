@@ -22,6 +22,7 @@ const DivisionsData = () => {
 
   const search = searchParams.get("search") || "";
   const sortOrder = searchParams.get("sortOrder") || "desc";
+  const active = searchParams.get("active") || true;
   const page = searchParams.get("page") || 1;
 
   useEffect(() => {
@@ -32,6 +33,7 @@ const DivisionsData = () => {
             search,
             sortOrder,
             page,
+            active,
           },
           withCredentials: true,
         });
@@ -45,13 +47,13 @@ const DivisionsData = () => {
     };
 
     fetchDivisions();
-  }, [search, sortOrder, page]);
+  }, [search, sortOrder, page, active]);
 
   const formatDivisions = divisions.map((division: IDivision) => ({
     id: division.id,
     name: division.name,
     isActive: division.isActive,
-    createdAt: format(new Date(division.createdAt), "dd-MM-yyyy"),
+    createdAt: format(new Date(division.createdAt), "MM-dd-yyyy"),
   }));
 
   const columns = [

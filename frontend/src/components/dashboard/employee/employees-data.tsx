@@ -9,6 +9,7 @@ import { EmployeeActions } from "./cell-action";
 import Pagination from "../pagination";
 import { IEmployee } from "@/types/employee.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { defaultProfile } from "@/data/assets";
 
 const EmployeesData = () => {
   const searchParams = useSearchParams();
@@ -17,8 +18,12 @@ const EmployeesData = () => {
 
   const search = searchParams.get("search") || "";
   const sortOrder = searchParams.get("sortOrder") || "desc";
-  const role = searchParams.get("role") || "";
+  let role = searchParams.get("role") || "";
+  if (role === "NONE") {
+    role = "";
+  }
   const page = searchParams.get("page") || 1;
+  const active = searchParams.get("active") || true;
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -29,6 +34,7 @@ const EmployeesData = () => {
             sortOrder,
             role,
             page,
+            active,
           },
           withCredentials: true,
         });
@@ -42,16 +48,18 @@ const EmployeesData = () => {
     };
 
     fetchEmployees();
-  }, [role, search, sortOrder, page]);
+  }, [role, search, sortOrder, page, active]);
 
   const formatEmployees = employees.map((employee: IEmployee) => ({
     id: employee.id,
-    profile: employee.profilePicture,
+    profile: employee.profilePicture?.trim()
+      ? employee.profilePicture
+      : defaultProfile,
     name: `${employee.firstname} ${employee.lastname}`,
     email: employee.email,
     role: employee.role.toLowerCase(),
     createdAt: employee.createdAt
-      ? format(new Date(employee.createdAt), "dd-MM-yyyy")
+      ? format(new Date(employee.createdAt), "MM-dd-yyyy")
       : null,
   }));
 

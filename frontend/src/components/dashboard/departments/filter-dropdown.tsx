@@ -13,23 +13,41 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Filter } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const FilterDropdown = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const [sort, setSort] = useState(searchParams.get("sortOrder") || "asc");
+
+  const initialActive =
+    searchParams.get("active") !== null
+      ? searchParams.get("active") === "true"
+      : true;
+  const [active, setActive] = useState<boolean>(initialActive);
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const urlSort = searchParams.get("sortOrder") ?? "desc";
+    setSort(urlSort);
+
+    const urlActive = searchParams.get("active");
+    setActive(urlActive === null ? true : urlActive === "true");
+  }, [searchParams]);
 
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString());
 
     if (sort) params.set("sortOrder", sort);
     else params.delete("sortOrder");
+
+    params.set("active", active ? "true" : "false");
 
     params.set("page", "1");
     router.push(`?${params.toString()}`);
@@ -41,10 +59,12 @@ const FilterDropdown = () => {
 
     params.delete("sortOrder");
     params.delete("page");
+    params.delete("active");
 
     router.push(`?${params.toString()}`);
 
     setSort("");
+    setActive(true);
     setDropdownOpen(false);
   };
 
@@ -71,6 +91,15 @@ const FilterDropdown = () => {
                 <SelectItem value="desc">DESC</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="flex items-center gap-2 mb-4">
+            <Switch
+              checked={active}
+              onCheckedChange={(val: boolean) => setActive(val)}
+            />
+            <span className="text-sm text-muted-foreground">
+              {active ? "Active" : "Inactive"}
+            </span>
           </div>
         </div>
         <div className="flex items-center justify-center gap-2 w-full">

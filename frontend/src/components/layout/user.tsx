@@ -7,12 +7,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { LayoutDashboard, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import useAuthStore from "@/store/user";
 import axios from "axios";
 import { baseUrl } from "../../config";
+import { roles } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 interface UserDropdownProps {
   isMenuOpen: boolean;
@@ -21,6 +23,9 @@ interface UserDropdownProps {
 
 function UserDropdown({ isMenuOpen, setIsMenuOpen }: UserDropdownProps) {
   const { user, logout } = useAuthStore();
+  const router = useRouter();
+
+  const admin = user && user?.role !== roles.CUSTOMER;
 
   const handleSignout = async () => {
     await axios.post(
@@ -32,6 +37,7 @@ function UserDropdown({ isMenuOpen, setIsMenuOpen }: UserDropdownProps) {
     );
 
     logout();
+    router.push("/signin");
   };
 
   return (
@@ -54,18 +60,12 @@ function UserDropdown({ isMenuOpen, setIsMenuOpen }: UserDropdownProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <Link href="/profile" className="cursor-pointer">
+            <Link
+              href={`${admin ? "/dashboard/profile" : "/profile"}`}
+              className="cursor-pointer"
+            >
               <DropdownMenuItem>{`${user.firstname} ${user.lastname}`}</DropdownMenuItem>
             </Link>
-            <DropdownMenuItem asChild>
-              <Link
-                href="/profile"
-                className="flex items-center cursor-pointer"
-              >
-                <LayoutDashboard className="h-4 w-4 mr-2" />
-                Profile
-              </Link>
-            </DropdownMenuItem>
 
             <DropdownMenuItem
               onClick={handleSignout}
@@ -80,10 +80,14 @@ function UserDropdown({ isMenuOpen, setIsMenuOpen }: UserDropdownProps) {
           <Link href="/signin">Sign In</Link>
         </Button>
       )}
-
-      <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-        <Menu className="h-6 w-6" />
-      </button>
+      {!admin && (
+        <button
+          className="md:hidden"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          <Menu className="h-6 w-6" />
+        </button>
+      )}
     </div>
   );
 }

@@ -217,6 +217,7 @@ export const addEmployeeService = async (data: addEmployeeInput) => {
     phone,
     profilePicture,
     role,
+    isActive,
     departmentId,
     managerId,
   } = data;
@@ -255,6 +256,7 @@ export const addEmployeeService = async (data: addEmployeeInput) => {
           password: hashedPassword,
           role,
           profilePicture: profilePicture ?? null,
+          isActive: isActive ?? true,
           isDeleted: false,
         },
       });
@@ -268,6 +270,7 @@ export const addEmployeeService = async (data: addEmployeeInput) => {
           password: hashedPassword,
           role,
           profilePicture: profilePicture ?? null,
+          isActive: isActive ?? true,
         },
       });
     }
@@ -381,6 +384,7 @@ export const updateEmployeeService = async (
     phone,
     profilePicture,
     role,
+    isActive,
     departmentId: managerDepartmentId,
     managerId: techManagerId,
   } = data;
@@ -415,6 +419,7 @@ export const updateEmployeeService = async (
     updatePayload.profilePicture = profilePicture ?? null;
   if (typeof phone !== "undefined") updatePayload.phone = phone ?? null;
   if (typeof role !== "undefined") updatePayload.role = role;
+  if (typeof isActive !== "undefined") updatePayload.isActive = isActive;
 
   if (typeof password !== "undefined" && password !== null && password !== "") {
     updatePayload.password = await bcrypt.hash(password, 10);

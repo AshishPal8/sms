@@ -19,6 +19,7 @@ export const addEmployeeSchema = z.object({
     .optional()
     .or(z.literal(""))
     .or(z.null()),
+  isActive: z.boolean().optional(),
   departmentId: z
     .string()
     .regex(objectIdRegex, "Invalid department ID")

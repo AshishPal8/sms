@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/input-otp";
 import { baseUrl } from "../../../config";
 import useAuthStore from "@/store/user";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Logo from "@/components/layout/logo";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -51,6 +51,8 @@ export default function SigninForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -118,8 +120,9 @@ export default function SigninForm() {
         token
       );
 
-      toast.success("Account verified! Redirecting...");
-      router.push("/");
+      toast.success("Signin Successfull");
+      const redirect = searchParams.get("redirect") || "/";
+      router.push(redirect);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "OTP verification failed");
     } finally {
@@ -156,8 +159,8 @@ export default function SigninForm() {
         token
       );
 
-      toast.success("Logged in Successful");
-      router.push("/");
+      toast.success("Signin Successful");
+      router.push("/dashboard");
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Login failed");
     } finally {

@@ -9,13 +9,6 @@ function NavLinks() {
   const pathname = usePathname();
   const { user } = useAuthStore();
 
-  const roleDashboards: Record<string, string> = {
-    [roles.SUPERADMIN]: "/dashboard",
-    [roles.ASSISTANT]: "/dashboard",
-    [roles.MANAGER]: "/dashboard",
-    [roles.TECHNICIAN]: "/dashboard",
-  };
-
   const admin = user && user?.role !== roles.CUSTOMER;
 
   return (

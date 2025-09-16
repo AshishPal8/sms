@@ -13,19 +13,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { roles } from "@/data/dashboard";
 import { Filter } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 const FilterDropdown = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const [role, setRole] = useState(searchParams.get("role") || "");
-  const [sort, setSort] = useState(searchParams.get("sortOrder") || "asc");
+  const [sort, setSort] = useState(searchParams.get("sortOrder") || "desc");
+
+  const initialActive =
+    searchParams.get("active") !== null
+      ? searchParams.get("active") === "true"
+      : true;
+  const [active, setActive] = useState<boolean>(initialActive);
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const urlRole = searchParams.get("role") ?? "";
+    setRole(urlRole);
+
+    const urlSort = searchParams.get("sortOrder") ?? "desc";
+    setSort(urlSort);
+
+    const urlActive = searchParams.get("active");
+    setActive(urlActive === null ? true : urlActive === "true");
+  }, [searchParams]);
 
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -35,6 +54,8 @@ const FilterDropdown = () => {
 
     if (sort) params.set("sortOrder", sort);
     else params.delete("sortOrder");
+
+    params.set("active", active ? "true" : "false");
 
     params.set("page", "1");
     router.push(`?${params.toString()}`);
@@ -47,11 +68,13 @@ const FilterDropdown = () => {
     params.delete("role");
     params.delete("sortOrder");
     params.delete("page");
+    params.delete("active");
 
     router.push(`?${params.toString()}`);
 
     setRole("");
     setSort("");
+    setActive(true);
     setDropdownOpen(false);
   };
 
@@ -66,8 +89,8 @@ const FilterDropdown = () => {
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="p-5">
-        <div className="flex gap-4">
-          <div className="mb-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="mb-2">
             <Label className="block font-medium mb-2">Role</Label>
             <Select onValueChange={(value) => setRole(value)} value={role}>
               <SelectTrigger>
@@ -75,6 +98,9 @@ const FilterDropdown = () => {
               </SelectTrigger>
               <SelectContent>
                 {/* <SelectItem value="">All Roles</SelectItem> */}
+                <SelectItem key="NONE" value="NONE">
+                  None
+                </SelectItem>
                 {roles.map((role) => (
                   <SelectItem key={role.value} value={role.value}>
                     {role.label}
@@ -83,17 +109,26 @@ const FilterDropdown = () => {
               </SelectContent>
             </Select>
           </div>
-          <div className="mb-4">
+          <div className="mb-2">
             <Label className="block font-medium mb-2">Order</Label>
             <Select onValueChange={(value) => setSort(value)} value={sort}>
               <SelectTrigger>
                 <SelectValue placeholder="Order" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="asc">ASC</SelectItem>
                 <SelectItem value="desc">DESC</SelectItem>
+                <SelectItem value="asc">ASC</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="flex items-center gap-2 mb-4">
+            <Switch
+              checked={active}
+              onCheckedChange={(val: boolean) => setActive(val)}
+            />
+            <span className="text-sm text-muted-foreground">
+              {active ? "Active" : "Inactive"}
+            </span>
           </div>
         </div>
         <div className="flex items-center justify-center gap-2 w-full">

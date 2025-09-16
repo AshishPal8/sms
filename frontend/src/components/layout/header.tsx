@@ -8,15 +8,19 @@ import { navLinks } from "@/data/navlinks";
 import Logo from "./logo";
 import NavLinks from "./navlinks";
 import UserDropdown from "./user";
-import { cn } from "@/lib/utils";
+import { cn, roles } from "@/lib/utils";
+import useAuthStore from "@/store/user";
+import { Button } from "../ui/button";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showHeader, setShowHeader] = useState(true);
   const [isTop, setIsTop] = useState(true);
   const lastScroll = useRef(0);
-
   const pathname = usePathname();
+  const { user } = useAuthStore();
+
+  const admin = user && user?.role !== roles.CUSTOMER;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -57,7 +61,14 @@ export function Header() {
 
             <NavLinks />
 
-            <div className="flex gap-2">
+            <div className="flex gap-4">
+              <Link href="/book-a-service">
+                <Button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[16px] bg-gradient-to-t from-blue-400 to-blue-400 active:scale-95">
+                  <span className="w-full h-full flex items-center gap-2 px-3 py-4 bg-blue-700 text-white rounded-[14px] bg-gradient-to-t from-blue-600 to-blue-500">
+                    Book Service
+                  </span>
+                </Button>
+              </Link>
               <UserDropdown
                 isMenuOpen={isMenuOpen}
                 setIsMenuOpen={setIsMenuOpen}
@@ -90,12 +101,14 @@ export function Header() {
                     {nav.title}
                   </Link>
                 ))}
-                <Link
-                  href="/dashboard"
-                  className="px-4 py-3 text-gray-800 hover:bg-primary/20 rounded-lg transition-colors"
-                >
-                  Dashboard
-                </Link>
+                {admin && (
+                  <Link
+                    href="/dashboard"
+                    className="px-4 py-3 text-gray-800 hover:bg-primary/20 rounded-lg transition-colors"
+                  >
+                    Dashboard
+                  </Link>
+                )}
               </nav>
             </div>
           </div>
