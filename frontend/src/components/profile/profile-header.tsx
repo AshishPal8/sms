@@ -31,10 +31,26 @@ import { Address as AddressType } from "@/types/address.types";
 import { addressSchema } from "@/schemas/addressSchema";
 import useAuthStore from "@/store/user";
 import { format } from "date-fns";
+import { alphaNumbericRegex } from "@/lib/regex";
 
 const formSchema = z.object({
-  firstname: z.string().min(2, "Enter your name."),
-  lastname: z.string().optional(),
+  firstname: z
+    .string()
+    .min(2, { error: "Firstname must be at least 2 characters" })
+    .max(30, { error: "Firstname cannot exceed 30 characters" })
+    .regex(alphaNumbericRegex, {
+      error: "Only letters, numbers, and spaces are allowed",
+    }),
+  lastname: z
+    .string()
+    .max(30, { error: "Lastname cannot exceed 30 characters" })
+    .regex(alphaNumbericRegex, {
+      error: "Only letters, numbers, and spaces are allowed",
+    })
+    .optional()
+    .refine((val) => !val || val.length >= 2, {
+      error: "Lastname must be at least 2 characters if provided",
+    }),
   email: z.email("Enter a valid email"),
   phone: z.string().optional(),
   profilePicture: z.string().optional(),
@@ -95,8 +111,8 @@ export const ProfileHeader = () => {
           policyNumber: data.policyNumber || "",
           policyExpiryDate: data.policyExpiryDate || "",
           insuranceContactNo: data.insuranceContactNo || "",
-          insuranceDeductable: data.insuranceDeductable || "",
-          isRoofCovered: data.isRoofCovered || "",
+          insuranceDeductable: data.insuranceDeductable || 0,
+          isRoofCovered: data.isRoofCovered || false,
         });
       } catch (error) {
         toast.error("Failed to load profile details");
@@ -109,7 +125,6 @@ export const ProfileHeader = () => {
     fetchProfile();
   }, [form]);
 
-  // Submit handler
   const onSubmit = async (values: ProfileFormValues) => {
     try {
       setLoading(true);
@@ -128,6 +143,7 @@ export const ProfileHeader = () => {
           lastname: data.lastname,
           email: data.email,
           role: data.role || "CUSTOMER",
+          profilePicture: data.profilePicture,
         },
         currentToken || ""
       );
@@ -170,7 +186,7 @@ export const ProfileHeader = () => {
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-8 w-full mt-4"
         >
-          <div className=" bg-white rounded-xl border-2 border-gray-200 shadow p-5">
+          <div className=" bg-white rounded-none md:rounded-xl border-2 border-gray-200 shadow p-5">
             {/* Profile Picture */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-4">
               <FormField
@@ -202,12 +218,13 @@ export const ProfileHeader = () => {
                 name="firstname"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>First Name</FormLabel>
                     <FormControl>
                       <Input
                         disabled={loading}
-                        placeholder="Enter name"
+                        placeholder="Enter first name"
                         {...field}
+                        maxLength={30}
                       />
                     </FormControl>
                     <FormMessage />
@@ -219,12 +236,13 @@ export const ProfileHeader = () => {
                 name="lastname"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Last Name</FormLabel>
                     <FormControl>
                       <Input
                         disabled={loading}
-                        placeholder="Enter name"
+                        placeholder="Enter last name"
                         {...field}
+                        maxLength={30}
                       />
                     </FormControl>
                     <FormMessage />
@@ -259,6 +277,13 @@ export const ProfileHeader = () => {
                         disabled={loading}
                         placeholder="Enter phone no."
                         {...field}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          field.onChange(value);
+                        }}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={10}
                       />
                     </FormControl>
                     <FormMessage />
@@ -333,6 +358,13 @@ export const ProfileHeader = () => {
                         disabled={loading}
                         placeholder="Enter insurance contact no."
                         {...field}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          field.onChange(value);
+                        }}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={10}
                       />
                     </FormControl>
                     <FormMessage />

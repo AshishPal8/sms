@@ -438,18 +438,11 @@ export const getTicketStatsService = async (user: {
 
   if ([roles.SUPERADMIN, roles.ASSISTANT].includes(role)) {
   } else if (role === roles.MANAGER) {
-    const manager = await prisma.admin.findUnique({
-      where: { id: userId },
-      include: { department: true },
-    });
-
-    if (manager?.department?.id) {
-      where.items = {
-        some: {
-          OR: [{ assignedByAdminId: userId }, { assignedToAdminId: userId }],
-        },
-      };
-    }
+    where.items = {
+      some: {
+        OR: [{ assignedByAdminId: userId }, { assignedToAdminId: userId }],
+      },
+    };
   } else if (role === roles.TECHNICIAN) {
     where.items = {
       some: {

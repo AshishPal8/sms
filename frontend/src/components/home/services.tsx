@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import TitleDescription from "./title-desc";
+import Link from "next/link";
 
 const services = [
   {
@@ -79,12 +80,14 @@ export default function Services() {
                   </div>
 
                   {/* Action */}
-                  <Button
-                    variant="ghost"
-                    className="mt-6 self-start rounded-full text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                  >
-                    Book Now →
-                  </Button>
+                  <Link href="/book-a-service">
+                    <Button
+                      variant="ghost"
+                      className="mt-6 self-start rounded-full text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                    >
+                      Book Now →
+                    </Button>
+                  </Link>
                 </div>
               </Card>
             </motion.div>

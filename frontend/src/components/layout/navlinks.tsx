@@ -2,14 +2,9 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navLinks } from "@/data/navlinks";
-import useAuthStore from "@/store/user";
-import { roles } from "@/lib/utils";
 
 function NavLinks() {
   const pathname = usePathname();
-  const { user } = useAuthStore();
-
-  const admin = user && user?.role !== roles.CUSTOMER;
 
   return (
     <nav className="hidden md:flex items-center space-x-10">
@@ -26,15 +21,6 @@ function NavLinks() {
           {nav.title}
         </Link>
       ))}
-
-      {admin && (
-        <Link
-          href="/dashboard"
-          className="hover:text-primary font-medium transition-colors"
-        >
-          Dashboard
-        </Link>
-      )}
     </nav>
   );
 }

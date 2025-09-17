@@ -53,7 +53,7 @@ router.get(
 router.get(
   "/dept/:divisionId",
   authMiddleware,
-  requireRole(AdminRole.SUPERADMIN),
+  requireRole(AdminRole.SUPERADMIN, AdminRole.ASSISTANT),
   getDepartmentsByDivisionController
 );
 

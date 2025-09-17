@@ -8,15 +8,19 @@ import { ProfileForm } from "@/components/dashboard/profile/profile-form";
 
 function ProfilePage() {
   const [profile, setProfile] = useState<{
-    name: string;
+    firstname: string;
+    lastname: string;
     email: string;
     phone: string;
     role: Role;
+    profilePicture: string;
   }>({
-    name: "",
+    firstname: "",
+    lastname: "",
     email: "",
     phone: "",
     role: "TECHNICIAN",
+    profilePicture: "",
   });
 
   useEffect(() => {

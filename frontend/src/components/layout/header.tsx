@@ -62,13 +62,15 @@ export function Header() {
             <NavLinks />
 
             <div className="flex gap-4">
-              <Link href="/book-a-service">
-                <Button className="relative cursor-pointer opacity-90 hover:opacity-100 transition-opacity p-[2px] bg-black rounded-[16px] bg-gradient-to-t from-blue-400 to-blue-400 active:scale-95">
-                  <span className="w-full h-full flex items-center gap-2 px-3 py-4 bg-blue-700 text-white rounded-[14px] bg-gradient-to-t from-blue-600 to-blue-500">
-                    Book Service
-                  </span>
-                </Button>
-              </Link>
+              {admin ? (
+                <Link href="/Dashboard">
+                  <Button>Dashboard</Button>
+                </Link>
+              ) : (
+                <Link href="/book-a-service">
+                  <Button>Book a Service</Button>
+                </Link>
+              )}
               <UserDropdown
                 isMenuOpen={isMenuOpen}
                 setIsMenuOpen={setIsMenuOpen}
