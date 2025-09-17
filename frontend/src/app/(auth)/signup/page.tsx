@@ -112,7 +112,7 @@ export default function SignupForm() {
         token
       );
 
-      toast.success("Account verified! Redirecting...");
+      toast.success("Signup Successful");
       router.push("/");
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "OTP verification failed");

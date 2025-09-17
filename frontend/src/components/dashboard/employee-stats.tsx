@@ -146,6 +146,7 @@ const StatsHeader = ({
           diff={ticketStats?.last30Days || 0}
           iconBg="bg-slate-100"
           iconColor="text-slate-600"
+          link="/dashboard/tickets"
         />
         <StatCard
           title="In Progress"
@@ -153,6 +154,7 @@ const StatsHeader = ({
           value={ticketStats?.status.IN_PROGRESS || 0}
           iconBg="bg-yellow-100"
           iconColor="text-yellow-600"
+          link="/dashboard/tickets?status=IN_PROGRESS"
         />
         <StatCard
           title="Open"
@@ -160,6 +162,7 @@ const StatsHeader = ({
           value={ticketStats?.status.OPEN || 0}
           iconBg="bg-blue-100"
           iconColor="text-blue-600"
+          link="/dashboard/tickets?status=OPEN"
         />
         <StatCard
           title="Low Priority"
@@ -167,6 +170,7 @@ const StatsHeader = ({
           value={ticketStats?.priority.LOW || 0}
           iconBg="bg-green-100"
           iconColor="text-green-600"
+          link="/dashboard/tickets?priority=LOW"
         />
         <StatCard
           title="Medium Priority"
@@ -174,6 +178,7 @@ const StatsHeader = ({
           value={ticketStats?.priority.MEDIUM || 0}
           iconBg="bg-orange-100"
           iconColor="text-orange-600"
+          link="/dashboard/tickets?priority=MEDIUM"
         />
         <StatCard
           title="High Priority"
@@ -181,6 +186,7 @@ const StatsHeader = ({
           value={ticketStats?.priority.HIGH || 0}
           iconBg="bg-red-100"
           iconColor="text-red-600"
+          link="/dashboard/tickets?priority=HIGH"
         />
         <StatCard
           title="Cold Tickets"
@@ -188,6 +194,7 @@ const StatsHeader = ({
           value={ticketStats?.urgency.COLD || 0}
           iconBg="bg-cyan-100"
           iconColor="text-cyan-600"
+          link="/dashboard/tickets?urgencyLevel=COLD"
         />
         <StatCard
           title="Warm Tickets"
@@ -195,6 +202,7 @@ const StatsHeader = ({
           value={ticketStats?.urgency.WARM || 0}
           iconBg="bg-pink-100"
           iconColor="text-pink-600"
+          link="/dashboard/tickets?urgencyLevel=WARM"
         />
       </div>
     </div>

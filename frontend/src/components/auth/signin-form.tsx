@@ -87,7 +87,7 @@ export default function SigninForm({ initialRedirect = "/" }: Props) {
           `Signin failed: ${error.response.data.message || "Please try again."}`
         );
       } else {
-        toast.error("Signup failed. Please try again.");
+        toast.error("Signin failed. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -123,7 +123,7 @@ export default function SigninForm({ initialRedirect = "/" }: Props) {
         token
       );
 
-      toast.success("Signin Successfull");
+      toast.success("Signin Successful");
       router.push(initialRedirect);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "OTP verification failed");

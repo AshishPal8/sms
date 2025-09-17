@@ -54,7 +54,12 @@ router.put(
   "/update/:id",
   validateRequest(updateEmployeeSchema),
   authMiddleware,
-  requireRole(AdminRole.SUPERADMIN),
+  requireRole(
+    AdminRole.SUPERADMIN,
+    AdminRole.MANAGER,
+    AdminRole.ASSISTANT,
+    AdminRole.TECHNICIAN
+  ),
   updateEmployee
 );
 

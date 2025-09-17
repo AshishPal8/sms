@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { Menu } from "lucide-react";
+import { ChevronRight, Menu } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import useAuthStore from "@/store/user";
@@ -64,7 +64,10 @@ function UserDropdown({ isMenuOpen, setIsMenuOpen }: UserDropdownProps) {
               href={`${admin ? "/dashboard/profile" : "/profile"}`}
               className="cursor-pointer"
             >
-              <DropdownMenuItem>{`${user.firstname} ${user.lastname}`}</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
+                <p>{`${user.firstname} ${user.lastname}`}</p>
+                <ChevronRight size={16} />
+              </DropdownMenuItem>
             </Link>
 
             <DropdownMenuItem

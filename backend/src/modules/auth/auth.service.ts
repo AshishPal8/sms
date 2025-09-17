@@ -5,11 +5,10 @@ import type { signinInput } from "./auth.schema";
 
 export const signinService = async (data: signinInput) => {
   const { email } = data;
-  const normalizedEmail = email.toLowerCase().trim();
 
   const admin = await prisma.admin.findUnique({
     where: {
-      email: normalizedEmail,
+      email: email,
       isDeleted: false,
     },
   });
@@ -28,7 +27,7 @@ export const signinService = async (data: signinInput) => {
 
   const customer = await prisma.customer.findUnique({
     where: {
-      email: normalizedEmail,
+      email: email,
       isDeleted: false,
     },
   });
@@ -46,7 +45,7 @@ export const signinService = async (data: signinInput) => {
   }
 
   const otp = generateOTP();
-  await saveOtp(normalizedEmail, otp);
+  await saveOtp(email, otp);
 
   //send email
 

@@ -174,6 +174,7 @@ export default function AddressInput({
             value={currentValue.postalCode || ""}
             onChange={(e) => updateField("postalCode", e.target.value)}
             placeholder="Pin / Postal code"
+            maxLength={6}
           />
         </FormControl>
       </FormItem>

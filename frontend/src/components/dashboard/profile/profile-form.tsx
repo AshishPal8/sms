@@ -19,24 +19,18 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import ImageUpload from "@/components/ui/image-upload";
 import axios from "axios";
 import { baseUrl } from "../../../config";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import useAuthStore from "@/store/user";
 
 const formSchema = z.object({
-  name: z.string(),
+  firstname: z.string(),
+  lastname: z.string(),
   email: z.string(),
   phone: z.string().optional(),
-  role: z.enum(["SUPERADMIN", "TECHNICIAN", "MANAGER", "ASSISTANT"]),
   profilePicture: z.string().optional(),
 });
 
@@ -48,16 +42,17 @@ interface ProfileFormProps {
 
 export const ProfileForm = ({ initialData }: ProfileFormProps) => {
   const router = useRouter();
+  const currentToken = useAuthStore.getState().token;
 
   const [loading, setLoading] = useState(false);
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData || {
-      name: "",
+      firstname: "",
+      lastname: "",
       email: "",
       phone: "",
-      role: "TECHNICIAN",
       profilePicture: "",
     },
   });
@@ -77,12 +72,26 @@ export const ProfileForm = ({ initialData }: ProfileFormProps) => {
       setLoading(true);
 
       if (isEdit) {
-        await axios.put(
+        const res = await axios.put(
           `${baseUrl}/employees/update/${initialData.id}`,
           values,
           {
             withCredentials: true,
           }
+        );
+
+        const { data } = res.data;
+
+        useAuthStore.getState().setCredentials(
+          {
+            id: data.id,
+            firstname: data.firstname,
+            lastname: data.lastname,
+            email: data.email,
+            role: data.role || "CUSTOMER",
+            profilePicture: data.profilePicture,
+          },
+          currentToken || ""
         );
       }
 
@@ -142,23 +151,42 @@ export const ProfileForm = ({ initialData }: ProfileFormProps) => {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        disabled={loading}
-                        placeholder="Enter name"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Firstname</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={loading}
+                          placeholder="Enter Firstname"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lastname</FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={loading}
+                          placeholder="Enter Fastname"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
                 name="email"
@@ -171,6 +199,7 @@ export const ProfileForm = ({ initialData }: ProfileFormProps) => {
                         disabled={loading}
                         placeholder="Enter email"
                         {...field}
+                        readOnly
                       />
                     </FormControl>
                     <FormMessage />
@@ -190,34 +219,6 @@ export const ProfileForm = ({ initialData }: ProfileFormProps) => {
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <Select
-                      disabled={loading}
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="SUPERADMIN">Super admin</SelectItem>
-                        <SelectItem value="MANAGER">Manager</SelectItem>
-                        <SelectItem value="TECHNICIAN">Technician</SelectItem>
-                        <SelectItem value="ASSISTANT">Assistant</SelectItem>
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
