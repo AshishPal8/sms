@@ -13,12 +13,14 @@ export const routeAccess = {
       "/dashboard/tickets",
       "/dashboard/notification",
       "/dashboard/profile",
+      "/dashboard/tree",
     ],
     [roles.MANAGER]: [
       "/dashboard",
       "/dashboard/tickets",
       "/dashboard/notification",
       "/dashboard/profile",
+      "/dashboard/tree",
     ],
     [roles.TECHNICIAN]: [
       "/dashboard",
@@ -31,6 +33,7 @@ export const routeAccess = {
       "/dashboard/tickets",
       "/dashboard/notification",
       "/dashboard/profile",
+      "/dashboard/tree",
     ],
     // CUSTOMER has no dashboard routes at all
     [roles.CUSTOMER]: [],

@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { BadRequestError } from "../../../middlewares/error";
+import { BadRequestError, UnauthorizedError } from "../../../middlewares/error";
 import {
   createDivisionService,
   deleteDivisionService,
@@ -8,6 +8,7 @@ import {
   getDepartmentsByDivisionService,
   getDivisionByIdService,
   getDivisionStatsService,
+  getDivTreeByUserService,
   updateDivisionService,
 } from "./divison.service";
 
@@ -160,5 +161,24 @@ export const deleteDivisionController = async (
     res.status(201).json(deletedDivision);
   } catch (error) {
     next(error);
+  }
+};
+
+export const getDivTreeByUserController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const user = req.user;
+
+  if (!user) {
+    throw new UnauthorizedError("Unauthorized");
+  }
+
+  try {
+    const divisions = await getDivTreeByUserService(user);
+    res.status(200).json(divisions);
+  } catch (err) {
+    next(err);
   }
 };

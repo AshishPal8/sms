@@ -6,6 +6,7 @@ import {
   Users,
   Settings,
   Bell,
+  FolderTree,
 } from "lucide-react";
 
 export const navItems = [
@@ -14,6 +15,12 @@ export const navItems = [
     href: "/dashboard",
     icon: LayoutDashboard,
     roles: [roles.SUPERADMIN, roles.ASSISTANT, roles.MANAGER, roles.TECHNICIAN],
+  },
+  {
+    label: "Tree",
+    href: "/dashboard/tree",
+    icon: FolderTree,
+    roles: [roles.SUPERADMIN, roles.ASSISTANT, roles.MANAGER],
   },
   {
     label: "Employees",
