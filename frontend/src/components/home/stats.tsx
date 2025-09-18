@@ -13,7 +13,7 @@ const stats = [
 
 export default function Stats() {
   return (
-    <section className="relative py-5 sm:py-8 md:py-20 bg-gradient-to-r from-blue-50 via-white to-blue-50">
+    <section className="relative py-5 sm:py-8 md:py-20">
       {/* Background Accent */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.08),transparent)]" />
 

@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function Hero() {
   return (
-    <section className="relative w-full">
+    <section className="max-w-7xl mx-auto  relative">
       <div className="relative mx-auto w-full">
         <div className="relative overflow-hidden rounded-none md:rounded-[32px]">
           <div className="relative aspect-[16/9] w-full md:aspect-[21/9]">

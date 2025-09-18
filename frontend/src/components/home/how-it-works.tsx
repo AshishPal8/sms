@@ -23,7 +23,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="py-5 sm:py-8 md:py-20 bg-gray-50 px-3 sm:px-6">
+    <section className="py-5 sm:py-8 md:py-16 bg-[#F5F6F9] px-3 sm:px-6">
       <TitleDescription
         title="How It Works"
         desc="A simple, transparent process from start to finish."
