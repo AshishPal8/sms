@@ -7,7 +7,7 @@ import CTASection from "@/components/home/cta-section";
 
 export default function Home() {
   return (
-    <div className="max-w-7xl mx-auto pt-10">
+    <div className="pt-10">
       <Hero />
       <Stats />
       <HowItWorks />
