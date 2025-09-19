@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
-import { ChevronRight, Menu } from "lucide-react";
+import { ChevronDown, ChevronRight, Menu } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import useAuthStore from "@/store/user";
@@ -45,19 +45,40 @@ function UserDropdown({ isMenuOpen, setIsMenuOpen }: UserDropdownProps) {
       {user ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Avatar className="w-10 h-10">
-                <AvatarImage
-                  src={user.profilePicture || "/default.webp"}
-                  alt=""
-                />
-                <AvatarFallback className="text-xs">
-                  {`${user.firstname[0]}${
-                    user.lastname ? " " + user.lastname[0] : ""
-                  }` || "B"}
-                </AvatarFallback>
-              </Avatar>
-            </Button>
+            <div className="flex items-center gap-2 cursor-pointer">
+              {/* Avatar */}
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Avatar className="w-10 h-10">
+                  <AvatarImage
+                    src={user.profilePicture || "/default.webp"}
+                    alt={user.firstname}
+                  />
+                  <AvatarFallback className="text-xs">
+                    {`${user.firstname?.[0] ?? ""}${
+                      user.lastname ? user.lastname[0] : ""
+                    }` || "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+
+              {/* Name + role only for admins */}
+              {admin && (
+                <div className="hidden sm:flex flex-col items-start">
+                  <span className="text-sm font-medium text-gray-800">
+                    {`${user.firstname} ${user.lastname ?? ""}`}
+                  </span>
+                  <span className="text-xs text-gray-500 capitalize">
+                    {user.role.toLowerCase()}
+                  </span>
+                </div>
+              )}
+
+              {/* Down Arrow */}
+              <ChevronDown
+                size={18}
+                className="text-gray-500 group-hover:text-gray-700 transition"
+              />
+            </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <Link

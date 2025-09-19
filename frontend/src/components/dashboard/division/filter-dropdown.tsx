@@ -60,6 +60,7 @@ const FilterDropdown = () => {
     params.delete("sortOrder");
     params.delete("page");
     params.delete("active");
+    params.delete("sortBy");
 
     router.push(`?${params.toString()}`);
 

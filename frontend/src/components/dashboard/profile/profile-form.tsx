@@ -107,20 +107,9 @@ export const ProfileForm = ({ initialData }: ProfileFormProps) => {
 
   return (
     <>
-      <div className="max-w-3xl mx-auto">
+      <div className="">
         <div className="flex items-center mb-2 gap-4">
-          <Link
-            href="/dashboard"
-            className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center"
-          >
-            <ArrowLeft size={25} />
-          </Link>
-          <Heading
-            title={isEdit ? "Profile" : ""}
-            description={
-              isEdit ? "Update profile details" : "Add a new profile"
-            }
-          />
+          <Heading title="Update" description="Update profile details" />
         </div>
         <Separator />
         <Form {...form}>

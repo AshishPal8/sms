@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { format } from "date-fns";
 import { DataTable } from "@/components/ui/data-table";
@@ -16,8 +16,11 @@ const EmployeesData = () => {
   const [employees, setEmployees] = useState([]);
   const [totalPage, setTotalPage] = useState(0);
 
+  const router = useRouter();
+
   const search = searchParams.get("search") || "";
-  const sortOrder = searchParams.get("sortOrder") || "desc";
+  const sortOrderParam = searchParams.get("sortOrder") || "desc";
+  const sortByParam = searchParams.get("sortBy") || "createdAt";
   let role = searchParams.get("role") || "";
   if (role === "NONE") {
     role = "";
@@ -32,11 +35,12 @@ const EmployeesData = () => {
         const res = await axios.get(`${baseUrl}/employees`, {
           params: {
             search,
-            sortOrder,
+            sortOrder: sortOrderParam,
+            sortBy: sortByParam,
             role,
             page,
             active,
-            delete: isDeleted,
+            deleted: isDeleted,
           },
           withCredentials: true,
         });
@@ -50,7 +54,7 @@ const EmployeesData = () => {
     };
 
     fetchEmployees();
-  }, [role, search, sortOrder, page, active, isDeleted]);
+  }, [role, search, sortOrderParam, sortByParam, page, active, isDeleted]);
 
   const formatEmployees = employees.map((employee: IEmployee) => ({
     id: employee.id,
@@ -82,17 +86,21 @@ const EmployeesData = () => {
         </Avatar>
       ),
     },
-    { header: "Name", accessor: "name" },
-    { header: "Email", accessor: "email" },
+    { header: "Name", accessor: "name", sortable: true, sortKey: "firstname" },
+    { header: "Email", accessor: "email", sortable: true, sortKey: "email" },
     {
       header: "Role",
       accessor: "role",
       render: (value: string) => <span className="capitalize">{value}</span>,
+      sortable: true,
+      sortKey: "role",
     },
     {
       header: "Created At",
       accessor: "createdAt",
       render: (value: string) => <span className="capitalize">{value}</span>,
+      sortable: true,
+      sortKey: "createdAt",
     },
     {
       header: "Actions",
@@ -108,9 +116,32 @@ const EmployeesData = () => {
     },
   ];
 
+  const onSort = (sortKey: string) => {
+    const currentSortBy = searchParams.get("sortBy") || null;
+    const currentOrder = searchParams.get("sortOrder") || "desc";
+
+    let nextOrder: "asc" | "desc" = "asc";
+    if (currentSortBy === sortKey) {
+      nextOrder = currentOrder === "asc" ? "desc" : "asc";
+    }
+
+    // update url params (preserve other params)
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("sortBy", sortKey);
+    params.set("sortOrder", nextOrder);
+    params.set("page", "1"); // reset to first page on sort change
+    router.push(`${location.pathname}?${params.toString()}`);
+  };
+
   return (
     <div className="mt-4">
-      <DataTable columns={columns} data={formatEmployees} />
+      <DataTable
+        columns={columns}
+        data={formatEmployees}
+        sortBy={sortByParam}
+        sortOrder={(sortOrderParam as "asc" | "desc") || "desc"}
+        onSort={onSort}
+      />
       <Pagination page={Number(page)} totalPages={totalPage} />
     </div>
   );

@@ -34,6 +34,8 @@ export const getAllEmployees = async (
       deleted,
     } = req.query;
 
+    console.log("Is deleted", deleted);
+
     const numericPage = parseInt(page as string, 10);
     const numericLimit = parseInt(limit as string, 10);
     const isActiveBoolean =
@@ -122,12 +124,12 @@ export const getEmployeeProfile = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const employeeId = req.user?.id;
-    if (!employeeId) {
+    const user = req.user;
+    if (!user) {
       throw new BadRequestError("Employee id is required");
     }
 
-    const employee = await getEmployeeByIdService(employeeId);
+    const employee = await getEmployeeByIdService(user.id);
 
     res.status(201).json({
       success: true,

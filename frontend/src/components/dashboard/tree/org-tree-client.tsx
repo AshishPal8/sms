@@ -6,13 +6,18 @@ import dynamic from "next/dynamic";
 import axios from "axios";
 import { baseUrl } from "@/config";
 
-// dynamic import ensures we only load react-d3-tree in browser (optional)
-// but since this file is already client-only, you can also import normally.
-// We'll dynamic import react-d3-tree to be extra safe.
-const Tree = dynamic(() => import("react-d3-tree"), { ssr: false });
+const Tree = dynamic(() => import("react-d3-tree"), {
+  ssr: false,
+  loading: () => <div className="p-8">Loading tree component...</div>,
+});
 
-// Import your NodeCard inside the client component only
-import { NodeCard as ExternalNodeCard } from "./nodes"; // adjust path if needed
+const NodeCard = dynamic(
+  () => import("./nodes").then((mod) => ({ default: mod.NodeCard })),
+  {
+    ssr: false,
+    loading: () => <div>Loading...</div>,
+  }
+);
 import Image from "next/image";
 
 export default function OrgTreeClient() {
@@ -20,10 +25,17 @@ export default function OrgTreeClient() {
   const [treeData, setTreeData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [dimensions, setDimensions] = useState({ width: 1200, height: 700 });
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     const handleResize = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
@@ -36,10 +48,12 @@ export default function OrgTreeClient() {
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [isMounted]);
 
   // fetch tree data
   useEffect(() => {
+    if (!isMounted) return;
+
     let cancelled = false;
     const fetchTree = async () => {
       setLoading(true);
@@ -60,7 +74,7 @@ export default function OrgTreeClient() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isMounted]);
 
   useEffect(() => {
     if (!treeRaw) {
@@ -179,13 +193,8 @@ export default function OrgTreeClient() {
           onClick={() => toggleNode && toggleNode(nodeDatum)}
         >
           <div style={{ width: 260 }}>
-            {ExternalNodeCard ? (
-              <ExternalNodeCard
-                name={name}
-                role={role}
-                email={email}
-                avatar={avatar}
-              />
+            {NodeCard ? (
+              <NodeCard name={name} role={role} email={email} avatar={avatar} />
             ) : (
               <div
                 style={{
@@ -236,6 +245,10 @@ export default function OrgTreeClient() {
       </g>
     );
   };
+
+  if (!isMounted) {
+    return <div className="p-8">Loading...</div>;
+  }
 
   if (loading) return <div className="p-8">Loading org chart...</div>;
   if (error) return <div className="p-8 text-red-500">{error}</div>;

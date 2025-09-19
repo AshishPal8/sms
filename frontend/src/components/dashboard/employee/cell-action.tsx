@@ -1,7 +1,7 @@
 "use client";
 
 import { Edit, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { toast } from "sonner";
 import { baseUrl } from "../../../config";
@@ -18,8 +18,10 @@ interface EmployeeActionsProps {
 
 export function EmployeeActions({ id, onDeleteSuccess }: EmployeeActionsProps) {
   const router = useRouter();
-
+  const searchParams = useSearchParams();
   const { user } = useAuthStore();
+
+  const showingDeleted = searchParams.get("deleted") === "true";
 
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -45,6 +47,10 @@ export function EmployeeActions({ id, onDeleteSuccess }: EmployeeActionsProps) {
       setOpen(false);
     }
   };
+
+  if (showingDeleted) {
+    return null;
+  }
 
   return (
     <>
