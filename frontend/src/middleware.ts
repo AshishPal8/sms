@@ -50,10 +50,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  if (
-    pathname.startsWith("/dashboard/employees") ||
-    pathname.startsWith("/dashboard/departments")
-  ) {
+  if (pathname.startsWith("/dashboard/divisions")) {
     if (user.role !== roles.SUPERADMIN) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }

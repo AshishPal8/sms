@@ -26,7 +26,7 @@ export const navItems = [
     label: "Employees",
     href: "/dashboard/employees",
     icon: Users,
-    roles: [roles.SUPERADMIN],
+    roles: [roles.SUPERADMIN, roles.MANAGER],
   },
   {
     label: "Divisions",

@@ -5,17 +5,20 @@ import type { addEmployeeInput, updateEmployeeInput } from "./employees.schema";
 import type { GetAllEmployeesOptions } from "../../../types/employees.types";
 import { AdminRole } from "../../../generated/prisma";
 
-export const getAllEmployeesService = async ({
-  adminId,
-  search,
-  sortBy = "createdAt",
-  sortOrder = "desc",
-  page = 1,
-  limit = 10,
-  role,
-  managerId,
-  isActive,
-}: GetAllEmployeesOptions) => {
+export const getAllEmployeesService = async (
+  user: { id: string; role: string },
+  {
+    search,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    page = 1,
+    limit = 10,
+    role,
+    managerId,
+    isActive,
+    isDeleted,
+  }: GetAllEmployeesOptions
+) => {
   const allowedSorts = ["createdAt", "firstname", "email", "role"];
   const orderField = allowedSorts.includes(sortBy) ? sortBy : "createdAt";
 
@@ -23,8 +26,8 @@ export const getAllEmployeesService = async ({
     isDeleted: false,
   };
 
-  if (adminId) {
-    whereClause.id = { not: adminId };
+  if (user.id) {
+    whereClause.id = { not: user.id };
   }
 
   if (search) {
@@ -42,9 +45,16 @@ export const getAllEmployeesService = async ({
   if (typeof isActive === "boolean") {
     whereClause.isActive = isActive;
   }
+  if (typeof isDeleted === "boolean") {
+    whereClause.isDeleted = isDeleted;
+  }
 
-  if (managerId) {
-    whereClause.managerId = managerId;
+  if (user && user.role === AdminRole.MANAGER) {
+    whereClause.managerId = user.id;
+  } else {
+    if (managerId) {
+      whereClause.managerId = managerId;
+    }
   }
 
   const total = await prisma.admin.count({ where: whereClause });

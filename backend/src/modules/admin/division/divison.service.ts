@@ -461,6 +461,26 @@ export const getDivTreeByUserService = async (user: {
 
   // MANAGER: Get tree for departments they manage (no SUPERADMIN root needed)
   if (role === AdminRole.MANAGER) {
+    const superadmin = await prisma.admin.findFirst({
+      where: { role: AdminRole.SUPERADMIN, isActive: true, isDeleted: false },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        profilePicture: true,
+        role: true,
+      },
+    });
+
+    if (!superadmin) {
+      return {
+        success: false,
+        message: "Superadmin not found",
+        data: null,
+      };
+    }
+
     const manager = await prisma.admin.findUnique({
       where: { id },
       select: {
@@ -557,12 +577,22 @@ export const getDivTreeByUserService = async (user: {
       divisionMap.get(divisionId).departments.push(departmentNode);
     }
 
-    const tree = Array.from(divisionMap.values());
+    const divisions = Array.from(divisionMap.values());
+
+    const root = {
+      id: superadmin.id,
+      name: `${superadmin.firstname || ""} ${superadmin.lastname || ""}`.trim(),
+      role: "SUPERADMIN",
+      email: superadmin.email || null,
+      profilePicture: superadmin.profilePicture || null,
+      type: "superadmin",
+      divisions,
+    };
 
     return {
       success: true,
       message: "Manager organizational tree fetched",
-      data: tree,
+      data: root,
     };
   }
 

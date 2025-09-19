@@ -24,6 +24,7 @@ const EmployeesData = () => {
   }
   const page = searchParams.get("page") || 1;
   const active = searchParams.get("active") || true;
+  const isDeleted = searchParams.get("deleted") || false;
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -35,6 +36,7 @@ const EmployeesData = () => {
             role,
             page,
             active,
+            delete: isDeleted,
           },
           withCredentials: true,
         });
@@ -48,7 +50,7 @@ const EmployeesData = () => {
     };
 
     fetchEmployees();
-  }, [role, search, sortOrder, page, active]);
+  }, [role, search, sortOrder, page, active, isDeleted]);
 
   const formatEmployees = employees.map((employee: IEmployee) => ({
     id: employee.id,

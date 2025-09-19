@@ -17,6 +17,7 @@ export const routeAccess = {
     ],
     [roles.MANAGER]: [
       "/dashboard",
+      "/dashboard/employees",
       "/dashboard/tickets",
       "/dashboard/notification",
       "/dashboard/profile",
