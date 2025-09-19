@@ -1,5 +1,4 @@
 export type GetAllEmployeesOptions = {
-  adminId: string;
   search?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
@@ -8,4 +7,5 @@ export type GetAllEmployeesOptions = {
   role?: string;
   managerId?: string;
   isActive?: boolean;
+  isDeleted?: boolean;
 };

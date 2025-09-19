@@ -17,8 +17,8 @@ export const getAllEmployees = async (
   next: NextFunction
 ) => {
   try {
-    const adminId = req.user?.id;
-    if (!adminId) {
+    const user = req.user;
+    if (!user) {
       throw new UnauthorizedError("You are not authorized for this reqeust!");
     }
 
@@ -31,15 +31,19 @@ export const getAllEmployees = async (
       role,
       managerId,
       active,
+      deleted,
     } = req.query;
+
+    console.log("Is deleted", deleted);
 
     const numericPage = parseInt(page as string, 10);
     const numericLimit = parseInt(limit as string, 10);
     const isActiveBoolean =
       active === "true" ? true : active === "false" ? false : undefined;
+    const isDeletedBoolean =
+      deleted === "true" ? true : deleted === "false" ? false : undefined;
 
-    const employees = await getAllEmployeesService({
-      adminId,
+    const employees = await getAllEmployeesService(user, {
       search: search as string,
       sortBy: sortBy as string,
       sortOrder: sortOrder as "asc" | "desc",
@@ -48,6 +52,7 @@ export const getAllEmployees = async (
       role: role as string,
       managerId: managerId as string,
       isActive: isActiveBoolean,
+      isDeleted: isDeletedBoolean,
     });
 
     res.status(200).json(employees);
@@ -119,12 +124,12 @@ export const getEmployeeProfile = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const employeeId = req.user?.id;
-    if (!employeeId) {
+    const user = req.user;
+    if (!user) {
       throw new BadRequestError("Employee id is required");
     }
 
-    const employee = await getEmployeeByIdService(employeeId);
+    const employee = await getEmployeeByIdService(user.id);
 
     res.status(201).json({
       success: true,

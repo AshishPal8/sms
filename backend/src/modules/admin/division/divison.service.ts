@@ -1,6 +1,10 @@
 import prisma from "../../../db";
+import { AdminRole } from "../../../generated/prisma";
 import { BadRequestError, NotFoundError } from "../../../middlewares/error";
-import type { GetAllDivisonOptions } from "../../../types/division.types";
+import type {
+  DivisionNode,
+  GetAllDivisonOptions,
+} from "../../../types/division.types";
 import type {
   CreateDivisionInput,
   UpdateDivisonInput,
@@ -312,5 +316,370 @@ export const deleteDivisionService = async (id: string) => {
     data: {
       id: result.id,
     },
+  };
+};
+
+export const getDivTreeByUserService = async (user: {
+  id: string;
+  role: string;
+}) => {
+  const { id, role } = user;
+
+  // Helper function to format admin data consistently
+  const formatAdmin = (admin) => ({
+    id: admin.id,
+    name: `${admin.firstname || ""} ${admin.lastname || ""}`.trim(),
+    role: admin.role || "ADMIN",
+    email: admin.email ?? null,
+    profilePicture: admin.profilePicture ?? null,
+  });
+
+  // SUPERADMIN & ASSISTANT: Get full organizational tree with SUPERADMIN as root
+  if (role === AdminRole.SUPERADMIN || role === AdminRole.ASSISTANT) {
+    // Step 1: Get the current superadmin user info to make them the root
+    const superadmin = await prisma.admin.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        profilePicture: true,
+        role: true,
+      },
+    });
+
+    if (!superadmin) {
+      return {
+        success: false,
+        message: "Superadmin not found",
+        data: null,
+      };
+    }
+
+    // Step 2: Fetch all divisions with their departments and managers
+    const divisions = await prisma.division.findMany({
+      where: { isActive: true, isDeleted: false },
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        departments: {
+          where: { isActive: true, isDeleted: false },
+          orderBy: { name: "asc" },
+          select: {
+            id: true,
+            name: true,
+            // Get managers through ManagedDepartment junction table
+            managers: {
+              select: {
+                admin: {
+                  select: {
+                    id: true,
+                    firstname: true,
+                    lastname: true,
+                    email: true,
+                    profilePicture: true,
+                    role: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Step 3: Fetch all technicians with their manager and department relationships
+    const allTechnicians = await prisma.admin.findMany({
+      where: {
+        role: AdminRole.TECHNICIAN,
+        isActive: true,
+        isDeleted: false,
+        managerId: { not: null }, // Only technicians with managers
+        departmentId: { not: null }, // Only technicians assigned to departments
+      },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        profilePicture: true,
+        role: true,
+        managerId: true,
+        departmentId: true,
+      },
+      orderBy: { firstname: "asc" },
+    });
+
+    // Step 4: Build divisions tree structure
+    const divisionsTree = divisions.map((division) => ({
+      id: division.id,
+      name: division.name,
+      type: "division",
+      departments: (division.departments || []).map((department) => ({
+        id: department.id,
+        name: department.name,
+        type: "department",
+        managers: (department.managers || []).map((managerRelation) => {
+          const manager = managerRelation.admin;
+
+          // Find technicians managed by this manager in this department
+          const managerTechnicians = allTechnicians
+            .filter(
+              (tech) =>
+                tech.managerId === manager.id &&
+                tech.departmentId === department.id
+            )
+            .map((tech) => ({
+              ...formatAdmin(tech),
+              type: "technician",
+            }));
+
+          return {
+            ...formatAdmin(manager),
+            type: "manager",
+            technicians: managerTechnicians,
+          };
+        }),
+      })),
+    }));
+
+    // Step 5: Create the root tree with SUPERADMIN at the top
+    const rootTree = {
+      ...formatAdmin(superadmin),
+      type: "superadmin",
+      divisions: divisionsTree, // All divisions nested under SUPERADMIN
+    };
+
+    return {
+      success: true,
+      message: "Organizational tree with SUPERADMIN root fetched",
+      data: rootTree, // Single root object
+    };
+  }
+
+  // MANAGER: Get tree for departments they manage (no SUPERADMIN root needed)
+  if (role === AdminRole.MANAGER) {
+    const superadmin = await prisma.admin.findFirst({
+      where: { role: AdminRole.SUPERADMIN, isActive: true, isDeleted: false },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        profilePicture: true,
+        role: true,
+      },
+    });
+
+    if (!superadmin) {
+      return {
+        success: false,
+        message: "Superadmin not found",
+        data: null,
+      };
+    }
+
+    const manager = await prisma.admin.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        profilePicture: true,
+        role: true,
+        managedDepartments: {
+          select: {
+            department: {
+              select: {
+                id: true,
+                name: true,
+                division: {
+                  select: { id: true, name: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!manager) {
+      return {
+        success: false,
+        message: "Manager not found",
+        data: null,
+      };
+    }
+
+    // Get technicians managed by this manager
+    const managedTechnicians = await prisma.admin.findMany({
+      where: {
+        managerId: manager.id,
+        role: AdminRole.TECHNICIAN,
+        isActive: true,
+        isDeleted: false,
+        departmentId: { not: null },
+      },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        profilePicture: true,
+        role: true,
+        departmentId: true,
+      },
+      orderBy: { firstname: "asc" },
+    });
+
+    // Group departments by division
+    const divisionMap = new Map();
+
+    for (const managedDept of manager.managedDepartments) {
+      const dept = managedDept.department;
+      if (!dept) continue;
+
+      const divisionId = dept.division.id;
+
+      if (!divisionMap.has(divisionId)) {
+        divisionMap.set(divisionId, {
+          id: dept.division.id,
+          name: dept.division.name,
+          type: "division",
+          departments: [],
+        });
+      }
+
+      // Get technicians for this department
+      const deptTechnicians = managedTechnicians
+        .filter((tech) => tech.departmentId === dept.id)
+        .map((tech) => ({
+          ...formatAdmin(tech),
+          type: "technician",
+        }));
+
+      const departmentNode = {
+        id: dept.id,
+        name: dept.name,
+        type: "department",
+        managers: [
+          {
+            ...formatAdmin(manager),
+            type: "manager",
+            technicians: deptTechnicians,
+          },
+        ],
+      };
+
+      divisionMap.get(divisionId).departments.push(departmentNode);
+    }
+
+    const divisions = Array.from(divisionMap.values());
+
+    const root = {
+      id: superadmin.id,
+      name: `${superadmin.firstname || ""} ${superadmin.lastname || ""}`.trim(),
+      role: "SUPERADMIN",
+      email: superadmin.email || null,
+      profilePicture: superadmin.profilePicture || null,
+      type: "superadmin",
+      divisions,
+    };
+
+    return {
+      success: true,
+      message: "Manager organizational tree fetched",
+      data: root,
+    };
+  }
+
+  // TECHNICIAN: Show their position in hierarchy
+  if (role === AdminRole.TECHNICIAN) {
+    const technician = await prisma.admin.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        profilePicture: true,
+        role: true,
+        manager: {
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true,
+            email: true,
+            profilePicture: true,
+            role: true,
+          },
+        },
+        department: {
+          select: {
+            id: true,
+            name: true,
+            division: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!technician || !technician.department) {
+      return {
+        success: true,
+        message: "Technician has limited tree access",
+        data: [],
+      };
+    }
+
+    // Show technician's position in the org tree
+    const tree = [
+      {
+        id: technician.department.division.id,
+        name: technician.department.division.name,
+        type: "division",
+        departments: [
+          {
+            id: technician.department.id,
+            name: technician.department.name,
+            type: "department",
+            managers: technician.manager
+              ? [
+                  {
+                    ...formatAdmin(technician.manager),
+                    type: "manager",
+                    technicians: [
+                      {
+                        ...formatAdmin(technician),
+                        type: "technician",
+                      },
+                    ],
+                  },
+                ]
+              : [],
+          },
+        ],
+      },
+    ];
+
+    return {
+      success: true,
+      message: "Technician organizational position",
+      data: tree,
+    };
+  }
+
+  return {
+    success: false,
+    message: "Unsupported role",
+    data: null,
   };
 };

@@ -11,6 +11,7 @@ import {
   getDepartmentsByDivisionController,
   getDivisionByIdController,
   getDivisionStatsController,
+  getDivTreeByUserController,
   updateDivisionController,
 } from "./division.controller";
 import { createDivisionSchema, updateDivisionSchema } from "./division.schema";
@@ -41,6 +42,18 @@ router.get(
     AdminRole.TECHNICIAN
   ),
   getActiveDivisionsController
+);
+
+router.get(
+  "/tree",
+  authMiddleware,
+  requireRole(
+    AdminRole.SUPERADMIN,
+    AdminRole.ASSISTANT,
+    AdminRole.MANAGER,
+    AdminRole.TECHNICIAN
+  ),
+  getDivTreeByUserController
 );
 
 router.get(

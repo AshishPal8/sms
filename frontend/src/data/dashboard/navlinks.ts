@@ -6,6 +6,7 @@ import {
   Users,
   Settings,
   Bell,
+  FolderTree,
 } from "lucide-react";
 
 export const navItems = [
@@ -16,10 +17,16 @@ export const navItems = [
     roles: [roles.SUPERADMIN, roles.ASSISTANT, roles.MANAGER, roles.TECHNICIAN],
   },
   {
+    label: "Tree",
+    href: "/dashboard/tree",
+    icon: FolderTree,
+    roles: [roles.SUPERADMIN, roles.ASSISTANT, roles.MANAGER],
+  },
+  {
     label: "Employees",
     href: "/dashboard/employees",
     icon: Users,
-    roles: [roles.SUPERADMIN],
+    roles: [roles.SUPERADMIN, roles.MANAGER],
   },
   {
     label: "Divisions",

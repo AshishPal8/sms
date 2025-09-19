@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { DataTable } from "@/components/ui/data-table";
 import React, { useEffect, useState } from "react";
 import { baseUrl } from "../../../config";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { DevisionActions } from "./cell-action";
 import Pagination from "../pagination";
 
@@ -20,8 +20,11 @@ const DivisionsData = () => {
   const [divisions, setdivisions] = useState([]);
   const [totalPage, setTotalPage] = useState(0);
 
+  const router = useRouter();
+
   const search = searchParams.get("search") || "";
-  const sortOrder = searchParams.get("sortOrder") || "desc";
+  const sortOrderParam = searchParams.get("sortOrder") || "desc";
+  const sortByParam = searchParams.get("sortBy") || "createdAt";
   const active = searchParams.get("active") || true;
   const page = searchParams.get("page") || 1;
 
@@ -31,7 +34,8 @@ const DivisionsData = () => {
         const res = await axios.get(`${baseUrl}/divisions`, {
           params: {
             search,
-            sortOrder,
+            sortOrder: sortOrderParam,
+            sortBy: sortByParam,
             page,
             active,
           },
@@ -47,7 +51,7 @@ const DivisionsData = () => {
     };
 
     fetchDivisions();
-  }, [search, sortOrder, page, active]);
+  }, [search, sortOrderParam, sortByParam, page, active]);
 
   const formatDivisions = divisions.map((division: IDivision) => ({
     id: division.id,
@@ -57,11 +61,23 @@ const DivisionsData = () => {
   }));
 
   const columns = [
-    { header: "Division Name", accessor: "name" },
-    { header: "Active", accessor: "isActive" },
+    {
+      header: "Division Name",
+      accessor: "name",
+      sortable: true,
+      sortKey: "name",
+    },
+    {
+      header: "Active",
+      accessor: "isActive",
+      sortable: true,
+      sortKey: "isActive",
+    },
     {
       header: "Created At",
       accessor: "createdAt",
+      sortable: true,
+      sortKey: "createdAt",
     },
     {
       header: "Actions",
@@ -77,9 +93,31 @@ const DivisionsData = () => {
     },
   ];
 
+  const onSort = (sortKey: string) => {
+    const currentSortBy = searchParams.get("sortBy") || null;
+    const currentOrder = searchParams.get("sortOrder") || "desc";
+
+    let nextOrder: "asc" | "desc" = "asc";
+    if (currentSortBy === sortKey) {
+      nextOrder = currentOrder === "asc" ? "desc" : "asc";
+    }
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("sortBy", sortKey);
+    params.set("sortOrder", nextOrder);
+    params.set("page", "1");
+    router.push(`${location.pathname}?${params.toString()}`);
+  };
+
   return (
     <div className="mt-4">
-      <DataTable columns={columns} data={formatDivisions} />
+      <DataTable
+        columns={columns}
+        data={formatDivisions}
+        sortBy={sortByParam}
+        sortOrder={(sortOrderParam as "asc" | "desc") || "desc"}
+        onSort={onSort}
+      />
       <Pagination page={Number(page)} totalPages={totalPage} />
     </div>
   );

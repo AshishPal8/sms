@@ -5,17 +5,20 @@ import type { addEmployeeInput, updateEmployeeInput } from "./employees.schema";
 import type { GetAllEmployeesOptions } from "../../../types/employees.types";
 import { AdminRole } from "../../../generated/prisma";
 
-export const getAllEmployeesService = async ({
-  adminId,
-  search,
-  sortBy = "createdAt",
-  sortOrder = "desc",
-  page = 1,
-  limit = 10,
-  role,
-  managerId,
-  isActive,
-}: GetAllEmployeesOptions) => {
+export const getAllEmployeesService = async (
+  user: { id: string; role: string },
+  {
+    search,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    page = 1,
+    limit = 10,
+    role,
+    managerId,
+    isActive,
+    isDeleted,
+  }: GetAllEmployeesOptions
+) => {
   const allowedSorts = ["createdAt", "firstname", "email", "role"];
   const orderField = allowedSorts.includes(sortBy) ? sortBy : "createdAt";
 
@@ -23,8 +26,8 @@ export const getAllEmployeesService = async ({
     isDeleted: false,
   };
 
-  if (adminId) {
-    whereClause.id = { not: adminId };
+  if (user.id) {
+    whereClause.id = { not: user.id };
   }
 
   if (search) {
@@ -38,13 +41,20 @@ export const getAllEmployeesService = async ({
   if (role) {
     whereClause.role = role;
   }
+  if (typeof isDeleted === "boolean") {
+    whereClause.isDeleted = isDeleted;
+  }
 
   if (typeof isActive === "boolean") {
     whereClause.isActive = isActive;
   }
 
-  if (managerId) {
-    whereClause.managerId = managerId;
+  if (user && user.role === AdminRole.MANAGER) {
+    whereClause.managerId = user.id;
+  } else {
+    if (managerId) {
+      whereClause.managerId = managerId;
+    }
   }
 
   const total = await prisma.admin.count({ where: whereClause });
@@ -147,47 +157,27 @@ export const getEmployeeByIdService = async (id: string) => {
       department: {
         select: {
           id: true,
-          divisionId: true,
+          name: true,
+          division: { select: { id: true, name: true } },
         },
       },
       managerId: true,
       manager: {
         select: {
           id: true,
+          firstname: true,
+          lastname: true,
+          email: true,
+          profilePicture: true,
+          role: true,
         },
-      },
-      managedDepartments: {
-        select: {
-          department: {
-            select: {
-              id: true,
-              divisionId: true,
-            },
-          },
-        },
-        orderBy: { department: { name: "asc" } },
       },
     },
   });
 
   if (!employee) throw new NotFoundError("Employee not found");
 
-  let departmentId: string | null = null;
-  let divisionId: string | null = null;
-
-  if (employee.departmentId) {
-    departmentId = employee.departmentId;
-    divisionId = employee.department?.divisionId ?? null;
-  } else if (
-    employee.managedDepartments &&
-    employee.managedDepartments.length > 0
-  ) {
-    const firstManaged = employee.managedDepartments[0]?.department;
-    departmentId = firstManaged?.id ?? null;
-    divisionId = firstManaged?.divisionId ?? null;
-  }
-
-  const result = {
+  const baseProfile = {
     id: employee.id,
     firstname: employee.firstname,
     lastname: employee.lastname,
@@ -198,14 +188,141 @@ export const getEmployeeByIdService = async (id: string) => {
     profilePicture: employee.profilePicture,
     createdAt: employee.createdAt,
     updatedAt: employee.updatedAt,
-
-    // form-specific initial values
-    divisionId,
-    departmentId,
-    managerId: employee.managerId ?? null,
   };
 
-  return result;
+  if (employee.role === AdminRole.SUPERADMIN) {
+    return { ...baseProfile };
+  }
+
+  const superadmin = await prisma.admin.findFirst({
+    where: { role: AdminRole.SUPERADMIN, isActive: true, isDeleted: false },
+    select: {
+      id: true,
+      firstname: true,
+      lastname: true,
+      email: true,
+      profilePicture: true,
+      role: true,
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  if (employee.role === AdminRole.ASSISTANT) {
+    return { ...baseProfile, superadmin };
+  }
+
+  if (employee.role === AdminRole.MANAGER) {
+    const managed = await prisma.managedDepartment.findMany({
+      where: { adminId: employee.id },
+      select: {
+        department: {
+          select: {
+            id: true,
+            name: true,
+            division: {
+              select: { id: true, name: true },
+            },
+          },
+        },
+      },
+      orderBy: { department: { name: "asc" } },
+    });
+
+    const departments = managed
+      .filter((m) => m.department)
+      .map((m) => ({
+        id: m.department.id,
+        name: m.department.name,
+        division: m.department.division,
+      }));
+
+    const technicians = await prisma.admin.findMany({
+      where: {
+        managerId: employee.id,
+        role: AdminRole.TECHNICIAN,
+        isActive: true,
+        isDeleted: false,
+      },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        profilePicture: true,
+        role: true,
+      },
+    });
+
+    return {
+      ...baseProfile,
+      superadmin,
+      departments,
+      technicians,
+    };
+  }
+
+  if (employee.role === AdminRole.TECHNICIAN) {
+    const techFull = await prisma.admin.findUnique({
+      where: { id: employee.id },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        profilePicture: true,
+        role: true,
+        manager: {
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true,
+            email: true,
+            profilePicture: true,
+            role: true,
+          },
+        },
+        department: {
+          select: {
+            id: true,
+            name: true,
+            division: { select: { id: true, name: true } },
+          },
+        },
+      },
+    });
+
+    const manager = techFull?.manager
+      ? {
+          id: techFull.manager.id,
+          name: `${techFull.manager.firstname || ""} ${
+            techFull.manager.lastname || ""
+          }`.trim(),
+          email: techFull.manager.email ?? null,
+          profilePicture: techFull.manager.profilePicture ?? null,
+          role: techFull.manager.role ?? "MANAGER",
+        }
+      : null;
+
+    const department = techFull?.department
+      ? { id: techFull.department.id, name: techFull.department.name }
+      : null;
+
+    const division = techFull?.department?.division
+      ? {
+          id: techFull.department.division.id,
+          name: techFull.department.division.name,
+        }
+      : null;
+
+    return {
+      ...baseProfile,
+      manager,
+      department,
+      division,
+    };
+  }
+
+  return { ...baseProfile };
 };
 
 export const addEmployeeService = async (data: addEmployeeInput) => {
