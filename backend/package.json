@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "nodemon --watch src --exec bun src/index.ts"
+    "dev": "nodemon --watch src --exec bun src/index.ts",
+    "start": "bunx prisma db push && bunx prisma generate && bun src/index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
