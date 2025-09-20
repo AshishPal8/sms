@@ -26,6 +26,11 @@ const nextConfig: NextConfig = {
         hostname: "res.cloudinary.com",
         pathname: "**",
       },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+        pathname: "**",
+      },
     ],
   },
   typescript: {

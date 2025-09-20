@@ -3,6 +3,7 @@ import prisma from "../../../db";
 import { BadRequestError } from "../../../middlewares/error";
 import type { AdminSigninInput, AdminSignupInput } from "./auth.schema";
 import { generateToken } from "../../../utils/auth";
+import { ADMIN_JWT_EXPIRY } from "../../../utils/config";
 
 export const adminSignupService = async (data: AdminSignupInput) => {
   const { firstname, lastname, email, password, phone, profilePicture, role } =
@@ -64,11 +65,14 @@ export const adminSigninService = async (data: AdminSigninInput) => {
   const isMatch = await bcrypt.compare(password, admin.password);
   if (!isMatch) throw new BadRequestError("Incorrect credentials");
 
-  const token = generateToken({
-    id: admin.id,
-    email: admin.email,
-    role: admin.role,
-  });
+  const token = generateToken(
+    {
+      id: admin.id,
+      email: admin.email,
+      role: admin.role,
+    },
+    ADMIN_JWT_EXPIRY
+  );
 
   return {
     success: true,

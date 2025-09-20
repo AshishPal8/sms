@@ -1,10 +1,15 @@
-import jwt from "jsonwebtoken";
+import jwt, { type JwtPayload, type SignOptions } from "jsonwebtoken";
 import crypto from "crypto";
 import prisma from "../db";
 import { jwtSecret } from "./config";
 
-export const generateToken = (payload: object) => {
-  return jwt.sign(payload, jwtSecret, { expiresIn: "30d" });
+export const generateToken = (
+  payload: JwtPayload | string,
+  expiresIn: string = "30d"
+) => {
+  const options: SignOptions = { expiresIn: expiresIn as any };
+
+  return jwt.sign(payload, jwtSecret, options);
 };
 
 export function generateOTP(length = 6) {
