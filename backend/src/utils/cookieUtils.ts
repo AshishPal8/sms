@@ -1,11 +1,11 @@
 import type { Response } from "express";
+import { DEFAULT_COOKIE_MAX_AGE } from "./config";
 
 // export const COOKIE_OPTIONS = {
 //   httpOnly: true,
 //   secure: false,
 //   sameSite: "lax" as "lax",
 //   path: "/",
-//   maxAge: 1000 * 60 * 60 * 24 * 30,
 // };
 
 export const COOKIE_OPTIONS = {
@@ -14,13 +14,21 @@ export const COOKIE_OPTIONS = {
   sameSite: "none" as const,
   domain: ".ashishpro.com",
   path: "/",
-  maxAge: 1000 * 60 * 60 * 24 * 30,
 };
 
-export const setAuthCookie = (res: Response, token: string) => {
-  res.cookie("token", token, COOKIE_OPTIONS);
+export const setAuthCookie = (
+  res: Response,
+  token: string,
+  maxAgeMs: number = DEFAULT_COOKIE_MAX_AGE
+) => {
+  const opts = {
+    ...COOKIE_OPTIONS,
+    maxAge: maxAgeMs,
+  };
+
+  res.cookie("token", token, opts);
 };
 
 export const clearAuthCookie = (res: Response) => {
-  res.clearCookie("token", { ...COOKIE_OPTIONS, maxAge: undefined });
+  res.clearCookie("token", { ...COOKIE_OPTIONS });
 };

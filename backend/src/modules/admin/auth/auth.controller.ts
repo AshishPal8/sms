@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { adminSigninService, adminSignupService } from "./auth.service";
-import { NotFoundError } from "../../../middlewares/error";
-import { clearAuthCookie, setAuthCookie } from "../../../utils/cookieUtils";
+import { setAuthCookie } from "../../../utils/cookieUtils";
+import { ADMIN_COOKIE_MAX_AGE } from "../../../utils/config";
 
 export const adminSignup = async (
   req: Request,
@@ -12,7 +12,7 @@ export const adminSignup = async (
     const admin = await adminSignupService(req.body);
 
     //cookie set
-    setAuthCookie(res, admin.token);
+    setAuthCookie(res, admin.token, ADMIN_COOKIE_MAX_AGE);
 
     res.status(201).json(admin);
   } catch (error) {
@@ -29,7 +29,7 @@ export const adminSignin = async (
     const admin = await adminSigninService(req.body);
 
     //cookie set
-    setAuthCookie(res, admin.token);
+    setAuthCookie(res, admin.token, ADMIN_COOKIE_MAX_AGE);
 
     res.status(200).json(admin);
   } catch (error) {
