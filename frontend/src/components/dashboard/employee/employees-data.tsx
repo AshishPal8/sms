@@ -10,12 +10,13 @@ import Pagination from "../pagination";
 import { IEmployee } from "@/types/employee.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { defaultProfile } from "@/data/assets";
+import useSettingsStore from "@/store/settings";
 
 const EmployeesData = () => {
   const searchParams = useSearchParams();
   const [employees, setEmployees] = useState([]);
   const [totalPage, setTotalPage] = useState(0);
-
+  const dateFormat = useSettingsStore((state) => state.getDateFormat());
   const router = useRouter();
 
   const search = searchParams.get("search") || "";
@@ -65,7 +66,7 @@ const EmployeesData = () => {
     email: employee.email,
     role: employee.role.toLowerCase(),
     createdAt: employee.createdAt
-      ? format(new Date(employee.createdAt), "MM-dd-yyyy")
+      ? format(new Date(employee.createdAt), dateFormat)
       : null,
   }));
 

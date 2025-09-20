@@ -7,6 +7,7 @@ import { baseUrl } from "../../../config";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { DepartmentActions } from "./cell-action";
 import Pagination from "../pagination";
+import useSettingsStore from "@/store/settings";
 
 interface IManager {
   id: string;
@@ -28,6 +29,7 @@ const DepartmentData = () => {
   const searchParams = useSearchParams();
   const [departments, setDepartments] = useState([]);
   const [totalPage, setTotalPage] = useState(0);
+  const dateFormat = useSettingsStore((state) => state.getDateFormat());
 
   const router = useRouter();
 
@@ -72,7 +74,7 @@ const DepartmentData = () => {
             .join(", ")
         : "Not Assigned",
     isActive: department.isActive,
-    createdAt: format(new Date(department.createdAt), "MM-dd-yyyy"),
+    createdAt: format(new Date(department.createdAt), dateFormat),
   }));
 
   const columns = [

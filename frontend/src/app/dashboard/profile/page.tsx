@@ -2,7 +2,6 @@
 
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Role } from "@/types/role.types";
 import { baseUrl } from "../../../config";
 import { ProfileForm } from "@/components/dashboard/profile/profile-form";
 import EmployeeProfileCard from "@/components/dashboard/profile/profile-card";

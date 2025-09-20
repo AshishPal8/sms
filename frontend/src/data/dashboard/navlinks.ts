@@ -48,7 +48,7 @@ export const navItems = [
   },
   {
     label: "Settings",
-    href: "/dashboard/superadmin/settings",
+    href: "/dashboard/settings",
     icon: Settings,
     roles: [roles.SUPERADMIN],
   },

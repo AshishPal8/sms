@@ -7,6 +7,7 @@ import { baseUrl } from "../../../config";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DevisionActions } from "./cell-action";
 import Pagination from "../pagination";
+import useSettingsStore from "@/store/settings";
 
 interface IDivision {
   id: string;
@@ -19,6 +20,7 @@ const DivisionsData = () => {
   const searchParams = useSearchParams();
   const [divisions, setdivisions] = useState([]);
   const [totalPage, setTotalPage] = useState(0);
+  const dateFormat = useSettingsStore((state) => state.getDateFormat());
 
   const router = useRouter();
 
@@ -57,7 +59,7 @@ const DivisionsData = () => {
     id: division.id,
     name: division.name,
     isActive: division.isActive,
-    createdAt: format(new Date(division.createdAt), "MM-dd-yyyy"),
+    createdAt: format(new Date(division.createdAt), dateFormat),
   }));
 
   const columns = [

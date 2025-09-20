@@ -32,6 +32,7 @@ import { addressSchema } from "@/schemas/addressSchema";
 import useAuthStore from "@/store/user";
 import { format } from "date-fns";
 import { alphaNumbericRegex } from "@/lib/regex";
+import useSettingsStore from "@/store/settings";
 
 const formSchema = z.object({
   firstname: z
@@ -70,6 +71,7 @@ type ProfileFormValues = z.infer<typeof formSchema>;
 
 export const ProfileHeader = () => {
   const router = useRouter();
+  const dateFormat = useSettingsStore((s) => s.getDateFormat());
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const currentToken = useAuthStore.getState().token;
@@ -336,7 +338,7 @@ export const ProfileHeader = () => {
                         value={field.value ? new Date(field.value) : undefined}
                         onChange={(date) =>
                           field.onChange(
-                            date ? format(date, "yyyy-MM-dd") : undefined
+                            date ? format(date, dateFormat) : undefined
                           )
                         }
                         disabled={loading}

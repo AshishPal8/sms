@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import useSettingsStore from "@/store/settings";
 
 type Props = {
   value?: Date | null;
@@ -24,8 +25,9 @@ export default function DatePicker({
   placeholder = "Select date",
 }: Props) {
   const [open, setOpen] = useState(false);
+  const dateFormat = useSettingsStore((s) => s.getDateFormat());
 
-  const formatted = value ? format(value, "dd MMM yyyy") : placeholder;
+  const formatted = value ? format(value, dateFormat) : placeholder;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
