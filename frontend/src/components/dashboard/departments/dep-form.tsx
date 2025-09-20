@@ -20,13 +20,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
 import { Switch } from "@/components/ui/switch";
-import axios from "axios";
-import { baseUrl } from "@/config";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { IEmployee } from "@/types/employee.types";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { alphaNumbericRegex } from "@/lib/regex";
+import api from "@/lib/api";
+import { handleApiError } from "@/lib/handleApiErrors";
 
 const formSchema = z.object({
   name: z
@@ -61,12 +61,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const managersRes = await axios.get(
-          `${baseUrl}/employees?role=MANAGER`,
-          {
-            withCredentials: true,
-          }
-        );
+        const managersRes = await api.get(`/employees?role=MANAGER`);
 
         const mappedManagers = managersRes.data.data.map((m: IEmployee) => ({
           value: m.id,
@@ -112,17 +107,9 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
       };
 
       if (isEdit) {
-        await axios.put(
-          `${baseUrl}/departments/update/${initialData.id}`,
-          payload,
-          {
-            withCredentials: true,
-          }
-        );
+        await api.put(`/departments/update/${initialData.id}`, payload);
       } else {
-        await axios.post(`${baseUrl}/departments/add/${divId}`, payload, {
-          withCredentials: true,
-        });
+        await api.post(`/departments/add/${divId}`, payload);
       }
 
       toast.success(
@@ -130,8 +117,7 @@ export const DepartmentForm = ({ initialData }: DepartmentFormProps) => {
       );
       router.push(`/dashboard/divisions/${divId}/departments`);
     } catch (error) {
-      toast.error("Something went wrong!");
-      console.error("Error submitting form:", error);
+      handleApiError(error);
     } finally {
       setLoading(false);
     }

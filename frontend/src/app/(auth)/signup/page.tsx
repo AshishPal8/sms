@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import axios from "axios";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,10 +30,11 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { baseUrl } from "../../../config";
 import useAuthStore from "@/store/user";
 import { useRouter } from "next/navigation";
 import Logo from "@/components/layout/logo";
+import api from "@/lib/api";
+import { handleApiError } from "@/lib/handleApiErrors";
 
 const formSchema = z.object({
   firstname: z.string().min(1, { error: "First name is required" }),
@@ -63,21 +63,14 @@ export default function SignupForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      const res = await axios.post(`${baseUrl}/user/auth/signup`, values);
+      const res = await api.post(`/user/auth/signup`, values);
       setEmail(values.email);
       setDevOtp(res.data.data.otp);
       setStep("otp");
 
       toast.success(`OTP sent! Check email. (OTP: ${devOtp})`);
     } catch (error) {
-      console.error("Signup error:", error);
-      if (axios.isAxiosError(error) && error.response) {
-        toast.error(
-          `Signup failed: ${error.response.data.message || "Please try again."}`
-        );
-      } else {
-        toast.error("Signup failed. Please try again.");
-      }
+      handleApiError(error);
     } finally {
       setIsLoading(false);
     }
@@ -86,17 +79,11 @@ export default function SignupForm() {
   async function handleVerifyOtp() {
     setIsLoading(true);
     try {
-      const res = await axios.post(
-        `${baseUrl}/user/auth/verify-otp`,
-        {
-          otp,
-          email,
-          action: "signup",
-        },
-        {
-          withCredentials: true,
-        }
-      );
+      const res = await api.post(`/user/auth/verify-otp`, {
+        otp,
+        email,
+        action: "signup",
+      });
 
       const { data, token } = res.data;
 
@@ -114,8 +101,8 @@ export default function SignupForm() {
 
       toast.success("Signup Successful");
       router.push("/");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "OTP verification failed");
+    } catch (err) {
+      handleApiError(err);
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +115,7 @@ export default function SignupForm() {
     }
     setIsLoading(true);
     try {
-      const res = await axios.post(`${baseUrl}/user/auth/resend-otp`, {
+      const res = await api.post(`/user/auth/resend-otp`, {
         email,
         action: "signup",
       });
@@ -138,8 +125,8 @@ export default function SignupForm() {
       setDevOtp(data.otp);
 
       toast.success("OTP sent to your mail");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "OTP sent failed");
+    } catch (err) {
+      handleApiError(err);
     } finally {
       setIsLoading(false);
     }

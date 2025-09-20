@@ -11,10 +11,8 @@ import { ChevronDown, ChevronRight, Menu } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import useAuthStore from "@/store/user";
-import axios from "axios";
-import { baseUrl } from "../../config";
 import { roles } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { signOut } from "../../lib/signOut";
 
 interface UserDropdownProps {
   isMenuOpen: boolean;
@@ -22,22 +20,12 @@ interface UserDropdownProps {
 }
 
 function UserDropdown({ isMenuOpen, setIsMenuOpen }: UserDropdownProps) {
-  const { user, logout } = useAuthStore();
-  const router = useRouter();
+  const { user } = useAuthStore();
 
   const admin = user && user?.role !== roles.CUSTOMER;
 
   const handleSignout = async () => {
-    await axios.post(
-      `${baseUrl}/user/auth/logout`,
-      {},
-      {
-        withCredentials: true,
-      }
-    );
-
-    logout();
-    router.push("/signin");
+    await signOut();
   };
 
   return (
@@ -68,7 +56,7 @@ function UserDropdown({ isMenuOpen, setIsMenuOpen }: UserDropdownProps) {
                     {`${user.firstname} ${user.lastname ?? ""}`}
                   </span>
                   <span className="text-xs text-gray-500 capitalize">
-                    {user.role.toLowerCase()}
+                    {user.role ? user.role.toLowerCase() : ""}
                   </span>
                 </div>
               )}

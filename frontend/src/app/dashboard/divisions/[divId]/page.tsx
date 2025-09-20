@@ -1,10 +1,9 @@
 "use client";
 
-import axios from "axios";
 import { useEffect, useState } from "react";
-import { baseUrl } from "@/config";
 import { useParams } from "next/navigation";
 import { DivisionForm } from "@/components/dashboard/division/div-form";
+import api from "@/lib/api";
 
 function EditDivision() {
   const [division, setDivision] = useState({
@@ -17,9 +16,7 @@ function EditDivision() {
     if (!divId) return;
 
     const fetchDivision = async () => {
-      const res = await axios.get(`${baseUrl}/divisions/${divId}`, {
-        withCredentials: true,
-      });
+      const res = await api.get(`/divisions/${divId}`);
 
       const { data } = res.data;
 

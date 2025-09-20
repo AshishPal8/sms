@@ -4,12 +4,10 @@ import {
   TicketUrgencyOptions,
 } from "@/lib/ticket";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
-import { baseUrl } from "../../../config";
 import { toast } from "sonner";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -41,6 +39,7 @@ import { format } from "date-fns";
 import AddressInput from "@/components/ui/AddressInput";
 import { Address as AddressType } from "@/types/address.types";
 import useSettingsStore from "@/store/settings";
+import api from "@/lib/api";
 
 export const createTicketSchema = z
   .object({
@@ -112,9 +111,7 @@ export const CreateTicketForm = () => {
   const onSubmit = async (values: CreateTicketFormValues) => {
     try {
       setLoading(true);
-      await axios.post(`${baseUrl}/tickets/create`, values, {
-        withCredentials: true,
-      });
+      await api.post(`/tickets/create`, values);
 
       toast.success("Ticket created successfully");
       router.push("/dashboard/tickets");

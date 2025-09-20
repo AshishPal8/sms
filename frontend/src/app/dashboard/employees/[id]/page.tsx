@@ -1,11 +1,10 @@
 "use client";
 
 import { EmployeeForm } from "@/components/dashboard/employee/employee-form";
-import axios from "axios";
 import { useEffect, useState } from "react";
-import { baseUrl } from "@/config";
 import { useParams } from "next/navigation";
 import { Role } from "@/types/role.types";
+import api from "@/lib/api";
 
 function EditEmployee() {
   const [employee, setEmployee] = useState<{
@@ -29,9 +28,7 @@ function EditEmployee() {
     if (!id) return;
 
     const fetchEmployee = async () => {
-      const res = await axios.get(`${baseUrl}/employees/${id}`, {
-        withCredentials: true,
-      });
+      const res = await api.get(`/employees/${id}`);
 
       const { data } = res.data;
 

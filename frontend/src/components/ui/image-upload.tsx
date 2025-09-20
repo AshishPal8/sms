@@ -10,12 +10,11 @@ import {
   Trash,
 } from "lucide-react";
 import Image from "next/image";
-import axios from "axios";
 import { Label } from "./label";
 import { Input } from "./input";
-import { baseUrl } from "../../config";
 import { getAssetTypeFromUrl } from "@/lib/getAssetType";
 import { AssetType } from "@/enums/TicketAssetTypes";
+import api from "@/lib/api";
 
 interface ImageUploadProps {
   disabled?: boolean;
@@ -56,27 +55,18 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       formData.append("files", file);
 
       try {
-        const response = await axios.post(
-          `${baseUrl}/upload/assets`,
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-            onUploadProgress: (progressEvent) => {
-              if (progressEvent.total) {
-                const progress = Math.round(
-                  (progressEvent.loaded / progressEvent.total) * 100
-                );
-                setUploadingFiles((prev) =>
-                  prev.map((f) =>
-                    f.tempId === tempId ? { ...f, progress } : f
-                  )
-                );
-              }
-            },
-          }
-        );
+        const response = await api.post(`/upload/assets`, formData, {
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const progress = Math.round(
+                (progressEvent.loaded / progressEvent.total) * 100
+              );
+              setUploadingFiles((prev) =>
+                prev.map((f) => (f.tempId === tempId ? { ...f, progress } : f))
+              );
+            }
+          },
+        });
 
         const uploadedFiles = response.data.data;
         const uploadedUrl = uploadedFiles[0]?.url;

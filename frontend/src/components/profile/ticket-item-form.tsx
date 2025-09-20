@@ -12,10 +12,9 @@ import {
 import ImageUpload from "@/components/ui/image-upload";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { baseUrl } from "@/config";
+import api from "@/lib/api";
 import { ITicketById, ITicketItem } from "@/types/ticket.types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -60,9 +59,7 @@ const TicketItemForm = ({
   const onSubmit = async (values: CreateTicketItemFormValues) => {
     try {
       setLoading(true);
-      const res = await axios.post(`${baseUrl}/tickets/item/create`, values, {
-        withCredentials: true,
-      });
+      const res = await api.post(`/tickets/item/create`, values);
 
       const newItem: ITicketItem = res.data?.data;
 

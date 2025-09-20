@@ -1,7 +1,5 @@
 "use client";
-import { baseUrl } from "@/config";
 import { ITicketById } from "@/types/ticket.types";
-import axios from "axios";
 import { ArrowRightCircle, CheckCircle2, Shield } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Heading } from "../ui/heading";
@@ -9,6 +7,7 @@ import { statusStyles } from "@/styles/color";
 import Link from "next/link";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
+import api from "@/lib/api";
 
 const TicketsSection = () => {
   const [tickets, setTickets] = useState<ITicketById[]>([]);
@@ -16,9 +15,7 @@ const TicketsSection = () => {
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/user/ticket`, {
-          withCredentials: true,
-        });
+        const res = await api.get(`/user/ticket`);
         const { data } = res.data;
         setTickets(data);
       } catch (error) {

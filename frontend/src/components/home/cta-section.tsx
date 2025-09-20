@@ -1,64 +1,43 @@
-"use client";
-import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { PhoneCall } from "lucide-react";
 
-export default function CTASection() {
+export function CallToAction() {
   return (
-    <section className="max-w-7xl mx-auto my-16">
-      <div className="py-20 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 text-white rounded-3xl">
-        <div className="absolute inset-0 bg-[url('/patterns/grid.svg')] opacity-10" />{" "}
-        {/* optional subtle bg pattern */}
-        <div className="relative mx-auto max-w-7xl px-6 text-center">
-          {/* Heading */}
-          <motion.h2
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-3xl font-bold sm:text-4xl md:text-5xl"
-          >
-            Ready to Fix Your Home Issues Today?
-          </motion.h2>
+    <section className="max-w-7xl mx-auto my-16 py-20 px-4 sm:px-6 lg:px-8 bg-primary rounded-3xl text-primary-foreground relative overflow-hidden">
+      {/* Background pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fillRule='evenodd'%3E%3Cg fill='%23ffffff' fillOpacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+      </div>
 
-          {/* Subtext */}
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-            className="mt-4 max-w-2xl mx-auto text-base sm:text-lg text-white/90"
-          >
-            From plumbing emergencies to electrical upgrades — our experts are
-            just one click away.
-          </motion.p>
+      <div className="max-w-4xl mx-auto text-center relative z-10">
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-balance">
+              Ready to Experience Professional Service?
+            </h2>
+            <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed">
+              Don&apos;t let home issues stress you out. Contact our expert team
+              today for a free consultation and discover why thousands of
+              homeowners trust us with their most important investment.
+            </p>
+          </div>
 
-          {/* Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            viewport={{ once: true }}
-            className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4"
-          >
-            <Button
-              asChild
-              size="lg"
-              className="bg-white text-blue-600 hover:bg-gray-100 shadow-md"
-            >
-              <Link href="/book-a-service">Book Service Now</Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" variant="secondary" className="text-lg px-8 py-6">
+              Get Your Free Estimate
             </Button>
-
             <Button
               size="lg"
               variant="outline"
-              className="border-white/80 bg-white/10 text-white backdrop-blur hover:bg-white/20 flex items-center gap-2"
+              className="text-lg px-8 py-6 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
             >
-              <PhoneCall className="h-5 w-5" />
-              <Link href="tel:+1-555-0123">(555) 012-3456</Link>
+              Call (555) 123-4567
             </Button>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

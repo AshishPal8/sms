@@ -1,13 +1,13 @@
 "use client";
 
 import { Edit, Trash2, View } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import axios from "axios";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { baseUrl } from "@/config";
 import { useState } from "react";
 import AlertModal from "@/modals/alert-modal";
 import { Button } from "@/components/ui/button";
+import api from "@/lib/api";
 
 interface DivisionActionsProps {
   id: string;
@@ -30,9 +30,7 @@ export function DevisionActions({ id, onDeleteSuccess }: DivisionActionsProps) {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await axios.delete(`${baseUrl}/divisions/delete/${id}`, {
-        withCredentials: true,
-      });
+      await api.delete(`${baseUrl}/divisions/delete/${id}`);
       if (onDeleteSuccess) onDeleteSuccess(id);
       toast.success("Division deleted successfully");
       router.refresh();

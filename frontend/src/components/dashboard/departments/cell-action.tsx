@@ -2,12 +2,11 @@
 
 import { Edit, Trash2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import axios from "axios";
 import { toast } from "sonner";
-import { baseUrl } from "@/config";
 import { useState } from "react";
 import AlertModal from "@/modals/alert-modal";
 import { Button } from "@/components/ui/button";
+import api from "@/lib/api";
 
 interface DepartmentActionsProps {
   id: string;
@@ -32,9 +31,7 @@ export function DepartmentActions({
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await axios.delete(`${baseUrl}/departments/delete/${id}`, {
-        withCredentials: true,
-      });
+      await api.delete(`/departments/delete/${id}`);
       if (onDeleteSuccess) onDeleteSuccess(id);
       toast.success("Department deleted successfully");
       router.refresh();

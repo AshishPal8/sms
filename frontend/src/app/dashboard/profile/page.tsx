@@ -1,19 +1,16 @@
 "use client";
 
-import axios from "axios";
 import { useEffect, useState } from "react";
-import { baseUrl } from "../../../config";
 import { ProfileForm } from "@/components/dashboard/profile/profile-form";
 import EmployeeProfileCard from "@/components/dashboard/profile/profile-card";
+import api from "@/lib/api";
 
 function ProfilePage() {
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const res = await axios.get(`${baseUrl}/employees/me`, {
-        withCredentials: true,
-      });
+      const res = await api.get(`/employees/me`);
 
       const { data } = res.data;
 

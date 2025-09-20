@@ -1,5 +1,8 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { motion } from "motion/react";
 
 export function HeroSection() {
   return (
@@ -7,21 +10,41 @@ export function HeroSection() {
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
-          <div className="space-y-8">
+          <motion.div
+            className="space-y-8"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
             <div className="space-y-4">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-balance leading-tight">
+              <motion.h1
+                className="text-4xl sm:text-5xl lg:text-6xl font-bold text-balance leading-tight"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
                 Your Trusted Home Service{" "}
                 <span className="text-accent">Experts</span>
-              </h1>
-              <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
+              </motion.h1>
+              <motion.p
+                className="text-lg text-muted-foreground leading-relaxed max-w-2xl"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
                 For over 15 years, we&apos;ve been providing reliable,
                 professional home services to families across the region. From
                 emergency repairs to routine maintenance, our certified
                 technicians deliver quality workmanship you can trust.
-              </p>
+              </motion.p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <motion.div
+              className="flex flex-col sm:flex-row gap-4"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
               <Button size="lg" className="text-lg px-8 py-6">
                 Get Free Estimate
               </Button>
@@ -32,9 +55,14 @@ export function HeroSection() {
               >
                 Call (555) 123-4567
               </Button>
-            </div>
+            </motion.div>
 
-            <div className="flex items-center gap-8 pt-4">
+            <motion.div
+              className="flex items-center gap-8 pt-4"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+            >
               <div className="text-center">
                 <div className="text-2xl font-bold text-accent">15+</div>
                 <div className="text-sm text-muted-foreground">
@@ -53,14 +81,19 @@ export function HeroSection() {
                   Emergency Service
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Right Image */}
-          <div className="relative">
+          <motion.div
+            className="relative"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
               <Image
-                src="/placeholder-65efl.png"
+                src="/technician-hero.jpg"
                 alt="Professional technician working on home repair"
                 width={500}
                 height={600}
@@ -68,7 +101,12 @@ export function HeroSection() {
               />
             </div>
             {/* Floating card */}
-            <div className="absolute -bottom-6 -left-6 bg-card p-6 rounded-xl shadow-lg border">
+            <motion.div
+              className="absolute -bottom-6 -left-6 bg-card p-6 rounded-xl shadow-lg border"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 1.2 }}
+            >
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center">
                   <svg
@@ -92,8 +130,8 @@ export function HeroSection() {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </section>

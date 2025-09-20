@@ -4,12 +4,10 @@ import {
   TicketUrgencyOptions,
 } from "@/lib/ticket";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
-import { baseUrl } from "../../../config";
 import { toast } from "sonner";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -35,6 +33,7 @@ import {
 import ImageUpload from "@/components/ui/image-upload";
 import { Button } from "@/components/ui/button";
 import { ITicketById } from "@/types/ticket.types";
+import api from "@/lib/api";
 
 export const updateTicketSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -76,9 +75,7 @@ export const UpdateTicketForm = () => {
     const fetchTicket = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${baseUrl}/tickets/${params.id}`, {
-          withCredentials: true,
-        });
+        const res = await api.get(`/tickets/${params.id}`);
 
         const data = res.data?.data;
         if (data) {
@@ -105,9 +102,7 @@ export const UpdateTicketForm = () => {
   const onSubmit = async (values: UpdateTicketFormValues) => {
     try {
       setLoading(true);
-      await axios.put(`${baseUrl}/tickets/update/${params.id}`, values, {
-        withCredentials: true,
-      });
+      await api.put(`/tickets/update/${params.id}`, values);
 
       toast.success("Ticket created successfully");
       router.push("/dashboard/tickets");

@@ -1,10 +1,9 @@
 "use client";
 
-import axios from "axios";
 import { useEffect, useState } from "react";
-import { baseUrl } from "@/config";
 import { useParams } from "next/navigation";
 import { DepartmentForm } from "@/components/dashboard/departments/dep-form";
+import api from "@/lib/api";
 
 function EditDepartment() {
   const [department, setDepartment] = useState({
@@ -18,9 +17,7 @@ function EditDepartment() {
     if (!depId) return;
 
     const fetchDepartment = async () => {
-      const res = await axios.get(`${baseUrl}/departments/by-id/${depId}`, {
-        withCredentials: true,
-      });
+      const res = await api.get(`/departments/by-id/${depId}`);
 
       const { data } = res.data;
 

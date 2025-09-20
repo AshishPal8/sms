@@ -3,7 +3,7 @@ import HowItWorks from "@/components/home/how-it-works";
 import Stats from "@/components/home/stats";
 import Services from "@/components/home/services";
 import Testimonials from "@/components/home/testimonial";
-import CTASection from "@/components/home/cta-section";
+import { CallToAction } from "@/components/home/cta-section";
 
 export default function Home() {
   return (
@@ -13,7 +13,7 @@ export default function Home() {
       <HowItWorks />
       <Services />
       <Testimonials />
-      <CTASection />
+      <CallToAction />
     </div>
   );
 }

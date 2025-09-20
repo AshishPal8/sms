@@ -22,13 +22,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { baseUrl } from "@/config";
+import api from "@/lib/api";
 import { roles } from "@/lib/utils";
 import useAuthStore from "@/store/user";
 import { IEmployee } from "@/types/employee.types";
 import { ITicketById, ITicketItem } from "@/types/ticket.types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -110,9 +109,7 @@ const TicketDetailForm = ({
       setFetchingDivisions(true);
       if (user?.role === roles.SUPERADMIN || user?.role === roles.ASSISTANT) {
         try {
-          const res = await axios.get(`${baseUrl}/divisions/active`, {
-            withCredentials: true,
-          });
+          const res = await api.get(`/divisions/active`);
           setDivisions(res.data?.data ?? []);
         } catch (err) {
           console.error("Failed to fetch divisions", err);
@@ -138,9 +135,8 @@ const TicketDetailForm = ({
     const fetchDepartmentsForDivision = async () => {
       setFetchingDivisions(true); // reuse your existing flag or create a new one
       try {
-        const res = await axios.get(
-          `${baseUrl}/divisions/dept/${encodeURIComponent(divisionSelected)}`,
-          { withCredentials: true }
+        const res = await api.get(
+          `/divisions/dept/${encodeURIComponent(divisionSelected)}`
         );
         const payload = res?.data?.data ?? null;
         if (!payload) {
@@ -199,11 +195,10 @@ const TicketDetailForm = ({
     const fetchTechs = async () => {
       if (user?.role === roles.MANAGER) {
         try {
-          const res = await axios.get(
-            `${baseUrl}/employees?managerId=${encodeURIComponent(
+          const res = await api.get(
+            `/employees?managerId=${encodeURIComponent(
               user?.id ?? ""
-            )}&role=TECHNICIAN`,
-            { withCredentials: true }
+            )}&role=TECHNICIAN`
           );
           const payload = res?.data?.data ?? res?.data ?? [];
           if (mounted) setTechniciansUnderManager(payload);
@@ -252,9 +247,7 @@ const TicketDetailForm = ({
   const onSubmit = async (values: CreateTicketItemFormValues) => {
     try {
       setLoading(true);
-      const res = await axios.post(`${baseUrl}/tickets/item/create`, values, {
-        withCredentials: true,
-      });
+      const res = await api.post(`/tickets/item/create`, values);
 
       const newItem: ITicketItem = res.data?.data;
 

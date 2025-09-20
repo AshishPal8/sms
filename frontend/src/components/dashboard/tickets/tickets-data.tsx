@@ -1,10 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import axios from "axios";
+import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { DataTable } from "@/components/ui/data-table";
-import { baseUrl } from "../../../config";
 import Pagination from "../pagination";
 import { TicketActions } from "./cell-action";
 import { priorityStyles, statusStyles, urgencyStyles } from "@/styles/color";
@@ -14,6 +12,7 @@ import { exportToExcel } from "@/lib/exportExcel";
 import { Button } from "@/components/ui/button";
 import { ArrowDownToLine } from "lucide-react";
 import useSettingsStore from "@/store/settings";
+import api from "@/lib/api";
 
 const TicketsData = ({ view }: { view: "table" | "card" }) => {
   const searchParams = useSearchParams();
@@ -21,8 +20,11 @@ const TicketsData = ({ view }: { view: "table" | "card" }) => {
   const [totalPage, setTotalPage] = useState(0);
   const dateFormat = useSettingsStore((state) => state.getDateFormat());
 
+  const router = useRouter();
+
   const search = searchParams.get("search") || "";
-  const sortOrder = searchParams.get("sortOrder") || "desc";
+  const sortOrderParam = searchParams.get("sortOrder") || "desc";
+  const sortByParam = searchParams.get("sortBy") || "createdAt";
   const priority = searchParams.get("priority") || "";
   const status = searchParams.get("status") || "";
   const urgencyLevel = searchParams.get("urgencyLevel") || "";
@@ -33,10 +35,11 @@ const TicketsData = ({ view }: { view: "table" | "card" }) => {
   useEffect(() => {
     const fetchTickets = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/tickets`, {
+        const res = await api.get(`/tickets`, {
           params: {
             search,
-            sortOrder,
+            sortOrder: sortOrderParam,
+            sortBy: sortByParam,
             priority,
             status,
             urgencyLevel,
@@ -44,7 +47,6 @@ const TicketsData = ({ view }: { view: "table" | "card" }) => {
             toDate,
             page,
           },
-          withCredentials: true,
         });
 
         const { data, meta } = await res.data;
@@ -58,7 +60,8 @@ const TicketsData = ({ view }: { view: "table" | "card" }) => {
     fetchTickets();
   }, [
     search,
-    sortOrder,
+    sortOrderParam,
+    sortByParam,
     priority,
     status,
     urgencyLevel,
@@ -80,8 +83,8 @@ const TicketsData = ({ view }: { view: "table" | "card" }) => {
   }));
 
   const columns = [
-    { header: "Name", accessor: "name" },
-    { header: "Title", accessor: "title" },
+    { header: "Name", accessor: "name", sortable: true, sortKey: "name" },
+    { header: "Title", accessor: "title", sortable: true, sortKey: "title" },
     {
       header: "Priority",
       accessor: "priority",
@@ -94,6 +97,8 @@ const TicketsData = ({ view }: { view: "table" | "card" }) => {
           {value.toLowerCase()}
         </Badge>
       ),
+      sortable: true,
+      sortKey: "priority",
     },
     {
       header: "Status",
@@ -107,6 +112,8 @@ const TicketsData = ({ view }: { view: "table" | "card" }) => {
           {value.replace("_", " ").toLowerCase()}
         </Badge>
       ),
+      sortable: true,
+      sortKey: "status",
     },
     {
       header: "Urgency",
@@ -120,10 +127,14 @@ const TicketsData = ({ view }: { view: "table" | "card" }) => {
           {value.replace("_", " ").toLowerCase()}
         </Badge>
       ),
+      sortable: true,
+      sortKey: "urgencyLevel",
     },
     {
       header: "Created At",
       accessor: "createdAt",
+      sortable: true,
+      sortKey: "createdAt",
     },
     {
       header: "Actions",
@@ -153,6 +164,23 @@ const TicketsData = ({ view }: { view: "table" | "card" }) => {
     exportToExcel(rowsForExport, "tickets_export");
   };
 
+  const onSort = (sortKey: string) => {
+    const currentSortBy = searchParams.get("sortBy") || null;
+    const currentOrder = searchParams.get("sortOrder") || "desc";
+
+    let nextOrder: "asc" | "desc" = "asc";
+    if (currentSortBy === sortKey) {
+      nextOrder = currentOrder === "asc" ? "desc" : "asc";
+    }
+
+    // update url params (preserve other params)
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("sortBy", sortKey);
+    params.set("sortOrder", nextOrder);
+    params.set("page", "1"); // reset to first page on sort change
+    router.push(`${location.pathname}?${params.toString()}`);
+  };
+
   return (
     <div className="mt-4">
       <div className="flex items-center justify-end">
@@ -162,7 +190,13 @@ const TicketsData = ({ view }: { view: "table" | "card" }) => {
         </Button>
       </div>
       {view === "table" ? (
-        <DataTable columns={columns} data={formatTickets} />
+        <DataTable
+          columns={columns}
+          data={formatTickets}
+          sortBy={sortByParam}
+          sortOrder={(sortOrderParam as "asc" | "desc") || "desc"}
+          onSort={onSort}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           {tickets.map((ticket: ITicket) => (

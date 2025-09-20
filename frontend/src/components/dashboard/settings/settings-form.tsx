@@ -16,8 +16,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import axios from "axios";
-import { baseUrl } from "../../../config";
 import {
   Select,
   SelectContent,
@@ -27,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { allowedDateFormat } from "@/lib/utils";
 import useSettingsStore from "@/store/settings";
+import api from "@/lib/api";
 
 const formSchema = z.object({
   dateFormat: z.string(),
@@ -62,19 +61,12 @@ export const SettingsForm = ({ initialData }: SettingsFormProps) => {
   const onSubmit = async (values: SettingsFormValues) => {
     try {
       setLoading(true);
+      const res = await api.post(`/settings/update`, values);
 
-      if (isEdit) {
-        const res = await axios.post(`${baseUrl}/settings/update`, values, {
-          withCredentials: true,
-        });
+      const { data } = res.data;
 
-        const { data } = res.data;
-
-        setSettings(data);
-        //store using zustand in local storage
-      }
-
-      toast.success(`Settins ${isEdit ? "updated" : "created"} successfully`);
+      setSettings(data);
+      toast.success(`Settings ${isEdit ? "updated" : "created"} successfully`);
       router.refresh();
     } catch (error) {
       toast.error("Something went wrong!");

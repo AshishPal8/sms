@@ -2,14 +2,13 @@
 
 import { Edit, Network, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import { toast } from "sonner";
-import { baseUrl } from "../../../config";
 import AlertModal from "@/modals/alert-modal";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import useAuthStore from "@/store/user";
 import { roles } from "@/lib/utils";
+import api from "@/lib/api";
 
 interface TicketActionsProps {
   id: string;
@@ -38,9 +37,7 @@ export function TicketActions({ id, onDeleteSuccess }: TicketActionsProps) {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await axios.delete(`${baseUrl}/tickets/delete/${id}`, {
-        withCredentials: true,
-      });
+      await api.delete(`/tickets/delete/${id}`);
       if (onDeleteSuccess) onDeleteSuccess(id);
       toast.success("Ticket deleted successfully");
       router.refresh();

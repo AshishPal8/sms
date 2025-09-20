@@ -1,16 +1,15 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import axios from "axios";
 import { format } from "date-fns";
 import { DataTable } from "@/components/ui/data-table";
-import { baseUrl } from "../../../config";
 import { EmployeeActions } from "./cell-action";
 import Pagination from "../pagination";
 import { IEmployee } from "@/types/employee.types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { defaultProfile } from "@/data/assets";
 import useSettingsStore from "@/store/settings";
+import api from "@/lib/api";
 
 const EmployeesData = () => {
   const searchParams = useSearchParams();
@@ -33,7 +32,7 @@ const EmployeesData = () => {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/employees`, {
+        const res = await api.get(`/employees`, {
           params: {
             search,
             sortOrder: sortOrderParam,
@@ -43,7 +42,6 @@ const EmployeesData = () => {
             active,
             deleted: isDeleted,
           },
-          withCredentials: true,
         });
 
         const { data, meta } = await res.data;
