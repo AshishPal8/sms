@@ -12,8 +12,6 @@ import { Address as AddressType } from "@/types/address.types";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import axios from "axios";
-import { baseUrl } from "../../config";
 import ImageUpload from "../ui/image-upload";
 import {
   Form,
@@ -30,6 +28,7 @@ import DatePicker from "../ui/date-picker";
 import { handleApiError } from "@/lib/handleApiErrors";
 import { format } from "date-fns";
 import useSettingsStore from "@/store/settings";
+import api from "@/lib/api";
 
 const formSchema = z.object({
   title: z
@@ -92,9 +91,7 @@ export default function BookingForm() {
   useEffect(() => {
     const fetchCustomerProfile = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/user/auth/me`, {
-          withCredentials: true,
-        });
+        const res = await api.get(`/user/auth/me`);
 
         if (res.status === 200) {
           const profile = await res.data.data;
@@ -139,9 +136,7 @@ export default function BookingForm() {
     try {
       setLoading(true);
 
-      const res = await axios.post(`${baseUrl}/user/ticket/create`, values, {
-        withCredentials: true,
-      });
+      const res = await api.post(`/user/ticket/create`, values);
 
       if (res.status !== 201) {
         console.error("Failed to create ticket");

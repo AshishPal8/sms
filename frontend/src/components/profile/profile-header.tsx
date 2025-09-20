@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import axios from "axios";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -23,7 +22,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
 import ImageUpload from "@/components/ui/image-upload";
-import { baseUrl } from "@/config";
 import { Checkbox } from "../ui/checkbox";
 import DatePicker from "../ui/date-picker";
 import AddressInput from "../ui/AddressInput";
@@ -33,6 +31,7 @@ import useAuthStore from "@/store/user";
 import { format } from "date-fns";
 import { alphaNumbericRegex } from "@/lib/regex";
 import useSettingsStore from "@/store/settings";
+import api from "@/lib/api";
 
 const formSchema = z.object({
   firstname: z
@@ -97,9 +96,7 @@ export const ProfileHeader = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/user/auth/me`, {
-          withCredentials: true,
-        });
+        const res = await api.get(`/user/auth/me`);
         const { data } = res.data;
 
         form.reset({
@@ -130,9 +127,7 @@ export const ProfileHeader = () => {
   const onSubmit = async (values: ProfileFormValues) => {
     try {
       setLoading(true);
-      const res = await axios.patch(`${baseUrl}/user/auth/update`, values, {
-        withCredentials: true,
-      });
+      const res = await api.patch(`/user/auth/update`, values);
 
       const { data } = res.data;
 

@@ -3,8 +3,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import axios from "axios";
-import { baseUrl } from "@/config";
 
 const Tree = dynamic(() => import("react-d3-tree"), {
   ssr: false,
@@ -19,6 +17,7 @@ const NodeCard = dynamic(
   }
 );
 import Image from "next/image";
+import api from "@/lib/api";
 
 export default function OrgTreeClient() {
   const [treeRaw, setTreeRaw] = useState<any>(null);
@@ -58,9 +57,7 @@ export default function OrgTreeClient() {
     const fetchTree = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${baseUrl}/divisions/tree`, {
-          withCredentials: true,
-        });
+        const res = await api.get(`/divisions/tree`);
         const { data } = res.data;
         if (cancelled) return;
         setTreeRaw(data);

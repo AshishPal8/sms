@@ -1,8 +1,7 @@
 "use client";
 import { Card } from "@/components/ui/card";
-import { baseUrl } from "@/config";
+import api from "@/lib/api";
 import { Notification } from "@/types/notification.types";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -15,9 +14,7 @@ const NotificationsPage = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${baseUrl}/notifications`, {
-        withCredentials: true,
-      });
+      const res = await api.get(`/notifications`);
       setNotifications(res.data.data || []);
     } catch (error) {
       toast.error("Failed to fetch notifications");
@@ -36,12 +33,8 @@ const NotificationsPage = () => {
       prev.map((n) => (n.id === notif.id ? { ...n, isRead: true } : n))
     );
 
-    axios
-      .patch(
-        `${baseUrl}/notifications/read/${notif.id}`,
-        { isRead: true },
-        { withCredentials: true }
-      )
+    api
+      .patch(`/notifications/read/${notif.id}`, { isRead: true })
       .then(() => {
         console.log(`Notification ${notif.id} marked as read`);
       })

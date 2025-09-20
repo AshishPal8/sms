@@ -20,11 +20,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
 import ImageUpload from "@/components/ui/image-upload";
-import axios from "axios";
-import { baseUrl } from "../../../config";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import useAuthStore from "@/store/user";
+import api from "@/lib/api";
 
 const formSchema = z.object({
   firstname: z.string(),
@@ -72,12 +69,9 @@ export const ProfileForm = ({ initialData }: ProfileFormProps) => {
       setLoading(true);
 
       if (isEdit) {
-        const res = await axios.put(
-          `${baseUrl}/employees/update/${initialData.id}`,
-          values,
-          {
-            withCredentials: true,
-          }
+        const res = await api.put(
+          `/employees/update/${initialData.id}`,
+          values
         );
 
         const { data } = res.data;

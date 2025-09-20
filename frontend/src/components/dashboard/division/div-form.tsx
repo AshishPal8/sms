@@ -20,11 +20,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Heading } from "@/components/ui/heading";
 import { Switch } from "@/components/ui/switch";
-import axios from "axios";
-import { baseUrl } from "@/config";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { alphaNumbericRegex } from "@/lib/regex";
+import api from "@/lib/api";
+import { handleApiError } from "@/lib/handleApiErrors";
 
 const formSchema = z.object({
   name: z
@@ -73,24 +73,15 @@ export const DivisionForm = ({ initialData }: DivisionFormProps) => {
       setLoading(true);
 
       if (isEdit) {
-        await axios.put(
-          `${baseUrl}/divisions/update/${initialData.id}`,
-          values,
-          {
-            withCredentials: true,
-          }
-        );
+        await api.put(`/divisions/update/${initialData.id}`, values);
       } else {
-        await axios.post(`${baseUrl}/divisions/add`, values, {
-          withCredentials: true,
-        });
+        await api.post(`/divisions/add`, values);
       }
 
       toast.success(`Division ${isEdit ? "updated" : "created"} successfully`);
       router.push("/dashboard/divisions");
     } catch (error) {
-      toast.error("Something went wrong!");
-      console.error("Error submitting form:", error);
+      handleApiError(error);
     } finally {
       setLoading(false);
     }

@@ -12,10 +12,11 @@ interface SettingsState {
   settings: Settings | null;
   loading: boolean;
   error: string | null;
-  setSettings: (settings: Settings) => void;
+  setSettings: (settings: Settings | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   getDateFormat: () => string;
+  clearSettings: () => void;
 }
 
 const useSettingsStore = create<SettingsState>()(
@@ -37,6 +38,10 @@ const useSettingsStore = create<SettingsState>()(
         const s = get().settings;
         return s?.dateFormat ?? DEFAULT_DATE_FORMAT;
       },
+      clearSettings: () =>
+        set({
+          settings: null,
+        }),
     }),
     {
       name: "settings-storage",

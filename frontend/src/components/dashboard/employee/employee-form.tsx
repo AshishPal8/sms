@@ -28,12 +28,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import ImageUpload from "@/components/ui/image-upload";
-import axios from "axios";
-import { baseUrl } from "../../../config";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { handleApiError } from "@/lib/handleApiErrors";
 import { alphaNumbericRegex } from "@/lib/regex";
+import api from "@/lib/api";
 
 const formSchema = z.object({
   firstname: z
@@ -125,9 +124,7 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
   useEffect(() => {
     const fetchDivisions = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/divisions/active`, {
-          withCredentials: true,
-        });
+        const res = await api.get(`/divisions/active`);
         setDivisions(res.data?.data ?? []);
       } catch (err) {
         console.error("Failed to fetch divisions", err);
@@ -146,10 +143,7 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
     }
     const fetchDepartments = async () => {
       try {
-        const res = await axios.get(
-          `${baseUrl}/divisions/dept/${selectedDivisionId}`,
-          { withCredentials: true }
-        );
+        const res = await api.get(`/divisions/dept/${selectedDivisionId}`);
         setDepartments(res.data?.data?.departments ?? []);
       } catch (err) {
         console.error("Failed to fetch departments", err);
@@ -180,18 +174,9 @@ export const EmployeeForm = ({ initialData }: EmployeeFormProps) => {
       };
 
       if (isEdit) {
-        await axios.put(
-          `${baseUrl}/employees/update/${initialData.id}`,
-          payload,
-
-          {
-            withCredentials: true,
-          }
-        );
+        await api.put(`/employees/update/${initialData.id}`, payload);
       } else {
-        await axios.post(`${baseUrl}/employees/add`, payload, {
-          withCredentials: true,
-        });
+        await api.post(`/employees/add`, payload);
       }
 
       toast.success(`Employee ${isEdit ? "updated" : "created"} successfully`);

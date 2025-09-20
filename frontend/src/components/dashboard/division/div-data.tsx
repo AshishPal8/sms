@@ -1,13 +1,12 @@
 "use client";
-import axios from "axios";
 import { format } from "date-fns";
 import { DataTable } from "@/components/ui/data-table";
 import React, { useEffect, useState } from "react";
-import { baseUrl } from "../../../config";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DevisionActions } from "./cell-action";
 import Pagination from "../pagination";
 import useSettingsStore from "@/store/settings";
+import api from "@/lib/api";
 
 interface IDivision {
   id: string;
@@ -33,7 +32,7 @@ const DivisionsData = () => {
   useEffect(() => {
     const fetchDivisions = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/divisions`, {
+        const res = await api.get(`/divisions`, {
           params: {
             search,
             sortOrder: sortOrderParam,
@@ -41,7 +40,6 @@ const DivisionsData = () => {
             page,
             active,
           },
-          withCredentials: true,
         });
 
         const { data, meta } = await res.data;

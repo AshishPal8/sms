@@ -1,9 +1,9 @@
 "use client";
 import { SettingsForm } from "@/components/dashboard/settings/settings-form";
 import { baseUrl } from "@/config";
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import useSettingsStore from "@/store/settings";
+import api from "@/lib/api";
 
 const Settings = () => {
   const [settings, setSettings] = useState(null);
@@ -11,9 +11,7 @@ const Settings = () => {
 
   useEffect(() => {
     const fetchSettings = async () => {
-      const res = await axios.get(`${baseUrl}/settings`, {
-        withCredentials: true,
-      });
+      const res = await api.get(`/settings`);
 
       const { data } = res.data;
 

@@ -1,11 +1,10 @@
 "use client";
-import { ITicketById, ITicketItem } from "@/types/ticket.types";
-import axios from "axios";
-import { useParams, useRouter } from "next/navigation";
+import { ITicketById } from "@/types/ticket.types";
+import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import TicketDetailHero from "@/components/dashboard/tickets/detail-hero";
-import { baseUrl } from "@/config";
 import TicketDetailForm from "@/components/dashboard/tickets/ticket-detail-form";
+import api from "@/lib/api";
 
 const TicketDetails = () => {
   const params = useParams();
@@ -15,9 +14,7 @@ const TicketDetails = () => {
   const fetchTicket = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${baseUrl}/tickets/item/${params.id}`, {
-        withCredentials: true,
-      });
+      const res = await api.get(`/tickets/item/${params.id}`);
 
       const data = res.data?.data;
       if (data) {

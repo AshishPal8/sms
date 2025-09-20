@@ -1,13 +1,12 @@
 "use client";
-import axios from "axios";
 import { format } from "date-fns";
 import { DataTable } from "@/components/ui/data-table";
 import React, { useEffect, useState } from "react";
-import { baseUrl } from "../../../config";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { DepartmentActions } from "./cell-action";
 import Pagination from "../pagination";
 import useSettingsStore from "@/store/settings";
+import api from "@/lib/api";
 
 interface IManager {
   id: string;
@@ -42,7 +41,7 @@ const DepartmentData = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/departments/${divId}`, {
+        const res = await api.get(`/departments/${divId}`, {
           params: {
             search,
             sortOrder: sortOrderParam,
@@ -50,7 +49,6 @@ const DepartmentData = () => {
             active,
             page,
           },
-          withCredentials: true,
         });
 
         const { data, meta } = await res.data;

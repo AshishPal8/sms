@@ -2,14 +2,13 @@
 
 import { Edit, Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import axios from "axios";
 import { toast } from "sonner";
-import { baseUrl } from "../../../config";
 import AlertModal from "@/modals/alert-modal";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import useAuthStore from "@/store/user";
 import { roles } from "@/lib/utils";
+import api from "@/lib/api";
 
 interface EmployeeActionsProps {
   id: string;
@@ -33,9 +32,7 @@ export function EmployeeActions({ id, onDeleteSuccess }: EmployeeActionsProps) {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await axios.delete(`${baseUrl}/employees/delete/${id}`, {
-        withCredentials: true,
-      });
+      await api.delete(`employees/delete/${id}`);
       if (onDeleteSuccess) onDeleteSuccess(id);
       toast.success("Employee deleted successfully");
       router.refresh();

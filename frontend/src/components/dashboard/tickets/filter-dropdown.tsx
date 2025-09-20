@@ -89,6 +89,7 @@ const FilterDropdown = () => {
     params.delete("urgencyLevel");
     params.delete("sortOrder");
     params.delete("page");
+    params.delete("sortBy");
 
     router.push(`?${params.toString()}`);
 

@@ -1,11 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { baseUrl } from "@/config";
 import StatsHeader from "@/components/dashboard/employee-stats";
 import useAuthStore from "@/store/user";
 import { roles } from "@/lib/utils";
 import StatsChart from "@/components/dashboard/stats-chart";
+import api from "@/lib/api";
 
 const Dashboard = () => {
   const { user } = useAuthStore();
@@ -18,9 +17,7 @@ const Dashboard = () => {
     if (user?.role === roles.SUPERADMIN) {
       const fetchEmployeesStats = async () => {
         try {
-          const res = await axios.get(`${baseUrl}/employees/stats`, {
-            withCredentials: true,
-          });
+          const res = await api.get(`/employees/stats`);
           const { data } = await res.data;
           setEmployeeStats(data);
         } catch (err) {
@@ -37,9 +34,7 @@ const Dashboard = () => {
     if (user?.role === roles.SUPERADMIN) {
       const fetchDepartmentsStats = async () => {
         try {
-          const res = await axios.get(`${baseUrl}/divisions/stats`, {
-            withCredentials: true,
-          });
+          const res = await api.get(`/divisions/stats`);
           const { data } = await res.data;
           setDivisionsStats(data);
         } catch (err) {
@@ -55,9 +50,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchTicketsStats = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/tickets/stats`, {
-          withCredentials: true,
-        });
+        const res = await api.get(`/tickets/stats`);
         const { data } = await res.data;
         setTicketStats(data);
       } catch (err) {
