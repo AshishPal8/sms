@@ -29,6 +29,7 @@ import { addressSchema } from "@/schemas/addressSchema";
 import DatePicker from "../ui/date-picker";
 import { handleApiError } from "@/lib/handleApiErrors";
 import { format } from "date-fns";
+import useSettingsStore from "@/store/settings";
 
 const formSchema = z.object({
   title: z
@@ -66,6 +67,7 @@ export default function BookingForm() {
   const [submitted, setSubmitted] = useState<null | { id: string }>(null);
   const [loading, setLoading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const dateFormat = useSettingsStore((s) => s.getDateFormat());
 
   const form = useForm<TicketFormValues>({
     resolver: zodResolver(formSchema),
@@ -382,11 +384,10 @@ export default function BookingForm() {
                           value={
                             field.value ? new Date(field.value) : undefined
                           }
-                          onChange={
-                            (date) =>
-                              field.onChange(
-                                date ? format(date, "yyyy-MM-dd") : undefined
-                              ) // Convert Date to string for form
+                          onChange={(date) =>
+                            field.onChange(
+                              date ? format(date, dateFormat) : undefined
+                            )
                           }
                           disabled={loading}
                           placeholder="Select policy expiry date"

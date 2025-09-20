@@ -7,6 +7,7 @@ import { Heading } from "@/components/ui/heading";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import useSettingsStore from "@/store/settings";
 
 type Person = {
   id: string;
@@ -88,12 +89,13 @@ function SmallMeta({ label, value }: { label: string; value?: string | null }) {
 }
 
 export default function EmployeeProfileCard({ data }: { data: EmployeeData }) {
-  console.log("Data", data);
+  const dateFormat = useSettingsStore((s) => s.getDateFormat());
+
   if (!data) return null;
 
   const name = `${data.firstname ?? ""} ${data.lastname ?? ""}`.trim();
   const created = data.createdAt
-    ? format(new Date(data.createdAt), "PPP")
+    ? format(new Date(data.createdAt), dateFormat)
     : null;
 
   return (

@@ -13,11 +13,13 @@ import { ITicket } from "@/types/ticket.types";
 import { exportToExcel } from "@/lib/exportExcel";
 import { Button } from "@/components/ui/button";
 import { ArrowDownToLine } from "lucide-react";
+import useSettingsStore from "@/store/settings";
 
 const TicketsData = ({ view }: { view: "table" | "card" }) => {
   const searchParams = useSearchParams();
   const [tickets, setTickets] = useState([]);
   const [totalPage, setTotalPage] = useState(0);
+  const dateFormat = useSettingsStore((state) => state.getDateFormat());
 
   const search = searchParams.get("search") || "";
   const sortOrder = searchParams.get("sortOrder") || "desc";
@@ -73,7 +75,7 @@ const TicketsData = ({ view }: { view: "table" | "card" }) => {
     urgencyLevel: ticket.urgencyLevel,
     status: ticket.status,
     createdAt: ticket.createdAt
-      ? format(new Date(ticket.createdAt), "dd-MM-yyyy")
+      ? format(new Date(ticket.createdAt), dateFormat)
       : null,
   }));
 
@@ -172,7 +174,7 @@ const TicketsData = ({ view }: { view: "table" | "card" }) => {
                 <p className="text-xs text-gray-400">
                   Created:{" "}
                   {ticket.createdAt
-                    ? format(new Date(ticket.createdAt), "dd-MM-yyyy")
+                    ? format(new Date(ticket.createdAt), dateFormat)
                     : "N/A"}
                 </p>
                 <p className="text-sm text-gray-600 mb-1">

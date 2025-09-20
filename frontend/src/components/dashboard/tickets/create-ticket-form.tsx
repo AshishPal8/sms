@@ -40,6 +40,7 @@ import DatePicker from "@/components/ui/date-picker";
 import { format } from "date-fns";
 import AddressInput from "@/components/ui/AddressInput";
 import { Address as AddressType } from "@/types/address.types";
+import useSettingsStore from "@/store/settings";
 
 export const createTicketSchema = z
   .object({
@@ -80,6 +81,8 @@ export const createTicketSchema = z
 type CreateTicketFormValues = z.infer<typeof createTicketSchema>;
 
 export const CreateTicketForm = () => {
+  const dateFormat = useSettingsStore((s) => s.getDateFormat());
+
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -285,7 +288,7 @@ export const CreateTicketForm = () => {
                         value={field.value ? new Date(field.value) : undefined}
                         onChange={(date) =>
                           field.onChange(
-                            date ? format(date, "yyyy-MM-dd") : undefined
+                            date ? format(date, dateFormat) : undefined
                           )
                         }
                         disabled={loading}

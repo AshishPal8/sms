@@ -1,3 +1,6 @@
+"use client";
+import useSettingsStore from "@/store/settings";
+import { format } from "date-fns";
 import React from "react";
 import {
   AreaChart,
@@ -29,6 +32,8 @@ const StatsChart = ({
 }: {
   ticketStats: TicketStatsResponse | null;
 }) => {
+  const dateFormat = useSettingsStore((s) => s.getDateFormat());
+
   if (!ticketStats || !ticketStats.trend) {
     return <div>No data available</div>;
   }
@@ -48,9 +53,27 @@ const StatsChart = ({
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+            <XAxis
+              dataKey="date"
+              tick={{ fontSize: 12 }}
+              tickFormatter={(value: string) => {
+                try {
+                  return format(new Date(value), dateFormat as any);
+                } catch {
+                  return value;
+                }
+              }}
+            />
             <YAxis tick={{ fontSize: 12 }} />
-            <Tooltip />
+            <Tooltip
+              labelFormatter={(value) => {
+                try {
+                  return format(new Date(value), dateFormat as any);
+                } catch {
+                  return value;
+                }
+              }}
+            />
             <Area
               type="monotone"
               dataKey="count"

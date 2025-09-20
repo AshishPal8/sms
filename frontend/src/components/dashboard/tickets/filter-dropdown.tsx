@@ -24,10 +24,12 @@ import {
   TicketUrgencyOptions,
 } from "@/lib/ticket";
 import { Calendar } from "@/components/ui/calendar";
+import useSettingsStore from "@/store/settings";
 
 const FilterDropdown = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const dateFormat = useSettingsStore((s) => s.getDateFormat());
 
   const [fromDate, setFromDate] = useState<Date | undefined>(
     searchParams.get("fromDate")
@@ -134,7 +136,7 @@ const FilterDropdown = () => {
                 }}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {fromDate ? format(fromDate, "dd-MM-yyyy") : "Pick a date"}
+                {fromDate ? format(fromDate, dateFormat) : "Pick a date"}
               </Button>
               {fromDateOpen && (
                 <div className="absolute top-full left-0 z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
@@ -163,7 +165,7 @@ const FilterDropdown = () => {
                 }}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {toDate ? format(toDate, "dd-MM-yyyy") : "Pick a date"}
+                {toDate ? format(toDate, dateFormat) : "Pick a date"}
               </Button>
               {toDateOpen && (
                 <div className="absolute top-full left-0 z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg">

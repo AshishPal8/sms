@@ -14,6 +14,8 @@ import departmentRoutes from "./modules/admin/departments/department.route";
 import divisionRoutes from "./modules/admin/division/division.route";
 import ticketRoutes from "./modules/admin/tickets/ticket.route";
 import notificationsRoutes from "./modules/notification/notification.route";
+import settingsRoutes from "./modules/admin/settings/settings.route";
+
 import customerRoutes from "./modules/user/user.routes";
 import path from "path";
 
@@ -55,6 +57,8 @@ app.use("/api/divisions", divisionRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/notifications", notificationsRoutes);
+
+app.use("/api/settings", settingsRoutes);
 
 //user
 app.use("/api/user", customerRoutes);
