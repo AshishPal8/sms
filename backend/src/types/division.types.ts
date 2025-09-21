@@ -5,6 +5,7 @@ export type GetAllDivisonOptions = {
   page?: number;
   limit?: number;
   isActive?: boolean;
+  isDeleted?: boolean;
 };
 
 export type Employee = {

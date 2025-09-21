@@ -36,6 +36,7 @@ const DepartmentData = () => {
   const sortOrderParam = searchParams.get("sortOrder") || "desc";
   const sortByParam = searchParams.get("sortBy") || "createdAt";
   const active = searchParams.get("active") || true;
+  const isDeleted = searchParams.get("deleted") || false;
   const page = searchParams.get("page") || 1;
 
   useEffect(() => {
@@ -47,6 +48,7 @@ const DepartmentData = () => {
             sortOrder: sortOrderParam,
             sortBy: sortByParam,
             active,
+            deleted: isDeleted,
             page,
           },
         });
@@ -60,7 +62,7 @@ const DepartmentData = () => {
     };
 
     fetchDepartments();
-  }, [search, sortOrderParam, sortByParam, page, active, divId]);
+  }, [search, sortOrderParam, sortByParam, page, active, isDeleted, divId]);
 
   const formatDepartments = departments.map((department: IDepartment) => ({
     id: department.id,

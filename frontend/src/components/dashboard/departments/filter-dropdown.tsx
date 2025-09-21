@@ -29,7 +29,12 @@ const FilterDropdown = () => {
     searchParams.get("active") !== null
       ? searchParams.get("active") === "true"
       : true;
+  const initialDelete =
+    searchParams.get("deleted") !== null
+      ? searchParams.get("deleted") === "true"
+      : false;
   const [active, setActive] = useState<boolean>(initialActive);
+  const [isDeleted, setIsDeleted] = useState<boolean>(initialDelete);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -39,6 +44,9 @@ const FilterDropdown = () => {
 
     const urlActive = searchParams.get("active");
     setActive(urlActive === null ? true : urlActive === "true");
+
+    const urlDelete = searchParams.get("deleted");
+    setIsDeleted(urlDelete === null ? false : urlDelete === "true");
   }, [searchParams]);
 
   const applyFilters = () => {
@@ -48,6 +56,7 @@ const FilterDropdown = () => {
     else params.delete("sortOrder");
 
     params.set("active", active ? "true" : "false");
+    params.set("deleted", isDeleted ? "true" : "false");
 
     params.set("page", "1");
     router.push(`?${params.toString()}`);
@@ -60,6 +69,7 @@ const FilterDropdown = () => {
     params.delete("sortOrder");
     params.delete("page");
     params.delete("active");
+    params.delete("deleted");
     params.delete("sortBy");
 
     router.push(`?${params.toString()}`);
@@ -100,6 +110,15 @@ const FilterDropdown = () => {
             />
             <span className="text-sm text-muted-foreground">
               {active ? "Active" : "Inactive"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 mb-4">
+            <Switch
+              checked={isDeleted}
+              onCheckedChange={(val: boolean) => setIsDeleted(val)}
+            />
+            <span className="text-sm text-muted-foreground">
+              {isDeleted ? "Deleted" : "Not Deleted"}
             </span>
           </div>
         </div>

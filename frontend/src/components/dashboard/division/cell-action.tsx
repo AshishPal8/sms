@@ -1,7 +1,7 @@
 "use client";
 
 import { Edit, Trash2, View } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { baseUrl } from "@/config";
 import { useState } from "react";
@@ -16,9 +16,12 @@ interface DivisionActionsProps {
 
 export function DevisionActions({ id, onDeleteSuccess }: DivisionActionsProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+
+  const showingDeleted = searchParams.get("deleted") === "true";
 
   const handleEdit = () => {
     router.push(`/dashboard/divisions/${id}`);
@@ -42,6 +45,10 @@ export function DevisionActions({ id, onDeleteSuccess }: DivisionActionsProps) {
       setOpen(false);
     }
   };
+
+  if (showingDeleted) {
+    return null;
+  }
 
   return (
     <>

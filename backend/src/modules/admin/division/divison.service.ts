@@ -112,6 +112,7 @@ export const getAllDivisionService = async ({
   page = 1,
   limit = 10,
   isActive,
+  isDeleted,
 }: GetAllDivisonOptions) => {
   const whereClause: any = {
     isDeleted: false,
@@ -123,6 +124,9 @@ export const getAllDivisionService = async ({
 
   if (typeof isActive === "boolean") {
     whereClause.isActive = isActive;
+  }
+  if (typeof isDeleted === "boolean") {
+    whereClause.isDeleted = isDeleted;
   }
 
   const total = await prisma.division.count({ where: whereClause });

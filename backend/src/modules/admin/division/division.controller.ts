@@ -25,12 +25,15 @@ export const getAllDivisionController = async (
       page = "1",
       limit = "10",
       active,
+      deleted,
     } = req.query;
 
     const numericPage = parseInt(page as string, 10);
     const numericLimit = parseInt(limit as string, 10);
     const isActiveBoolean =
       active === "true" ? true : active === "false" ? false : undefined;
+    const isDeletedBoolean =
+      deleted === "true" ? true : deleted === "false" ? false : undefined;
 
     const divisions = await getAllDivisionService({
       search: search as string,
@@ -39,6 +42,7 @@ export const getAllDivisionController = async (
       page: numericPage,
       limit: numericLimit,
       isActive: isActiveBoolean,
+      isDeleted: isDeletedBoolean,
     });
 
     res.status(200).json(divisions);

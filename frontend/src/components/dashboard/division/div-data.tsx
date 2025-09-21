@@ -27,6 +27,7 @@ const DivisionsData = () => {
   const sortOrderParam = searchParams.get("sortOrder") || "desc";
   const sortByParam = searchParams.get("sortBy") || "createdAt";
   const active = searchParams.get("active") || true;
+  const isDeleted = searchParams.get("deleted") || false;
   const page = searchParams.get("page") || 1;
 
   useEffect(() => {
@@ -39,6 +40,7 @@ const DivisionsData = () => {
             sortBy: sortByParam,
             page,
             active,
+            deleted: isDeleted,
           },
         });
 
@@ -51,7 +53,7 @@ const DivisionsData = () => {
     };
 
     fetchDivisions();
-  }, [search, sortOrderParam, sortByParam, page, active]);
+  }, [search, sortOrderParam, sortByParam, page, active, isDeleted]);
 
   const formatDivisions = divisions.map((division: IDivision) => ({
     id: division.id,
