@@ -3,6 +3,10 @@ import { baseUrl } from "../config";
 import useAuthStore from "@/store/user";
 import useSettingsStore from "@/store/settings";
 
+const HEARTBEAT_KEY = "app:lastSeen";
+const CLOSE_MARKER_KEY = "app:tabClosedAt";
+const BROADCAST_KEY = "app:signout";
+
 export async function signOut() {
   try {
     await axios.post(
@@ -35,12 +39,22 @@ export async function signOut() {
     localStorage.removeItem("settings-storage");
   } catch {}
 
+  try {
+    localStorage.removeItem(HEARTBEAT_KEY);
+    localStorage.removeItem(CLOSE_MARKER_KEY);
+  } catch {
+    // ignore
+  }
+
   // Broadcast signout across tabs
   try {
-    localStorage.setItem("app:signout", String(Date.now()));
+    localStorage.setItem(BROADCAST_KEY, String(Date.now()));
   } catch {}
 
-  if (typeof window !== "undefined") {
-    window.location.href = "/signin";
-  }
+  // optional tiny delay to ensure storage event fires before redirect
+  setTimeout(() => {
+    if (typeof window !== "undefined") {
+      window.location.href = "/signin";
+    }
+  }, 50);
 }

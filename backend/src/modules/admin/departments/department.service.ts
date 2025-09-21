@@ -17,6 +17,7 @@ export const getAllDepartmentsService = async (
     page = 1,
     limit = 10,
     isActive,
+    isDeleted,
   }: GetAllDepartmentOptions
 ) => {
   const whereClause: any = {
@@ -24,12 +25,17 @@ export const getAllDepartmentsService = async (
     divisionId,
   };
 
+  console.log("Is Deleted", isDeleted);
+
   if (search) {
     whereClause.OR = [{ name: { contains: search, mode: "insensitive" } }];
   }
 
   if (typeof isActive === "boolean") {
     whereClause.isActive = isActive;
+  }
+  if (typeof isDeleted === "boolean") {
+    whereClause.isDeleted = isDeleted;
   }
 
   const total = await prisma.department.count({ where: whereClause });
@@ -514,6 +520,7 @@ export const deleteDepartmentService = async (id: string) => {
       where: { id },
       data: {
         isDeleted: true,
+        isActive: false,
         technicians: { set: [] },
       },
     });

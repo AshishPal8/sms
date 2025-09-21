@@ -1,7 +1,7 @@
 "use client";
 
 import { Edit, Trash2 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
 import AlertModal from "@/modals/alert-modal";
@@ -18,11 +18,14 @@ export function DepartmentActions({
   onDeleteSuccess,
 }: DepartmentActionsProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const { divId } = useParams();
 
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+
+  const showingDeleted = searchParams.get("deleted") === "true";
 
   const handleEdit = () => {
     router.push(`/dashboard/divisions/${divId}/departments/${id}`);
@@ -43,6 +46,10 @@ export function DepartmentActions({
       setOpen(false);
     }
   };
+
+  if (showingDeleted) {
+    return null;
+  }
 
   return (
     <>

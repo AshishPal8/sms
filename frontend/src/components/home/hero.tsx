@@ -3,8 +3,16 @@ import Image from "next/image";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import useAuthStore from "@/store/user";
+import { roles } from "@/lib/utils";
 
 export default function Hero() {
+  const user = useAuthStore((state) => state.user);
+
+  if (!user) {
+    return null;
+  }
+
   return (
     <section className="max-w-7xl mx-auto  relative">
       <div className="relative mx-auto w-full">
@@ -52,28 +60,30 @@ export default function Hero() {
               </motion.p>
 
               {/* Buttons */}
-              <motion.div
-                className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap items-center gap-3 sm:gap-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-              >
-                <Button
-                  asChild
-                  size="lg"
-                  className="w-full sm:w-auto rounded-full bg-blue-600 px-6 sm:px-8 py-3 text-white hover:bg-blue-700 hover-lift"
+              {user.role === roles.CUSTOMER && (
+                <motion.div
+                  className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap items-center gap-3 sm:gap-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
                 >
-                  <Link href="/book-a-service">Book Service Now</Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="w-full sm:w-auto rounded-full border-white/70 bg-white/10 px-6 sm:px-8 py-3 text-white backdrop-blur-sm hover:bg-white/20 hover-lift"
-                >
-                  <a href="tel:+1-555-0123">Call (555) 012-3456</a>
-                </Button>
-              </motion.div>
+                  <Button
+                    asChild
+                    size="lg"
+                    className="w-full sm:w-auto rounded-full bg-blue-600 px-6 sm:px-8 py-3 text-white hover:bg-blue-700 hover-lift"
+                  >
+                    <Link href="/book-a-service">Book Service Now</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto rounded-full border-white/70 bg-white/10 px-6 sm:px-8 py-3 text-white backdrop-blur-sm hover:bg-white/20 hover-lift"
+                  >
+                    <a href="tel:+1-555-0123">Call (555) 012-3456</a>
+                  </Button>
+                </motion.div>
+              )}
             </motion.div>
           </div>
         </div>

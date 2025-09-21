@@ -5,4 +5,5 @@ export type GetAllDepartmentOptions = {
   page?: number;
   limit?: number;
   isActive?: boolean;
+  isDeleted?: boolean;
 };
