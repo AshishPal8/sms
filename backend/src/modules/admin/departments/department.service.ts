@@ -25,8 +25,6 @@ export const getAllDepartmentsService = async (
     divisionId,
   };
 
-  console.log("Is Deleted", isDeleted);
-
   if (search) {
     whereClause.OR = [{ name: { contains: search, mode: "insensitive" } }];
   }

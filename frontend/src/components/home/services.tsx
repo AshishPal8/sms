@@ -2,7 +2,7 @@
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Wrench, Snowflake, Zap, Shield, Clock, Users } from "lucide-react";
+import { Wrench, Snowflake, Shield, Clock, Users, Hammer } from "lucide-react";
 import TitleDescription from "./title-desc";
 import Image from "next/image";
 import Link from "next/link";
@@ -25,18 +25,19 @@ const services = [
     ],
   },
   {
-    icon: Zap,
+    icon: Hammer,
     image: "/roof.png",
-    title: "Electronic Services",
+    title: "Roofing Services",
     description:
-      "Comprehensive electrical work including wiring and installations.",
-    subtitle: "Licensed and insured electricians for all electrical needs.",
-    details: "Smart home setups, panel upgrades, and safety inspections.",
+      "Reliable roof repair and installation services for homes and businesses.",
+    subtitle: "Experienced roofers ensuring durability and weather protection.",
+    details:
+      "From leak repairs to complete roof installations with quality materials.",
     features: [
-      "Electrical Wiring",
-      "Panel Upgrades",
-      "Smart Home Setup",
-      "Safety Inspections",
+      "Leak Repairs",
+      "Tile & Shingle Replacement",
+      "Roof Inspections",
+      "New Roof Installation",
     ],
   },
   {
