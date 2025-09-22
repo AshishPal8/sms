@@ -1,20 +1,20 @@
 import type { Response } from "express";
 import { DEFAULT_COOKIE_MAX_AGE } from "./config";
 
-// export const COOKIE_OPTIONS = {
-//   httpOnly: true,
-//   secure: false,
-//   sameSite: "lax" as "lax",
-//   path: "/",
-// };
-
 export const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: true,
-  sameSite: "none" as const,
-  domain: ".ashishpro.com",
+  secure: false,
+  sameSite: "lax" as "lax",
   path: "/",
 };
+
+// export const COOKIE_OPTIONS = {
+//   httpOnly: true,
+//   secure: true,
+//   sameSite: "none" as const,
+//   domain: ".ashishpro.com",
+//   path: "/",
+// };
 
 export const setAuthCookie = (
   res: Response,

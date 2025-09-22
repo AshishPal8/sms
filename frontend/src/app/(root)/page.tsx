@@ -7,7 +7,7 @@ import { CallToAction } from "@/components/home/cta-section";
 
 export default function Home() {
   return (
-    <div className="pt-10">
+    <div className="pt-2 md:pt-10">
       <Hero />
       <Stats />
       <HowItWorks />

@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { useState, useEffect } from "react";
+import TitleDescription from "../home/title-desc";
 
 const testimonials = [
   {
@@ -42,15 +43,13 @@ export function TestimonialsSection() {
   }, []);
 
   return (
-    <section className="py-20 bg-muted/30">
+    <section className="py-5 sm:py-8 md:py-16 bg-muted/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold mb-4">What Our Customers Say</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Don&apo;t just take our word for it. Here&apos;s what our satisfied
-            customers have to say about our services.
-          </p>
-        </div>
+        <TitleDescription
+          title="What Our Customers Say"
+          desc="Don't just take our word for it. Here's what our satisfied
+            customers have to say about our services."
+        />
 
         <div className="relative max-w-4xl mx-auto">
           <Card className="border-2">
@@ -99,7 +98,7 @@ export function TestimonialsSection() {
                 onClick={() => setCurrentIndex(index)}
                 className={`w-3 h-3 rounded-full transition-colors ${
                   index === currentIndex
-                    ? "bg-accent"
+                    ? "bg-primary"
                     : "bg-muted-foreground/30"
                 }`}
               />
