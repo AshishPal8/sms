@@ -8,6 +8,7 @@ import {
   getAllDepartmentsService,
   getDepartmentByIdService,
   updateDepartmentService,
+  getDepartmentEmployeesService,
 } from "./department.service";
 
 export const getAllDepartmentController = async (
@@ -156,5 +157,23 @@ export const deleteDepartmentController = async (
     res.status(201).json(deletedDepartment);
   } catch (error) {
     next(error);
+  }
+};
+
+export const getDepartmentEmployeesIdController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      throw new BadRequestError("Department id is required");
+    }
+
+    const department = await getDepartmentEmployeesService(id);
+    res.status(200).json(department);
+  } catch (err) {
+    next(err);
   }
 };

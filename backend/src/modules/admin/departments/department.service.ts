@@ -541,3 +541,107 @@ export const deleteDepartmentService = async (id: string) => {
     },
   };
 };
+
+export const getDepartmentEmployeesService = async (departmentId: string) => {
+  const department = await prisma.department.findUnique({
+    where: { id: departmentId },
+    select: {
+      id: true,
+      name: true,
+      managers: {
+        include: {
+          admin: {
+            select: {
+              id: true,
+              firstname: true,
+              lastname: true,
+              email: true,
+              profilePicture: true,
+              role: true,
+              isActive: true,
+              isDeleted: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!department) throw new NotFoundError("Department not found");
+
+  const managerIds = (department.managers || []).map((m) => m.admin.id);
+
+  const deptAdmins = await prisma.admin.findMany({
+    where: {
+      departmentId,
+      isDeleted: false,
+      isActive: true,
+      // include all admins in department (including managers) — we'll filter managers out later
+    },
+    select: {
+      id: true,
+      firstname: true,
+      lastname: true,
+      email: true,
+      profilePicture: true,
+      role: true,
+      managerId: true,
+      isActive: true,
+      isDeleted: true,
+    },
+  });
+
+  const techsByManager: Record<string, Array<any>> = {};
+
+  for (const a of deptAdmins) {
+    // skip managers themselves (they appear in deptAdmins too)
+    if (managerIds.includes(a.id)) continue;
+
+    const key = a.managerId ?? "unassigned";
+    if (!techsByManager[key]) techsByManager[key] = [];
+    techsByManager[key].push({
+      id: a.id,
+      firstname: a.firstname,
+      lastname: a.lastname,
+      email: a.email,
+      profilePicture: a.profilePicture,
+      role: a.role,
+      isActive: a.isActive,
+    });
+  }
+
+  // build result: for each manager, attach their technicians (from group)
+  const managersWithTechs = (department.managers || []).map((m) => {
+    const mgr = m.admin;
+    const managerTechs = techsByManager[mgr.id] || [];
+    return {
+      manager: {
+        id: mgr.id,
+        firstname: mgr.firstname,
+        lastname: mgr.lastname,
+        email: mgr.email,
+        profilePicture: mgr.profilePicture,
+        role: mgr.role as AdminRole,
+        isActive: mgr.isActive,
+      },
+      assignedAt: m.assignedAt,
+      technicians: managerTechs,
+      technicianCount: managerTechs.length,
+    };
+  });
+
+  return {
+    success: true,
+    message: "Department employees fetched",
+    data: {
+      department: {
+        id: department.id,
+        name: department.name,
+      },
+      managers: managersWithTechs,
+      totalManagers: managersWithTechs.length,
+      totalTechnicians: deptAdmins.filter((a) => !managerIds.includes(a.id))
+        .length,
+    },
+  };
+};
