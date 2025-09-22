@@ -3,13 +3,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import TitleDescription from "../home/title-desc";
 
 const reasons = [
   {
     title: "Certified Technicians",
     description:
       "All our technicians are licensed, insured, and continuously trained on the latest techniques and safety standards.",
-    image: "/team-certified.jpg",
+    image: "/choose/certified.png",
     icon: (
       <svg
         className="w-6 h-6"
@@ -30,7 +31,7 @@ const reasons = [
     title: "24/7 Emergency Support",
     description:
       "Home emergencies don't wait for business hours. We're available around the clock for urgent repairs.",
-    image: "/emergency-support.jpg",
+    image: "/choose/emergency.png",
     icon: (
       <svg
         className="w-6 h-6"
@@ -51,7 +52,7 @@ const reasons = [
     title: "Eco-Friendly Solutions",
     description:
       "We prioritize environmentally responsible practices and offer green alternatives whenever possible.",
-    image: "/eco-friendly.jpg",
+    image: "/choose/environment.png",
     icon: (
       <svg
         className="w-6 h-6"
@@ -72,7 +73,7 @@ const reasons = [
     title: "Transparent Pricing",
     description:
       "No hidden fees or surprise charges. We provide detailed estimates upfront so you know exactly what to expect.",
-    image: "/transparent-pricing.jpg",
+    image: "/choose/payment.png",
     icon: (
       <svg
         className="w-6 h-6"
@@ -93,7 +94,7 @@ const reasons = [
     title: "Quality Guarantee",
     description:
       "We stand behind our work with comprehensive warranties and a satisfaction guarantee on all services.",
-    image: "/quality-guarantee.jpg",
+    image: "/choose/quality.png",
     icon: (
       <svg
         className="w-6 h-6"
@@ -114,7 +115,7 @@ const reasons = [
     title: "Local Community Focus",
     description:
       "As a local business, we're invested in our community and committed to building lasting relationships.",
-    image: "/community-focus.jpg",
+    image: "/choose/local.png",
     icon: (
       <svg
         className="w-6 h-6"
@@ -163,22 +164,14 @@ const cardVariants = {
 
 export function WhyChooseUs() {
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
+    <section className="py-5 sm:py-8 md:py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <h2 className="text-3xl font-bold mb-4">Why Choose Us?</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            We&apo;re not just another service company. Here&apo;s what sets us
+        <TitleDescription
+          title="Why Choose Us?"
+          desc="We're not just another service company. Here' what sets us
             apart and makes us the preferred choice for homeowners throughout
-            the region.
-          </p>
-        </motion.div>
+            the region."
+        />
 
         <motion.div
           className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
@@ -189,21 +182,21 @@ export function WhyChooseUs() {
         >
           {reasons.map((reason, index) => (
             <motion.div key={index} variants={cardVariants}>
-              <Card className="group hover:shadow-md transition-all duration-300 overflow-hidden bg-card">
+              <Card className="group hover:shadow-md transition-all duration-300 overflow-hidden bg-card p-0">
                 <CardContent className="p-0">
-                  <div className="relative h-40 overflow-hidden">
+                  <div className="relative h-50 overflow-hidden">
                     <Image
                       src={reason.image || "/placeholder.svg"}
                       alt={`${reason.title} illustration`}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                    {/* <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" /> */}
                   </div>
 
                   <div className="p-6 space-y-4">
                     <div className="w-12 h-12 rounded-lg flex items-center justify-center group-hover:bg-accent/20 transition-colors -mt-10 relative z-10 bg-card border">
-                      <div className="text-accent">{reason.icon}</div>
+                      <div className="text-primary">{reason.icon}</div>
                     </div>
 
                     <div>

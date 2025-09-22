@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function CallToAction() {
   return (
@@ -27,16 +28,24 @@ export function CallToAction() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-6">
-              Get Your Free Estimate
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-lg px-8 py-6 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
-            >
-              Call (555) 123-4567
-            </Button>
+            <Link href="/book-a-service">
+              <Button
+                size="lg"
+                variant="secondary"
+                className="text-lg px-8 py-6"
+              >
+                Book a Service
+              </Button>
+            </Link>
+            <Link href="tel:+15551234567">
+              <Button
+                size="lg"
+                variant="outline"
+                className="text-lg px-8 py-6 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 bg-transparent"
+              >
+                Call (555) 123-4567
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

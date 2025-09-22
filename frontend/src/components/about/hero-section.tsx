@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { motion } from "motion/react";
+import Link from "next/link";
 
 export function HeroSection() {
   return (
@@ -24,7 +25,7 @@ export function HeroSection() {
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
                 Your Trusted Home Service{" "}
-                <span className="text-accent">Experts</span>
+                <span className="text-primary">Experts</span>
               </motion.h1>
               <motion.p
                 className="text-lg text-muted-foreground leading-relaxed max-w-2xl"
@@ -45,16 +46,20 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
             >
-              <Button size="lg" className="text-lg px-8 py-6">
-                Get Free Estimate
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="text-lg px-8 py-6 bg-transparent"
-              >
-                Call (555) 123-4567
-              </Button>
+              <Link href="/book-a-service">
+                <Button size="lg" className="text-lg px-8 py-6">
+                  Book a Service
+                </Button>
+              </Link>
+              <Link href="tel:+15551234567">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-lg px-8 py-6 bg-transparent"
+                >
+                  Call (555) 123-4567
+                </Button>
+              </Link>
             </motion.div>
 
             <motion.div
@@ -64,19 +69,19 @@ export function HeroSection() {
               transition={{ duration: 0.8, delay: 0.8 }}
             >
               <div className="text-center">
-                <div className="text-2xl font-bold text-accent">15+</div>
+                <div className="text-2xl font-bold text-primary">15+</div>
                 <div className="text-sm text-muted-foreground">
                   Years Experience
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-accent">10K+</div>
+                <div className="text-2xl font-bold text-primary">10K+</div>
                 <div className="text-sm text-muted-foreground">
                   Happy Customers
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-accent">24/7</div>
+                <div className="text-2xl font-bold text-primary">24/7</div>
                 <div className="text-sm text-muted-foreground">
                   Emergency Service
                 </div>
@@ -93,7 +98,7 @@ export function HeroSection() {
           >
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
               <Image
-                src="/technician-hero.jpg"
+                src="/about-hero.png"
                 alt="Professional technician working on home repair"
                 width={500}
                 height={600}

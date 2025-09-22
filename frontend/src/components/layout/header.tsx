@@ -10,7 +10,6 @@ import NavLinks from "./navlinks";
 import UserDropdown from "./user";
 import { cn, roles } from "@/lib/utils";
 import useAuthStore from "@/store/user";
-import { Button } from "../ui/button";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -62,15 +61,6 @@ export function Header() {
             <NavLinks />
 
             <div className="flex gap-4">
-              {admin ? (
-                <Link href="/Dashboard">
-                  <Button>Dashboard</Button>
-                </Link>
-              ) : (
-                <Link href="/book-a-service">
-                  <Button>Book a Service</Button>
-                </Link>
-              )}
               <UserDropdown
                 isMenuOpen={isMenuOpen}
                 setIsMenuOpen={setIsMenuOpen}
@@ -103,6 +93,19 @@ export function Header() {
                     {nav.title}
                   </Link>
                 ))}
+                <Link
+                  href="book-a-service"
+                  className={`px-4 py-3 text-gray-800 hover:bg-primary/20 rounded-lg transition-colors 
+                    ${
+                      pathname === "book-a-service"
+                        ? "bg-primary text-white font-extrabold"
+                        : "text-gray-800"
+                    }
+                    `}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Book a Service
+                </Link>
                 {admin && (
                   <Link
                     href="/dashboard"

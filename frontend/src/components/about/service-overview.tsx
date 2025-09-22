@@ -3,13 +3,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import TitleDescription from "../home/title-desc";
 
 const services = [
   {
     title: "Roof Servicing",
     description:
       "Complete roofing solutions including repairs, maintenance, and installations with premium materials.",
-    image: "/roof-service.jpg",
+    image: "/roof.png",
     icon: (
       <svg
         className="w-8 h-8"
@@ -42,7 +43,7 @@ const services = [
     title: "Plumbing Services",
     description:
       "Professional plumbing services for residential and commercial properties with 24/7 emergency support.",
-    image: "/plumbing-service.jpg",
+    image: "/plumbing.png",
     icon: (
       <svg
         className="w-8 h-8"
@@ -69,7 +70,7 @@ const services = [
     title: "AC Fitting & Repair",
     description:
       "Expert HVAC services including installation, maintenance, and repair of all air conditioning systems.",
-    image: "/ac-service.jpg",
+    image: "/ac.png",
     icon: (
       <svg
         className="w-8 h-8"
@@ -90,33 +91,6 @@ const services = [
       "Regular Maintenance",
       "Emergency Repairs",
       "Energy Efficiency",
-    ],
-  },
-  {
-    title: "Electronic Services",
-    description:
-      "Comprehensive electrical services from wiring and installations to smart home automation.",
-    image: "/electrical-service.jpg",
-    icon: (
-      <svg
-        className="w-8 h-8"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M13 10V3L4 14h7v7l9-11h-7z"
-        />
-      </svg>
-    ),
-    features: [
-      "Wiring & Rewiring",
-      "Smart Home Setup",
-      "Panel Upgrades",
-      "Safety Inspections",
     ],
   },
 ];
@@ -145,24 +119,16 @@ const cardVariants = {
 
 export function ServicesOverview() {
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8">
+    <section className="py-5 sm:py-8 md:py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <h2 className="text-3xl font-bold mb-4">Our Expert Services</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            We provide comprehensive home services with skilled technicians and
-            quality materials to ensure your home runs smoothly year-round.
-          </p>
-        </motion.div>
+        <TitleDescription
+          title="Our Expert Services"
+          desc="We provide comprehensive home services with skilled technicians and
+            quality materials to ensure your home runs smoothly year-round."
+        />
 
         <motion.div
-          className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -170,7 +136,7 @@ export function ServicesOverview() {
         >
           {services.map((service, index) => (
             <motion.div key={index} variants={cardVariants}>
-              <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-accent/20 overflow-hidden">
+              <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-accent/20 overflow-hidden p-0">
                 <CardContent className="p-0">
                   <div className="relative h-48 overflow-hidden">
                     <Image
@@ -184,7 +150,7 @@ export function ServicesOverview() {
 
                   <div className="p-6 space-y-4">
                     <div className="w-16 h-16 rounded-xl flex items-center justify-center group-hover:bg-accent/20 transition-colors -mt-12 relative z-10 bg-card border">
-                      <div className="text-accent">{service.icon}</div>
+                      <div className="text-primary">{service.icon}</div>
                     </div>
 
                     <div>

@@ -3,6 +3,7 @@
 import type React from "react";
 
 import { useEffect, useState } from "react";
+import TitleDescription from "../home/title-desc";
 
 interface StatItemProps {
   number: number;
@@ -30,7 +31,7 @@ function StatItem({ number, suffix, label, icon }: StatItemProps) {
         <div className="text-accent">{icon}</div>
       </div>
       <div>
-        <div className="text-4xl font-bold text-accent">
+        <div className="text-4xl font-bold text-primary">
           {Math.min(count, number).toLocaleString()}
           {suffix}
         </div>
@@ -42,15 +43,13 @@ function StatItem({ number, suffix, label, icon }: StatItemProps) {
 
 export function StatsSection() {
   return (
-    <section className="py-20 bg-muted/50">
+    <section className="py-5 sm:py-8 md:py-16 bg-muted/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold mb-4">Trusted by Thousands</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Our track record speaks for itself. Here&apos;s what we&apos;ve
-            accomplished over the years.
-          </p>
-        </div>
+        <TitleDescription
+          title="Trusted by Thousands"
+          desc="Our track record speaks for itself. Here's what we've
+            accomplished over the years."
+        />
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
           <StatItem

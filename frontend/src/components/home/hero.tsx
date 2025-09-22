@@ -9,15 +9,13 @@ import { roles } from "@/lib/utils";
 export default function Hero() {
   const user = useAuthStore((state) => state.user);
 
-  if (!user) {
-    return null;
-  }
+  const showButtons = !user || user.role === roles.CUSTOMER;
 
   return (
     <section className="max-w-7xl mx-auto  relative">
       <div className="relative mx-auto w-full">
         <div className="relative overflow-hidden rounded-none md:rounded-[32px]">
-          <div className="relative aspect-[16/9] w-full md:aspect-[21/9]">
+          <div className="relative aspect-[16/10] w-full md:aspect-[21/9]">
             <Image
               src="/hero.png"
               alt="Professional technician providing home services"
@@ -60,7 +58,7 @@ export default function Hero() {
               </motion.p>
 
               {/* Buttons */}
-              {user.role === roles.CUSTOMER && (
+              {showButtons && (
                 <motion.div
                   className="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap items-center gap-3 sm:gap-4"
                   initial={{ opacity: 0, y: 20 }}
