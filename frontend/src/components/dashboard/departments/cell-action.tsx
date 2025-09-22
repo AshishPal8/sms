@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit, Trash2 } from "lucide-react";
+import { CircleUserRound, Edit, Trash2 } from "lucide-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -29,6 +29,10 @@ export function DepartmentActions({
 
   const handleEdit = () => {
     router.push(`/dashboard/divisions/${divId}/departments/${id}`);
+  };
+
+  const handleDeptEmployees = () => {
+    router.push(`/dashboard/divisions/${divId}/departments/${id}/employees`);
   };
 
   const handleDelete = async () => {
@@ -74,6 +78,13 @@ export function DepartmentActions({
           className="p-2 bg-red-200 rounded text-red-600 hover:bg-red-300"
         >
           <Trash2 size={16} />
+        </Button>
+        <Button
+          size="icon"
+          onClick={handleDeptEmployees}
+          className="p-2 bg-green-300 rounded text-green-600 hover:bg-green-400"
+        >
+          <CircleUserRound size={16} />
         </Button>
       </div>
     </>
