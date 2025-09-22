@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Phone, Mail, MapPin } from "lucide-react";
+import Image from "next/image";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 60 },
@@ -19,7 +20,7 @@ const staggerContainer = {
 
 export default function HeroSection() {
   return (
-    <section className="relative bg-gradient-to-br from-slate-50 to-blue-50 py-20 lg:py-32 overflow-hidden">
+    <section className="relative bg-gradient-to-br from-slate-50 to-blue-50 py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] -z-10" />
 
@@ -81,10 +82,12 @@ export default function HeroSection() {
           {/* Right Image */}
           <motion.div variants={fadeInUp} className="relative">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-              <img
-                src="/contact-hero.jpg"
-                alt="Professional technician ready to help"
-                className="w-full h-[500px] object-cover"
+              <Image
+                src="/about-hero.png"
+                alt="Professional technician working on home repair"
+                width={500}
+                height={600}
+                className="w-full h-auto object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
             </div>

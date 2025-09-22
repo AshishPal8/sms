@@ -1,8 +1,9 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Clock, Phone, Mail, MapPin, Calendar, Shield } from "lucide-react";
+import { motion } from "motion/react";
+import { Clock, Phone, Mail, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import TitleDescription from "../home/title-desc";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 60 },
@@ -47,42 +48,18 @@ export default function ContactInfo() {
       value: "123 Service St, City, ST 12345",
       color: "green",
     },
-    {
-      icon: Calendar,
-      title: "Schedule Online",
-      description: "Book your appointment online",
-      value: "Book Now",
-      color: "orange",
-    },
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-5 sm:py-8 md:py-10 bg-white">
       <div className="container mx-auto px-4">
-        <motion.div
-          variants={staggerContainer}
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <motion.h2
-            variants={fadeInUp}
-            className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4"
-          >
-            Multiple Ways to <span className="text-purple-600">Connect</span>
-          </motion.h2>
-          <motion.p
-            variants={fadeInUp}
-            className="text-xl text-slate-600 max-w-2xl mx-auto text-pretty"
-          >
-            Choose the most convenient way to reach us. We&apos;re here to help
-            with all your home service needs.
-          </motion.p>
-        </motion.div>
+        <TitleDescription
+          title="Multiple Ways to Connect"
+          desc="Choose the most convenient way to reach us. We're here to help
+            with all your home service needs."
+        />
 
         <div className="grid lg:grid-cols-2 gap-12">
-          {/* Contact Methods */}
           <motion.div
             variants={staggerContainer}
             initial="initial"
@@ -120,7 +97,6 @@ export default function ContactInfo() {
             ))}
           </motion.div>
 
-          {/* Business Hours & Additional Info */}
           <motion.div
             variants={staggerContainer}
             initial="initial"
@@ -128,7 +104,6 @@ export default function ContactInfo() {
             viewport={{ once: true }}
             className="space-y-6"
           >
-            {/* Business Hours */}
             <motion.div variants={fadeInUp}>
               <Card className="p-6">
                 <CardContent className="p-0">
@@ -157,49 +132,23 @@ export default function ContactInfo() {
               </Card>
             </motion.div>
 
-            {/* Emergency Services */}
-            <motion.div variants={fadeInUp}>
-              <Card className="p-6 bg-red-50 border-red-200">
-                <CardContent className="p-0">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                      <Shield className="w-6 h-6 text-red-600" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-red-900">
-                      Emergency Services
-                    </h3>
-                  </div>
-                  <p className="text-red-700 mb-3">
-                    Need urgent repairs? We offer 24/7 emergency services for
-                    critical issues.
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                    <span className="font-semibold text-red-900">
-                      Emergency Hotline: (555) 911-HELP
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Service Areas */}
             <motion.div variants={fadeInUp}>
               <Card className="p-6">
                 <CardContent className="p-0">
-                  <h3 className="text-xl font-semibold text-slate-900 mb-3">
-                    Service Areas
-                  </h3>
-                  <p className="text-slate-600 mb-3">
-                    We proudly serve the following areas:
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <span className="text-slate-700">• Downtown</span>
-                    <span className="text-slate-700">• Suburbs</span>
-                    <span className="text-slate-700">• North District</span>
-                    <span className="text-slate-700">• South Valley</span>
-                    <span className="text-slate-700">• East Side</span>
-                    <span className="text-slate-700">• West End</span>
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Phone className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-slate-900">
+                        Technical support
+                      </h3>
+                      <div className="space-y-1 text-slate-600">
+                        <p>Phone: (555) 123-4567</p>
+                        <p>Emergency: (555) 911-HELP</p>
+                        <p>Email: info@sms.com</p>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
