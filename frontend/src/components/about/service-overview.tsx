@@ -142,7 +142,8 @@ export function ServicesOverview() {
                     <Image
                       src={service.image || "/placeholder.svg"}
                       alt={`${service.title} professional service`}
-                      fill
+                      width={724}
+                      height={384}
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />

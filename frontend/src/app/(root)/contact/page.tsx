@@ -1,7 +1,7 @@
-import ContactForm from "@/components/contact/contact-form";
 import ContactInfo from "@/components/contact/contact-info";
 import HeroSection from "@/components/contact/hero-section";
 import MapSection from "@/components/contact/map-section";
+import { CallToAction } from "@/components/home/cta-section";
 import React from "react";
 
 const Contact = () => {
@@ -9,7 +9,7 @@ const Contact = () => {
     <div>
       <HeroSection />
       <ContactInfo />
-      <ContactForm />
+      <CallToAction />
       <MapSection />
     </div>
   );

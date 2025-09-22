@@ -108,8 +108,8 @@ export default function Services() {
                       src={service.image}
                       alt={service.title}
                       className="w-full h-48 object-cover"
-                      width={500}
-                      height={500}
+                      width={724}
+                      height={384}
                     />
                   </motion.div>
 
