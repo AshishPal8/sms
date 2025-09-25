@@ -41,6 +41,12 @@ export const navItems = [
     roles: [roles.SUPERADMIN, roles.ASSISTANT, roles.MANAGER, roles.TECHNICIAN],
   },
   {
+    label: "Reports",
+    href: "/dashboard/reports",
+    icon: Ticket,
+    roles: [roles.SUPERADMIN, roles.ASSISTANT],
+  },
+  {
     label: "Notifications",
     href: "/dashboard/notifications",
     icon: Bell,
