@@ -294,9 +294,8 @@ export const getEmployeeByIdService = async (id: string) => {
     const manager = techFull?.manager
       ? {
           id: techFull.manager.id,
-          name: `${techFull.manager.firstname || ""} ${
-            techFull.manager.lastname || ""
-          }`.trim(),
+          firstname: techFull.manager.firstname || "",
+          lastname: techFull.manager.lastname || "",
           email: techFull.manager.email ?? null,
           profilePicture: techFull.manager.profilePicture ?? null,
           role: techFull.manager.role ?? "MANAGER",
@@ -316,6 +315,7 @@ export const getEmployeeByIdService = async (id: string) => {
 
     return {
       ...baseProfile,
+      superadmin,
       manager,
       department,
       division,

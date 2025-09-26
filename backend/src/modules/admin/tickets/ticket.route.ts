@@ -8,6 +8,7 @@ import {
   deleteTicketController,
   getTicketByIdController,
   getTicketItemController,
+  getTicketReportController,
   getTicketsController,
   getTicketStatsController,
   updateTicketController,
@@ -22,6 +23,13 @@ import {
 } from "./ticket.schema";
 
 const router = Router();
+
+router.get(
+  "/report",
+  authMiddleware,
+  requireRole(AdminRole.SUPERADMIN),
+  getTicketReportController
+);
 
 router.get(
   "/",

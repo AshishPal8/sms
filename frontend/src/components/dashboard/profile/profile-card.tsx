@@ -8,6 +8,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import useSettingsStore from "@/store/settings";
+import { roles } from "@/lib/utils";
 
 type Person = {
   id: string;
@@ -111,51 +112,95 @@ export default function EmployeeProfileCard({ data }: { data: EmployeeData }) {
       </div>
       <Separator />
       {/* PROFILE CARD */}
-      <div className="flex items-start gap-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div className="w-28 h-28 relative flex-shrink-0">
-          <Image
-            src={data.profilePicture || fallback}
-            alt={name || data.email || "Profile"}
-            fill
-            sizes="112px"
-            className="rounded-full object-cover"
-          />
-        </div>
+      <div className="flex flex-col md:flex-row gap-4 w-full">
+        <div className="flex items-start gap-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 w-1/2">
+          <div className="w-28 h-28 relative flex-shrink-0">
+            <Image
+              src={data.profilePicture || fallback}
+              alt={name || data.email || "Profile"}
+              fill
+              sizes="112px"
+              className="rounded-full object-cover"
+            />
+          </div>
 
-        <div className="flex-1">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <Name firstname={data.firstname} lastname={data.lastname} />
-              <div className="text-sm text-muted-foreground capitalize">
-                {data.role ?? "—"}
+          <div className="flex-1">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Name firstname={data.firstname} lastname={data.lastname} />
+                <div className="text-sm text-muted-foreground capitalize">
+                  {data.role ?? "—"}
+                </div>
+              </div>
+
+              <div className="text-right">
+                <div className="text-sm text-gray-500">Status</div>
+                <div
+                  className={`mt-1 inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                    data.isActive
+                      ? "bg-green-100 text-green-700"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {data.isActive ? "Active" : "Inactive"}
+                </div>
               </div>
             </div>
 
-            <div className="text-right">
-              <div className="text-sm text-gray-500">Status</div>
-              <div
-                className={`mt-1 inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                  data.isActive
-                    ? "bg-green-100 text-green-700"
-                    : "bg-gray-100 text-gray-600"
-                }`}
-              >
-                {data.isActive ? "Active" : "Inactive"}
+            <div className="mt-4 space-y-1">
+              <SmallMeta label="Email" value={data.email ?? undefined} />
+              <SmallMeta label="Phone" value={data.phone ?? undefined} />
+              {created && <SmallMeta label="Joined" value={created} />}
+            </div>
+          </div>
+        </div>
+        {data.role !== roles.SUPERADMIN && (
+          <div className="flex items-start gap-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 w-1/2">
+            <div className="w-28 h-28 relative flex-shrink-0">
+              <Image
+                src={data.superadmin?.profilePicture || fallback}
+                alt={
+                  data.superadmin?.firstname ||
+                  data.superadmin?.email ||
+                  "Profile"
+                }
+                fill
+                sizes="112px"
+                className="rounded-full object-cover"
+              />
+            </div>
+
+            <div className="flex-1">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <Name
+                    firstname={data.superadmin?.firstname}
+                    lastname={data.superadmin?.lastname}
+                  />
+                  <div className="text-sm text-muted-foreground capitalize">
+                    {data.superadmin?.role ?? "—"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-1">
+                <SmallMeta
+                  label="Email"
+                  value={data.superadmin?.email ?? undefined}
+                />
+                <SmallMeta
+                  label="Phone"
+                  value={data.superadmin?.phone ?? undefined}
+                />
               </div>
             </div>
           </div>
-
-          <div className="mt-4 space-y-1">
-            <SmallMeta label="Email" value={data.email ?? undefined} />
-            <SmallMeta label="Phone" value={data.phone ?? undefined} />
-            {created && <SmallMeta label="Joined" value={created} />}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* ROLE SPECIFIC */}
       {/* TECHNICIAN: show manager, department, division */}
-      {data.role?.toUpperCase() === "TECHNICIAN" && (
+      {data.role === roles.TECHNICIAN && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <h3 className="text-sm font-semibold mb-3">Manager</h3>
@@ -210,7 +255,7 @@ export default function EmployeeProfileCard({ data }: { data: EmployeeData }) {
       )}
 
       {/* MANAGER: show departments (with division) and technicians */}
-      {data.role?.toUpperCase() === "MANAGER" && (
+      {data.role === roles.MANAGER && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <h3 className="text-sm font-semibold mb-3">Managed Departments</h3>
@@ -268,43 +313,6 @@ export default function EmployeeProfileCard({ data }: { data: EmployeeData }) {
             ) : (
               <div className="text-sm text-gray-500">No technicians</div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* ASSISTANT: show superadmin card */}
-      {data.role?.toUpperCase() === "ASSISTANT" && data.superadmin && (
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-sm font-semibold mb-3">Superadmin</h3>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 relative rounded-full overflow-hidden">
-              <Image
-                src={data.superadmin.profilePicture || fallback}
-                alt={data.superadmin.firstname || ""}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div>
-              <div className="font-medium">
-                {`${data.superadmin.firstname ?? ""} ${
-                  data.superadmin.lastname ?? ""
-                }`.trim()}
-              </div>
-              <div className="text-xs text-gray-500">
-                {data.superadmin.email}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* SUPERADMIN: nothing extra; optional details */}
-      {data.role?.toUpperCase() === "SUPERADMIN" && (
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-sm font-semibold mb-3">Profile details</h3>
-          <div className="text-sm text-gray-600">
-            No additional org info for superadmin.
           </div>
         </div>
       )}

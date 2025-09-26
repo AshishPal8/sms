@@ -1,5 +1,6 @@
 import prisma from "../../../db";
 import { ActionType } from "../../../generated/prisma";
+import { TicketStatus } from "../../../generated/prisma";
 import { AdminRole } from "../../../generated/prisma";
 import { Prisma } from "../../../generated/prisma";
 import { BadRequestError, NotFoundError } from "../../../middlewares/error";
@@ -1023,5 +1024,329 @@ export const getTicketWithItemsService = async (
       ...ticket,
       items: filteredItems,
     },
+  };
+};
+
+type Filters = {
+  departmentId?: string;
+  adminId?: string;
+  fromDate?: string;
+  toDate?: string;
+};
+
+export const getTicketReportsService = async (
+  user: { id: string; role: string },
+  filters: Filters
+) => {
+  const { departmentId, adminId, fromDate, toDate } = filters;
+
+  if (!departmentId) {
+    throw new Error("departmentId is required");
+  }
+
+  // 1. fetch admins related to department (technicians) and managers (ManagedDepartment)
+  const [technicians, managedDeptRows] = await Promise.all([
+    prisma.admin.findMany({
+      where: { isDeleted: false, departmentId },
+      select: { id: true, firstname: true, lastname: true, role: true },
+    }),
+    prisma.managedDepartment.findMany({
+      where: { departmentId },
+      include: {
+        admin: {
+          select: { id: true, firstname: true, lastname: true, role: true },
+        },
+      },
+    }),
+  ]);
+
+  const managers = managedDeptRows.map((md) => md.admin);
+
+  // build common date filter helper
+  const dateWhere: any = {};
+  if (fromDate) dateWhere.gte = new Date(fromDate);
+  if (toDate) dateWhere.lte = new Date(toDate);
+
+  // Helper: base ticket where for this department (tickets that have items touching this dept's admins/managers)
+  const deptAdminIds = [
+    ...technicians.map((t) => t.id),
+    ...managers.map((m) => m.id),
+  ];
+
+  // If no admins in dept, return empty result
+  if (deptAdminIds.length === 0) {
+    return {
+      success: true,
+      message: "No admins or managers found for department",
+      data: {
+        total: 0,
+        byStatus: {},
+        byPriority: {},
+        byUrgency: {},
+        managers: [],
+        perEmployee: [],
+        ticketsPreview: [],
+      },
+    };
+  }
+
+  // Generic ticketWhere for queries that check any item referencing department admins
+  const ticketWhereForDept: any = {
+    isDeleted: false,
+    items: {
+      some: {
+        OR: [
+          { assignedToAdminId: { in: deptAdminIds } },
+          { assignedByAdminId: { in: deptAdminIds } },
+        ],
+      },
+    },
+  };
+
+  if (fromDate || toDate) ticketWhereForDept.createdAt = dateWhere;
+
+  // CASE A: only departmentId -> department-level report (manager-level breakdown)
+  if (!adminId) {
+    // Fetch tickets touching department (only ids + meta) - limit fields for performance
+    const tickets = await prisma.ticket.findMany({
+      where: ticketWhereForDept,
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        priority: true,
+        urgencyLevel: true,
+        createdAt: true,
+        items: {
+          select: {
+            id: true,
+            assignedByAdminId: true,
+            assignedToAdminId: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    // department aggregates
+    const byStatus: Record<string, number> = {};
+    const byPriority: Record<string, number> = {};
+    const byUrgency: Record<string, number> = {};
+
+    // manager breakdown: for each manager, count unique tickets they assigned
+    const managerTicketSets: Record<string, Set<string>> = {};
+    managers.forEach((m) => (managerTicketSets[m.id] = new Set()));
+
+    tickets.forEach((t) => {
+      byStatus[t.status] = (byStatus[t.status] || 0) + 1;
+      byPriority[t.priority] = (byPriority[t.priority] || 0) + 1;
+      byUrgency[t.urgencyLevel] = (byUrgency[t.urgencyLevel] || 0) + 1;
+
+      t.items.forEach((item) => {
+        if (
+          item.assignedByAdminId &&
+          managerTicketSets[item.assignedByAdminId]
+        ) {
+          managerTicketSets[item.assignedByAdminId].add(t.id);
+        }
+      });
+    });
+
+    const managersReport = managers
+      .map((m) => ({
+        adminId: m.id,
+        name: `${m.firstname || ""} ${m.lastname || ""}`.trim(),
+        ticketsAssignedCount: managerTicketSets[m.id].size,
+      }))
+      .sort((a, b) => b.ticketsAssignedCount - a.ticketsAssignedCount);
+
+    return {
+      success: true,
+      message: "Department report (managers breakdown)",
+      data: {
+        total: tickets.length,
+        byStatus,
+        byPriority,
+        byUrgency,
+        managers: managersReport,
+        // optional: brief ticket preview (first 50)
+        ticketsPreview: tickets.slice(0, 50).map((t) => ({
+          id: t.id,
+          title: t.title,
+          status: t.status,
+          priority: t.priority,
+          urgency: t.urgencyLevel,
+          createdAt: t.createdAt,
+        })),
+      },
+    };
+  }
+
+  // CASE B: departmentId + adminId -> individual admin report
+  // fetch admin to determine role
+  const admin = await prisma.admin.findUnique({
+    where: { id: adminId },
+    select: { id: true, firstname: true, lastname: true, role: true },
+  });
+
+  if (!admin) {
+    return { success: false, message: "Admin not found", data: null };
+  }
+
+  // If admin is MANAGER: count tickets they assigned (assignedByAdminId === adminId) within this department scope
+  if (admin.role === roles.MANAGER) {
+    // Query tickets that are within department (using ticketWhereForDept) AND were assignedBy this manager in any item
+    const tickets = await prisma.ticket.findMany({
+      where: {
+        AND: [
+          ticketWhereForDept,
+          { items: { some: { assignedByAdminId: adminId } } },
+        ],
+      },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        priority: true,
+        urgencyLevel: true,
+        createdAt: true,
+        items: {
+          select: {
+            assignedByAdminId: true,
+            assignedToAdminId: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    // aggregates
+    const byStatus: Record<string, number> = {};
+    const byPriority: Record<string, number> = {};
+    const byUrgency: Record<string, number> = {};
+
+    tickets.forEach((t) => {
+      byStatus[t.status] = (byStatus[t.status] || 0) + 1;
+      byPriority[t.priority] = (byPriority[t.priority] || 0) + 1;
+      byUrgency[t.urgencyLevel] = (byUrgency[t.urgencyLevel] || 0) + 1;
+    });
+
+    return {
+      success: true,
+      message: `Manager (${adminId}) report`,
+      data: {
+        adminId,
+        name: `${admin.firstname || ""} ${admin.lastname || ""}`.trim(),
+        role: admin.role,
+        totalAssigned: tickets.length,
+        byStatus,
+        byPriority,
+        byUrgency,
+        ticketsPreview: tickets.slice(0, 50).map((t) => ({
+          id: t.id,
+          title: t.title,
+          status: t.status,
+          priority: t.priority,
+          urgency: t.urgencyLevel,
+          createdAt: t.createdAt,
+        })),
+        managedDepartments: managers.filter((m) =>
+          m.id === adminId ? true : false
+        ).length
+          ? [departmentId]
+          : [], // quick indicator
+      },
+    };
+  }
+
+  // If admin is TECHNICIAN: count tickets assigned to them (canonical assignee logic)
+  if (admin.role === roles.TECHNICIAN) {
+    // load tickets that touch department and that have any assignedToAdminId === adminId OR where latest assignedToAdminId === adminId
+    const tickets = await prisma.ticket.findMany({
+      where: ticketWhereForDept,
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        priority: true,
+        urgencyLevel: true,
+        createdAt: true,
+        items: {
+          select: {
+            assignedToAdminId: true,
+            assignedByAdminId: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    // We'll treat ticket as assigned to this technician if:
+    // - latest item with assignedToAdminId equals adminId
+    // OR - any item.assignedToAdminId === adminId (fallback)
+    const relevantTickets = tickets.filter((t) => {
+      const latestTo = t.items.find((i) => i.assignedToAdminId);
+      if (latestTo && latestTo.assignedToAdminId === adminId) return true;
+      // fallback: any item assignedToAdminId === adminId
+      return t.items.some((i) => i.assignedToAdminId === adminId);
+    });
+
+    const byStatus: Record<string, number> = {};
+    const byPriority: Record<string, number> = {};
+    const byUrgency: Record<string, number> = {};
+
+    relevantTickets.forEach((t) => {
+      byStatus[t.status] = (byStatus[t.status] || 0) + 1;
+      byPriority[t.priority] = (byPriority[t.priority] || 0) + 1;
+      byUrgency[t.urgencyLevel] = (byUrgency[t.urgencyLevel] || 0) + 1;
+    });
+
+    // breakdown counts for open/in-progress/closed for technician
+    const open = byStatus[TicketStatus.OPEN] || 0;
+    const inProgress =
+      byStatus[TicketStatus.IN_PROGRESS] ||
+      byStatus[TicketStatus.IN_PROGRESS] ||
+      0;
+    const closed = Object.entries(byStatus).reduce(
+      (acc, [k, v]) =>
+        k !== TicketStatus.OPEN &&
+        k !== TicketStatus.IN_PROGRESS &&
+        k !== TicketStatus.IN_PROGRESS
+          ? acc + v
+          : acc,
+      0
+    );
+
+    return {
+      success: true,
+      message: `Technician (${adminId}) report`,
+      data: {
+        adminId,
+        name: `${admin.firstname || ""} ${admin.lastname || ""}`.trim(),
+        role: admin.role,
+        totalAssignedToTech: relevantTickets.length,
+        open,
+        inProgress,
+        closed,
+        byStatus,
+        byPriority,
+        byUrgency,
+        ticketsPreview: relevantTickets.slice(0, 50).map((t) => ({
+          id: t.id,
+          title: t.title,
+          status: t.status,
+          priority: t.priority,
+          urgency: t.urgencyLevel,
+          createdAt: t.createdAt,
+        })),
+      },
+    };
+  }
+
+  return {
+    success: true,
+    message: "No specific report for this role",
+    data: null,
   };
 };

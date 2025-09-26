@@ -93,25 +93,27 @@ export function Header() {
                     {nav.title}
                   </Link>
                 ))}
-                <Link
-                  href="book-a-service"
-                  className={`px-4 py-3 text-gray-800 hover:bg-primary/20 rounded-lg transition-colors 
+
+                {admin ? (
+                  <Link
+                    href="/dashboard"
+                    className="px-4 py-3 text-gray-800 hover:bg-primary/20 rounded-lg transition-colors"
+                  >
+                    Dashboard
+                  </Link>
+                ) : (
+                  <Link
+                    href="book-a-service"
+                    className={`px-4 py-3 text-gray-800 hover:bg-primary/20 rounded-lg transition-colors 
                     ${
                       pathname === "book-a-service"
                         ? "bg-primary text-white font-extrabold"
                         : "text-gray-800"
                     }
                     `}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Book a Service
-                </Link>
-                {admin && (
-                  <Link
-                    href="/dashboard"
-                    className="px-4 py-3 text-gray-800 hover:bg-primary/20 rounded-lg transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
                   >
-                    Dashboard
+                    Book a Service
                   </Link>
                 )}
               </nav>

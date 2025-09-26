@@ -1,6 +1,11 @@
 "use client";
 import { ITicketById } from "@/types/ticket.types";
-import { ArrowRightCircle, CheckCircle2, Shield } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRightCircle,
+  CheckCircle2,
+  Shield,
+} from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Heading } from "../ui/heading";
 import { statusStyles } from "@/styles/color";
@@ -27,13 +32,19 @@ const TicketsSection = () => {
   }, []);
 
   return (
-    <section className="my-8">
+    <section className="">
       {tickets.length > 0 ? (
         <div className="mx-2">
-          <div className="my-5">
+          <div className="flex items-center mb-6 gap-4">
+            <Link
+              href="/"
+              className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center"
+            >
+              <ArrowLeft size={25} />
+            </Link>
             <Heading
               title="Your Tickets"
-              description="Manage and track your tickets"
+              description="Manage and track you tickets"
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

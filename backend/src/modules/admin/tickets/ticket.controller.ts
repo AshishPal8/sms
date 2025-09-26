@@ -9,6 +9,7 @@ import {
   updateTicketItemService,
   updateTicketService,
   getTicketStatsService,
+  getTicketReportsService,
 } from "./ticket.service";
 import type {
   TicketPriority,
@@ -222,6 +223,26 @@ export const getTicketItemController = async (
     const ticketItem = await getTicketWithItemsService(user, ticketId);
 
     res.status(200).json(ticketItem);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getTicketReportController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+
+    const report = await getTicketReportsService(user, req.query);
+
+    res.status(200).json(report);
   } catch (error) {
     next(error);
   }
