@@ -10,16 +10,38 @@ import NavLinks from "./navlinks";
 import UserDropdown from "./user";
 import { cn, roles } from "@/lib/utils";
 import useAuthStore from "@/store/user";
+import { Bell } from "lucide-react";
+import NotificationModal from "@/modals/notificaiton-modal";
+import api from "@/lib/api";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showHeader, setShowHeader] = useState(true);
   const [isTop, setIsTop] = useState(true);
+
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   const lastScroll = useRef(0);
   const pathname = usePathname();
   const { user } = useAuthStore();
 
   const admin = user && user?.role !== roles.CUSTOMER;
+
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await api.get("/notifications");
+      const notifications = res.data?.data ?? [];
+      const unread = notifications.filter((n: any) => !n.isRead).length;
+      setUnreadCount(unread);
+    } catch (err) {
+      console.error("Failed to fetch notifications", err);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.role === roles.CUSTOMER) fetchUnreadCount();
+  }, [user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -60,13 +82,33 @@ export function Header() {
 
             <NavLinks />
 
-            <div className="flex gap-4">
+            <div className="flex gap-8">
+              {user?.role === roles.CUSTOMER && (
+                <div
+                  onClick={() => setNotifOpen(true)}
+                  className="relative w-10 h-10 flex items-center justify-center rounded-full cursor-pointer"
+                >
+                  <Bell size={24} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-100 flex items-center justify-center text-primary font-black rounded-full text-xs">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </div>
+              )}
               <UserDropdown
                 isMenuOpen={isMenuOpen}
                 setIsMenuOpen={setIsMenuOpen}
               />
             </div>
           </div>
+
+          {notifOpen && (
+            <NotificationModal
+              onClose={() => setNotifOpen(false)}
+              setUnreadCount={setUnreadCount}
+            />
+          )}
         </div>
 
         {isMenuOpen && (
