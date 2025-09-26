@@ -8,7 +8,15 @@ import React from "react";
 const normalize = (p: string) =>
   p.endsWith("/") && p.length > 1 ? p.slice(0, -1) : p;
 
-const SidebarLinks = () => {
+interface DashMobileSidebarProps {
+  setSidebarOpen?: (open: boolean) => void;
+  closeOnNavigate?: boolean;
+}
+
+const SidebarLinks: React.FC<DashMobileSidebarProps> = ({
+  setSidebarOpen,
+  closeOnNavigate,
+}) => {
   const pathnameRaw = usePathname() || "/";
   const pathname = normalize(pathnameRaw);
 
@@ -29,6 +37,9 @@ const SidebarLinks = () => {
     return pathname === href || pathname.startsWith(href + "/");
   };
 
+  const shouldCloseOnClick =
+    Boolean(setSidebarOpen) && closeOnNavigate !== false;
+
   return (
     <div className="mt-5 md:mt-10">
       <ul className="space-y-2">
@@ -39,6 +50,10 @@ const SidebarLinks = () => {
             <li key={item.href}>
               <Link
                 href={item.href}
+                onClick={() => {
+                  if (shouldCloseOnClick && setSidebarOpen)
+                    setSidebarOpen(false);
+                }}
                 className={`flex gap-4 items-center justify-start p-3 rounded-lg hover:bg-primary duration-300 text-gray-600 hover:text-primary-foreground cursor-pointer ${
                   active ? "bg-primary text-primary-foreground" : ""
                 }`}

@@ -38,7 +38,10 @@ const DashHeader = () => {
 
       {sidebarOpen && (
         <div className="absolute left-0 top-0 z-50 w-4/5 sm:w-2/3 h-full bg-white shadow-md md:hidden">
-          <DashMobileSidebar setSidebarOpen={setSidebarOpen} />
+          <DashMobileSidebar
+            setSidebarOpen={setSidebarOpen}
+            open={sidebarOpen}
+          />
         </div>
       )}
     </div>

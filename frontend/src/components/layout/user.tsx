@@ -78,10 +78,18 @@ function UserDropdown({ isMenuOpen, setIsMenuOpen }: UserDropdownProps) {
                 <ChevronRight size={16} />
               </DropdownMenuItem>
             </Link>
+            {admin && (
+              <Link href="/dashboard" className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer">
+                  <p>Dashboard</p>
+                  <ChevronRight size={16} />
+                </DropdownMenuItem>
+              </Link>
+            )}
 
             <DropdownMenuItem
               onClick={handleSignout}
-              className="cursor-pointer"
+              className="cursor-pointer bg-red-100 hover:bg-red-200 text-red-600"
             >
               Sign Out
             </DropdownMenuItem>
@@ -92,14 +100,9 @@ function UserDropdown({ isMenuOpen, setIsMenuOpen }: UserDropdownProps) {
           <Link href="/signin">Sign In</Link>
         </Button>
       )}
-      {!admin && (
-        <button
-          className="md:hidden"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          <Menu className="h-6 w-6" />
-        </button>
-      )}
+      <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+        <Menu className="h-6 w-6" />
+      </button>
     </div>
   );
 }
