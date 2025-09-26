@@ -9,6 +9,7 @@ import {
   getActiveDivisionsController,
   getAllDivisionController,
   getDepartmentsByDivisionController,
+  getDepartmentsEmployeesByDivisionController,
   getDivisionByIdController,
   getDivisionStatsController,
   getDivTreeByUserController,
@@ -68,6 +69,12 @@ router.get(
   authMiddleware,
   requireRole(AdminRole.SUPERADMIN, AdminRole.ASSISTANT),
   getDepartmentsByDivisionController
+);
+router.get(
+  "/dept-employee/:divisionId",
+  authMiddleware,
+  requireRole(AdminRole.SUPERADMIN, AdminRole.ASSISTANT),
+  getDepartmentsEmployeesByDivisionController
 );
 
 router.post(

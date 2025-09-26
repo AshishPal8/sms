@@ -291,6 +291,178 @@ export const getDepartmentsByDivisionService = async (divisionId: string) => {
   };
 };
 
+export const getDepartmentsEmployeesByDivisionService = async (
+  divisionId: string
+) => {
+  const division = await prisma.division.findUnique({
+    where: { id: divisionId },
+    select: {
+      id: true,
+      name: true,
+      departments: {
+        where: { isActive: true, isDeleted: false },
+        orderBy: { name: "asc" },
+        select: { id: true, name: true },
+      },
+    },
+  });
+
+  if (!division) {
+    return {
+      success: false,
+      message: "Division not found",
+      data: null,
+    };
+  }
+
+  const deptIds = (division.departments || []).map((d) => d.id);
+  if (deptIds.length === 0) {
+    return {
+      success: true,
+      message: "Division fetched (no departments)",
+      data: {
+        division: { id: division.id, name: division.name },
+        departments: [],
+      },
+    };
+  }
+
+  // fetch managers (ManagedDepartment) for these departments
+  const managedRows = await prisma.managedDepartment.findMany({
+    where: { departmentId: { in: deptIds } },
+    select: {
+      departmentId: true,
+      admin: {
+        select: {
+          id: true,
+          firstname: true,
+          lastname: true,
+          email: true,
+          profilePicture: true,
+          role: true,
+          managerId: true,
+          isActive: true,
+          isDeleted: true,
+        },
+      },
+    },
+  });
+
+  // fetch admins whose departmentId is in deptIds
+  const deptAdmins = await prisma.admin.findMany({
+    where: { departmentId: { in: deptIds } },
+    select: {
+      id: true,
+      firstname: true,
+      lastname: true,
+      email: true,
+      profilePicture: true,
+      role: true,
+      managerId: true,
+      departmentId: true,
+      isActive: true,
+      isDeleted: true,
+    },
+  });
+
+  // Build a map: departmentId -> Map(adminId -> adminObj) to dedupe
+  const deptMap: Record<
+    string,
+    Map<
+      string,
+      {
+        id: string;
+        firstname?: string | null;
+        lastname?: string | null;
+        email?: string | null;
+        profilePicture?: string | null;
+        role?: string | null;
+        managerId?: string | null;
+        isActive?: boolean;
+        isDeleted?: boolean;
+      }
+    >
+  > = {};
+
+  // initialize maps
+  for (const d of division.departments) {
+    deptMap[d.id] = new Map();
+  }
+
+  // add managed admins (managers)
+  for (const row of managedRows) {
+    const deptId = row.departmentId;
+    const a = row.admin;
+    if (!deptMap[deptId]) deptMap[deptId] = new Map();
+    deptMap[deptId].set(a.id, {
+      id: a.id,
+      firstname: a.firstname,
+      lastname: a.lastname,
+      email: a.email,
+      profilePicture: a.profilePicture,
+      role: a.role,
+      managerId: a.managerId ?? null,
+      isActive: a.isActive,
+      isDeleted: a.isDeleted,
+    });
+  }
+
+  // add department admins (technicians / regular admins)
+  for (const a of deptAdmins) {
+    const deptId = a.departmentId as string;
+    if (!deptMap[deptId]) deptMap[deptId] = new Map();
+    // If already present (e.g., manager also has deptId), this will overwrite with same fields — that's okay
+    deptMap[deptId].set(a.id, {
+      id: a.id,
+      firstname: a.firstname,
+      lastname: a.lastname,
+      email: a.email,
+      profilePicture: a.profilePicture,
+      role: a.role,
+      managerId: a.managerId ?? null,
+      isActive: a.isActive,
+      isDeleted: a.isDeleted,
+    });
+  }
+
+  // build normalized departments array
+  const normalizedDepartments = division.departments.map((dept) => {
+    const map = deptMap[dept.id] || new Map();
+    const employees = Array.from(map.values()).map((e) => ({
+      id: e.id,
+      firstname: e.firstname,
+      lastname: e.lastname,
+      email: e.email,
+      profilePicture: e.profilePicture,
+      role: e.role,
+      managerId: e.managerId,
+      isActive: e.isActive,
+      isDeleted: e.isDeleted,
+    }));
+
+    return {
+      id: dept.id,
+      name: dept.name,
+      employees,
+      totals: {
+        totalEmployees: employees.length,
+      },
+    };
+  });
+
+  return {
+    success: true,
+    message: "Division and departments fetched successfully",
+    data: {
+      division: {
+        id: division.id,
+        name: division.name,
+      },
+      departments: normalizedDepartments,
+    },
+  };
+};
+
 export const deleteDivisionService = async (id: string) => {
   const existingDivision = await prisma.division.findUnique({
     where: { id },
