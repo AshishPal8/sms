@@ -42,6 +42,7 @@ import useSettingsStore from "@/store/settings";
 import { format } from "date-fns";
 import { priorityStyles, statusStyles, urgencyStyles } from "@/styles/color";
 import { printReportAsPDF } from "@/lib/printToPdf";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const formSchema = z.object({
   divisionId: z.string().nullable().optional(),
@@ -54,7 +55,7 @@ type ReportFormValues = z.infer<typeof formSchema>;
 export const TicketReportsComp = () => {
   const [divisions, setDivisions] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
-  const [managers, setManagers] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<any[]>([]);
   const [report, setReport] = useState<any | null>(null);
   const reportRef = useRef<HTMLDivElement | null>(null);
 
@@ -103,7 +104,9 @@ export const TicketReportsComp = () => {
     }
     const fetchDepartments = async () => {
       try {
-        const res = await api.get(`/divisions/dept/${selectedDivisionId}`);
+        const res = await api.get(
+          `/divisions/dept-employee/${selectedDivisionId}`
+        );
         setDepartments(res.data?.data?.departments ?? []);
       } catch (err) {
         console.error("Failed to fetch departments", err);
@@ -115,12 +118,12 @@ export const TicketReportsComp = () => {
 
   useEffect(() => {
     if (!selectedDepartmentId) {
-      setManagers([]);
+      setEmployees([]);
       form.setValue("adminId", null);
       return;
     }
     const dept = departments.find((d) => d.id === selectedDepartmentId);
-    setManagers(dept?.managers ?? []);
+    setEmployees(dept?.employees ?? []);
   }, [selectedDepartmentId, departments]);
 
   const onSubmit = async (values: ReportFormValues) => {
@@ -496,7 +499,7 @@ export const TicketReportsComp = () => {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-8 w-full mt-4 grid grid-cols-4 gap-3"
+            className="space-y-8 w-full mt-4 grid grid-cols-4 gap-3 px-4"
           >
             <FormField
               control={form.control}
@@ -582,28 +585,47 @@ export const TicketReportsComp = () => {
                       disabled={
                         loading ||
                         !selectedDepartmentId ||
-                        managers.length === 0
+                        employees.length === 0
                       }
                     >
                       <SelectTrigger>
                         <SelectValue
                           placeholder={
-                            managers.length ? "Select employee" : "No employee"
+                            employees.length ? "Select employee" : "No employee"
                           }
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        {managers.length > 0 ? (
-                          managers.map((mgr: any) => (
-                            <SelectItem key={mgr.id} value={mgr.id}>
-                              {`${mgr.firstname ?? mgr.name ?? ""} ${
-                                mgr.lastname ?? ""
-                              }`.trim()}
+                        {employees.length > 0 ? (
+                          employees.map((emp: any) => (
+                            <SelectItem key={emp.id} value={emp.id}>
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage
+                                    src={emp.profilePicture || ""}
+                                    alt={`${emp.firstname} ${emp.lastname}`}
+                                  />
+                                  <AvatarFallback>
+                                    {emp.firstname?.[0]}
+                                    {emp.lastname?.[0]}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col items-start">
+                                  <span className="text-sm font-medium">
+                                    {`${emp.firstname ?? ""} ${
+                                      emp.lastname ?? ""
+                                    }`.trim()}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {emp.role}
+                                  </span>
+                                </div>
+                              </div>
                             </SelectItem>
                           ))
                         ) : (
-                          <SelectItem value="no-managers" disabled>
-                            No managers
+                          <SelectItem value="no-employee" disabled>
+                            No employee
                           </SelectItem>
                         )}
                       </SelectContent>
@@ -613,7 +635,6 @@ export const TicketReportsComp = () => {
                 </FormItem>
               )}
             />
-
             <Button disabled={loading} className="ml-auto" type="submit">
               Generate
             </Button>

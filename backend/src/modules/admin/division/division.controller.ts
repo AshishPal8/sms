@@ -6,6 +6,7 @@ import {
   getActiveDivisionsService,
   getAllDivisionService,
   getDepartmentsByDivisionService,
+  getDepartmentsEmployeesByDivisionService,
   getDivisionByIdService,
   getDivisionStatsService,
   getDivTreeByUserService,
@@ -143,6 +144,24 @@ export const getDepartmentsByDivisionController = async (
       throw new BadRequestError("Divison is required!");
     }
     const departments = await getDepartmentsByDivisionService(divisionId);
+    res.status(200).json(departments);
+  } catch (err) {
+    next(err);
+  }
+};
+export const getDepartmentsEmployeesByDivisionController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { divisionId } = req.params;
+    if (!divisionId) {
+      throw new BadRequestError("Divison is required!");
+    }
+    const departments = await getDepartmentsEmployeesByDivisionService(
+      divisionId
+    );
     res.status(200).json(departments);
   } catch (err) {
     next(err);
